@@ -351,6 +351,17 @@ select{font:500 17px var(--body);color:var(--fg);background:var(--bg);border:1px
 .btn:disabled{opacity:.6}
 .stack{display:flex;flex-direction:column;gap:10px}
 code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
+
+.lj-hoje{margin:0;font-size:14px;color:var(--muted)}.lj-hoje b{color:var(--fg)}
+.prod{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.prod>div:first-child{display:flex;flex-direction:column;gap:2px;min-width:0}.prod small{color:var(--muted);font-size:12px}.prod b{overflow-wrap:anywhere}
+.prod .num{color:var(--accent);font-weight:700;white-space:nowrap}.prod-ac{display:flex;gap:10px;align-items:center}.prod.off{opacity:.5}
+.lote-l{border:1px dashed var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}.lote-l>.row{justify-content:space-between}
+.vt-loja{border:1px solid var(--line);border-radius:14px;overflow:hidden}.vt-loja.open{border-color:var(--accent)}
+.vt-h{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;padding:12px;cursor:pointer}
+.vt-ico{font-size:22px}.vt-t{flex:1;display:flex;flex-direction:column;min-width:0}.vt-t small{color:var(--muted);font-size:12px}
+.vt-n{font-size:12px;color:var(--muted);white-space:nowrap}.vt-prods{display:flex;flex-direction:column;gap:8px;padding:0 12px 12px}
+.pill.loja{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -371,7 +382,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
       <button type="button" data-tema="light" aria-pressed="false">Claro</button>
       <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
     </div>
-    <p class="lead">Anote seus turnos, ganhos e gastos, e veja quanto você ganha de verdade por hora.</p>
+    <p class="lead">Coleta e envios em Goiânia: peça uma entrega, um frete ou receba corridas como entregador.</p>
     <div class="card">
       <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
       <form id="fAuth">
@@ -389,7 +400,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
         <button class="link" id="a-reset" type="button">Esqueci a senha</button>
       </div>
     </div>
-    <p class="hint">Cada entregador tem a própria conta. Ninguém vê os seus números.</p>
+    <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
   </section>
 
   <section id="s-dados" class="auth" hidden>
@@ -992,6 +1003,14 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
         <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
       <div class="card pd-disp" id="pd-disp"></div>
       <div class="card dmap-card" id="pd-dmap-w" hidden><div class="dmap" id="pd-dmap"></div><p class="hint" id="pd-dtxt" style="margin:0"></p></div>
+      <div class="card stack" id="lj-painel" hidden>
+        <div><div class="eyebrow">🏪 Pedido rápido da loja</div><h2 id="lj-titulo" style="margin:2px 0 0"></h2><p class="hint" id="lj-coleta" style="margin:4px 0 0"></p></div>
+        <p class="lj-hoje" id="lj-hoje"></p>
+        <form id="fLote" class="stack"><div id="lj-linhas" class="stack"></div>
+          <button type="button" class="btn ghost full" id="lj-mais">+ Adicionar outra entrega</button>
+          <button class="btn full" id="lj-enviar">Pedir entrega</button></form>
+        <button type="button" class="link" id="lj-completo" style="align-self:center"></button>
+      </div>
       <form id="fPedir" class="card stack">
         <div class="seg" id="pf-tipo" role="group" aria-label="Tipo de pedido">
           <button type="button" data-pt="entrega" aria-pressed="true">🛵 Entrega rápida</button>
@@ -1026,6 +1045,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
         <button class="btn full" type="submit" id="pf-btn">Pedir entrega</button>
         <p class="hint" style="margin:0">Depois que alguém aceitar, você paga pelo app por Pix (com taxa de serviço: 6% do Cadernex + a taxa do Pix) ou combina direto com o entregador. Os endereços só aparecem pra quem aceitar.</p>
       </form>
+      <div class="card stack" id="vitrine" hidden><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div><div id="vt-lista" class="stack" style="gap:8px"></div></div>
     </div>
   </section>
 
@@ -1049,6 +1069,23 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
         <button class="btn full" type="submit">Salvar</button>
       </form>
       <p class="hint rel-cont" style="margin:0"></p>
+      <div class="card stack" id="lj-card"><h2>Minha loja</h2>
+        <label class="check"><input type="checkbox" id="lj-on"> <span>Sou uma loja ou comércio</span></label>
+        <form id="fLoja" class="stack" hidden>
+          <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" placeholder="ex.: Açaí do Setor"></label>
+          <label>Endereço de coleta<input type="text" id="lj-end" placeholder="Rua, número, onde o entregador busca"></label>
+          <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" placeholder="ex.: Setor Bueno"></label><label>Horário<input type="text" id="lj-horario" maxlength="40" placeholder="ex.: 10h às 22h"></label></div>
+          <label>WhatsApp da loja (aparece na vitrine)<input type="tel" id="lj-whats" placeholder="(62) 99999-9999"></label>
+          <label>CNPJ (opcional)<input type="text" inputmode="numeric" id="lj-cnpj" placeholder="só se tiver"></label>
+          <p class="hint" id="lj-msg" style="margin:0;color:var(--bad,#d33)"></p>
+          <button class="btn full" type="submit">Salvar loja</button>
+        </form>
+        <div id="lj-prod-w" class="stack" hidden><h2>Produtos e preços</h2><div id="lj-prods" class="stack" style="gap:8px"></div>
+          <form id="fProd" class="stack lote-l">
+            <div class="grid2"><label>Produto<input type="text" id="pr-nome" maxlength="60" placeholder="ex.: Açaí 500 ml"></label><label>Preço (R$)<input type="text" inputmode="decimal" id="pr-preco" placeholder="0,00"></label></div>
+            <label>Descrição (opcional)<input type="text" id="pr-desc" maxlength="140" placeholder="ex.: com granola e leite em pó"></label>
+            <button class="btn ghost full" type="submit">+ Adicionar produto</button></form></div>
+      </div>
       <div class="card stack"><h2>Quer rodar também?</h2><p class="hint" style="margin:0">Vire entregador e tenha o Cadernex completo: controle de ganhos, corridas, faculdade e a Resenha.</p><button class="btn ghost full" id="pc-virar" type="button">Quero ser entregador também</button></div>
       <button class="btn ghost full" type="button" data-go="config">Configurações, tema e sair</button>
     </div>
@@ -1083,6 +1120,7 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
 <script src="pix.js"></script>
 <script src="mp.js"></script>
 <script src="veiculo.js"></script>
+<script src="loja.js"></script>
 <script src="ajustes.js"></script>
 </body>
 </html>
