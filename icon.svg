@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#15171a"/><path d="M96 330h320" stroke="#f0b429" stroke-width="28" stroke-linecap="round" stroke-dasharray="60 40"/><text x="256" y="265" text-anchor="middle" font-family="Arial Narrow,Arial,sans-serif" font-weight="700" font-size="190" fill="#eceae4">R$</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" fill="#0c0e11"/>
+<g transform="translate(-12 -40)">
+<path d="M70 372h372" stroke="#3a3f47" stroke-width="10" stroke-linecap="round" stroke-dasharray="34 24"/>
+<!-- picape genérica -->
+<g>
+<rect x="236" y="226" width="56" height="44" rx="5" fill="#f3ba2f" stroke="#0c0e11" stroke-width="6"/><path d="M264 229v38M239 248h50" stroke="#0c0e11" stroke-width="4" opacity=".5"/>
+<path d="M226 286q0-18 18-18h56l20-52q4-10 15-10h44q10 0 16 8l38 54h24q22 0 22 22v28q0 10-10 10H236q-10 0-10-10z" fill="#eaecef"/>
+<path d="M226 268h74" stroke="#eaecef" stroke-width="12" stroke-linecap="round"/>
+
+<path d="M330 222q3-6 9-6h34q6 0 10 5l30 45h-91z" fill="#0c0e11"/>
+<path d="M366 216v52" stroke="#eaecef" stroke-width="7"/>
+<path d="M238 276h56" stroke="#0c0e11" stroke-width="8" stroke-linecap="round"/><path d="M304 270v34" stroke="#0c0e11" stroke-width="6"/>
+<circle cx="274" cy="328" r="38" fill="#0c0e11"/><circle cx="408" cy="328" r="38" fill="#0c0e11"/>
+<circle cx="274" cy="328" r="26" fill="#eaecef"/><circle cx="408" cy="328" r="26" fill="#eaecef"/>
+<circle cx="274" cy="328" r="10" fill="#0c0e11"/><circle cx="408" cy="328" r="10" fill="#0c0e11"/>
+</g>
+<!-- moto (na frente) -->
+<g stroke-linecap="round" stroke-linejoin="round" transform="translate(84 372) scale(.86) translate(-84 -372)">
+<g stroke="#0c0e11" stroke-width="30" fill="none">
+<circle cx="118" cy="336" r="34"/><circle cx="236" cy="336" r="34"/>
+<path d="M118 336l52-30h40M236 336l-14-62"/>
+</g>
+<path d="M118 336l52-30h40M236 336l-14-62M212 268l24-6" stroke="#f3ba2f" stroke-width="13" fill="none"/>
+<circle cx="118" cy="336" r="34" stroke="#f3ba2f" stroke-width="13" fill="none"/>
+<circle cx="236" cy="336" r="34" stroke="#f3ba2f" stroke-width="13" fill="none"/>
+<path d="M150 288q0-10 10-10h30q8-16 26-14l10 2-6 34h-58q-12 0-12-12z" fill="#f3ba2f" stroke="#0c0e11" stroke-width="6"/>
+<rect x="162" y="300" width="44" height="30" rx="8" fill="#f3ba2f" stroke="#0c0e11" stroke-width="6"/>
+</g>
+</g>
+</svg>
