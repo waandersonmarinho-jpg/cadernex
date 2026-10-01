@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0e11">
+<script>try{var t=localStorage.getItem("cx-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta name="description" content="Controle de turnos, ganhos e despesas para entregadores.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Cadernex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+
+/* Layout: app de uma coluna para celular — resumo no topo, abas fixas embaixo, tipografia de placa de estrada */
+:root{
+  --bg:#f7f5ef; --surface:#ffffff; --line:#e4dfd2; --fg:#14161a; --muted:#666b73;
+  --accent:#e0a800; --accent-ink:#14161a; --accent-soft:#f8ebc4;
+  --good:#16865a; --bad:#cf304a; --money:#8a6200;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c0e11; --surface:#171a1f; --line:#262a31; --fg:#eaecef; --muted:#8b93a1;
+  --accent:#f3ba2f; --accent-ink:#0c0e11; --accent-soft:#2e2610; --good:#2ebd85; --bad:#f6465d; --money:#f7d774; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c0e11; --surface:#171a1f; --line:#262a31; --fg:#eaecef; --muted:#8b93a1;
+  --accent:#f3ba2f; --accent-ink:#0c0e11; --accent-soft:#2e2610; --good:#2ebd85; --bad:#f6465d; --money:#f7d774; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:16px 110px;display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1}
+h2{font-size:21px}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.sync{font-size:12px;color:var(--muted);white-space:nowrap}
+.row>span:first-child{white-space:nowrap}
+.row>span:last-child{text-align:right}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.hero{display:flex;flex-direction:column;gap:14px}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px var(--body);padding:8px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.big{font-family:var(--display);font-size:46px;line-height:1;font-weight:700;color:var(--money)}
+.big small{font-size:18px;color:var(--muted);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat b{font-family:var(--display);font-size:24px;font-weight:700}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.hl{background:var(--bg);box-shadow:inset 0 0 0 1px var(--accent)}
+.stat.hl b{color:var(--money)}
+.stat.wide{grid-column:1/-1}
+.stat.gasto span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bad);margin-right:6px;vertical-align:1px}
+.meta-pc{color:var(--money);font-family:var(--display);font-size:17px;margin-left:6px}
+.velho{font-size:14px;line-height:1.4;background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin:0;grid-column:1/-1}
+.meta{display:flex;flex-direction:column;gap:6px}
+.bar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .4s}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted)}
+.row h2{color:var(--fg)}
+.chart{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:120px}
+.col{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.col .b{width:100%;background:var(--accent);border-radius:5px 5px 2px 2px;min-height:2px}
+.col .b.zero{background:var(--line)}
+.col span{font-size:11px;color:var(--muted)}
+.col em{font-style:normal;font-size:10px;color:var(--muted)}
+.timer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px}
+.timer .clock{font-family:var(--display);font-size:34px;font-weight:700}
+.btn{border:0;border-radius:12px;padding:13px 16px;font:600 16px var(--body);cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.full{width:100%}
+.btn:focus-visible,.seg button:focus-visible,input:focus-visible,select:focus-visible,.tab:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+form{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:500;min-width:0}
+input,select{font:500 17px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:7px 13px;font:500 14px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.list{display:flex;flex-direction:column}
+.item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .l{flex:1;min-width:0}
+.item .t{font-weight:600}
+.item .s{font-size:13px;color:var(--muted)}
+.item .v{font-family:var(--display);font-size:20px;font-weight:700;text-align:right}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.del{border:0;background:transparent;color:var(--muted);font:600 13px var(--body);padding:6px;cursor:pointer;border-radius:6px}
+.del.armed{color:#fff;background:var(--bad)}
+.daylabel{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:12px}
+.empty{color:var(--muted);font-size:15px;padding:8px 0}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav .in{display:flex;max-width:560px;width:100%}
+.tab{flex:1;min-width:0;border:0;background:transparent;color:var(--muted);font:600 12px var(--body);padding:10px 2px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--fg)}
+.tab[aria-current="page"] svg{color:var(--accent)}
+.mod{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.mod summary{list-style:none;display:flex;gap:12px;align-items:center;padding:14px 16px;cursor:pointer}
+.mod summary::-webkit-details-marker{display:none}
+.mod summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mod summary::after{content:"+";margin-left:auto;font:600 22px var(--display);color:var(--muted)}
+.mod[open] summary::after{content:"−"}
+.step{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 19px var(--display)}
+.mt{display:flex;flex-direction:column;font:700 19px var(--display);line-height:1.15;min-width:0}
+.mt small{font:500 13px var(--body);color:var(--muted)}
+.mb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.mb p{margin:0}
+.mb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.aviso{font-size:13px;font-weight:600;background:var(--accent-soft);border-radius:8px;padding:8px 10px}
+.live{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted)}
+.live b{font:700 22px var(--display);color:var(--fg)}
+.kv{width:100%;border-collapse:collapse;font-size:14px}
+.kv td{padding:8px 0;border-top:1px solid var(--line);vertical-align:top}
+.kv td:first-child{font-weight:600;padding-right:12px;width:38%}
+.calc{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.calc input{background:var(--surface)}
+.calc-out{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.calc-out div{display:flex;flex-direction:column;gap:2px}
+.calc-out div b{font:700 19px var(--display)}
+.calc-out span{font-size:12px;color:var(--muted)}
+.calc-out p{grid-column:1/-1;margin:0;font-size:13px;color:var(--muted)}
+.next{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--accent-soft);border-color:transparent}
+.next .clock{font:700 34px var(--display)}
+.next p{margin:0;text-align:right;max-width:22ch}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.tl li:first-child{border-top:0}
+.tl time{font:700 16px var(--display);color:var(--muted)}
+.tl li.hot time{color:var(--fg)}
+.tl li.hot time::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:middle}
+.step{font-size:15px}
+.chips.dias{flex-wrap:nowrap;overflow-x:auto;gap:6px}
+.chips.dias .chip{flex:1;padding:7px 0;min-width:40px}
+.chip.hoje{font-weight:700}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+.legenda span{display:flex;align-items:center;gap:5px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.t-aula{--c:#3d7bd9}.t-trabalho{--c:#8a8f98}.t-outro{--c:#9b6bd1}.t-rodar{--c:var(--accent)}
+.dot.t-aula,.dot.t-trabalho,.dot.t-outro,.dot.t-rodar{background:var(--c)}
+.tl-wrap{position:relative}
+.tl{position:relative;margin-left:36px;border-left:1px solid var(--line)}
+.tl-h{position:absolute;left:0;right:0;border-top:1px dashed var(--line)}
+.tl-h span{position:absolute;left:-36px;top:-8px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tl-pico{position:absolute;left:0;right:0;background:var(--accent-soft);opacity:.45}
+.tl-b{position:absolute;left:6px;right:4px;border-radius:8px;padding:3px 8px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;font-size:12px;line-height:1.2;background:color-mix(in srgb,var(--c) 22%,var(--surface));border-left:4px solid var(--c);color:var(--fg)}
+.tl-b b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-b span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-b.t-rodar{left:40%;background:color-mix(in srgb,var(--accent) 30%,var(--surface))}
+table.sem{width:100%;border-collapse:collapse;font-size:14px}
+.sem th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 6px 6px 0}
+.sem td{padding:8px 6px 8px 0;border-top:1px solid var(--line);vertical-align:top}
+.sem tr[data-d]{cursor:pointer}
+.sem tr.sel td{background:var(--accent-soft)}
+.sem td:first-child{font-weight:700}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.p-warn{background:var(--accent-soft);color:var(--fg)}
+.p-bad{background:color-mix(in srgb,var(--bad) 18%,var(--surface));color:var(--bad)}
+.chk{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center}
+.chk[aria-pressed="true"]{background:var(--good);border-color:var(--good)}
+.chk[aria-pressed="true"]::after{content:"✓";color:#fff;font-weight:700;font-size:15px}
+.item.done .t{text-decoration:line-through;color:var(--muted)}
+.mod.add{margin-top:10px;background:var(--bg);border:0}
+.mod.add summary{padding:12px 14px}
+.mod.add .mt{font:600 15px var(--body)}
+.mod.add .mb{padding:0 14px 14px}
+.gcat{display:flex;flex-direction:column;gap:4px}
+.hj{display:flex;align-items:center;gap:10px;font-size:15px}
+.hj .num{font-weight:600;min-width:98px}
+.maisbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;cursor:pointer;color:var(--fg);font:inherit}
+.maisbtn b{font:700 21px var(--display)}
+.maisbtn span{color:var(--muted);font-size:14px}
+.cofre{background:linear-gradient(180deg,var(--accent-soft),var(--surface) 70%)}
+.cofre .stat{background:var(--surface)}
+.maisbtn.destaque{border-color:var(--accent)}
+.trilha summary .mt small{white-space:normal}
+.lic{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.lic:first-child{border-top:0;padding-top:0}
+.lic-h{display:flex;gap:10px;align-items:baseline}
+.lic-h b{font:700 18px var(--display)}
+.lic-n{flex:none;font:700 14px var(--display);color:var(--muted);min-width:22px}
+.lic p{margin:0}
+.faca{font-size:14px;background:var(--bg);border-radius:8px;padding:8px 10px}
+.faca span{font-weight:700;color:var(--accent)}
+.lic.ok .lic-h b{color:var(--muted)}
+.lic-b{align-self:flex-start;padding:8px 14px;font-size:14px}
+.lock{background:var(--bg);border-radius:10px;padding:12px}
+.lock p{margin:4px 0 8px;font-size:14px}
+.lock-l{margin:0;padding-left:18px;color:var(--muted);font-size:14px;filter:blur(.4px)}
+.apoio{border-color:var(--accent)}
+.apoio p{margin:6px 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tab{position:relative}
+.nb{position:absolute;top:4px;left:calc(50% + 6px);background:var(--bad);color:#fff;font:700 10px var(--body);border-radius:999px;padding:1px 5px;min-width:16px;text-align:center}
+#v-chat{display:flex;flex-direction:column;gap:10px}
+#v-chat[hidden]{display:none!important}
+.ch-top{display:flex;flex-direction:column;gap:8px}
+.ch-lista{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;height:calc(100dvh - 370px);min-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.ch-vazio{margin:auto;text-align:center;display:flex;flex-direction:column;gap:4px;color:var(--muted);max-width:28ch}
+.ch-vazio b{color:var(--fg)}
+.ch-dia{align-self:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:4px 0}
+.ch-m{display:flex;flex-direction:column;align-items:flex-start;max-width:85%;cursor:pointer}
+.ch-m.meu{align-self:flex-end;align-items:flex-end}
+.ch-b{background:var(--bg);border-radius:14px 14px 14px 4px;padding:7px 11px;min-width:0;max-width:100%}
+.ch-m.meu .ch-b{background:var(--accent-soft);border-radius:14px 14px 4px 14px}
+.ch-m.oculta .ch-b{opacity:.5}
+.ch-n{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:1px}
+.ch-t{font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ch-h{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
+.selo{font-size:10px;font-weight:700;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:1px 6px;vertical-align:1px}
+.ch-acoes{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ch-acoes button{border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 12px var(--body);border-radius:999px;padding:5px 10px;cursor:pointer}
+.ch-acoes button[data-apagar],.ch-acoes button[data-denunciar]{color:var(--bad)}
+.ch-form{display:flex;flex-direction:row;gap:8px;align-items:flex-end;position:relative}
+.ch-form textarea{flex:1;min-width:0;font:500 16px var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;resize:none;max-height:120px}
+.ch-form textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ch-cont{position:absolute;right:92px;bottom:4px;font-size:11px;color:var(--muted)}
+.ch-regras{margin:0;font-size:12px}
+body.cli .so-ent{display:none!important}
+body:not(.cli) .so-cli{display:none!important}
+body.cli #timerCard,body.cli #hojeCard{display:none}
+.tipo-op{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tipo-op button{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer;font:inherit}
+.tipo-op button b{font:700 18px var(--display)}
+.tipo-op button span{font-size:13px;color:var(--muted)}
+.tipo-op button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.disp-on{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dot-on{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--good);margin-right:6px;box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 25%,transparent)}
+#co-nota,.pd-disp{display:flex;flex-direction:column;gap:2px}
+.pd-disp{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.pd-disp b{width:100%;font:700 18px var(--display)}
+.pd-disp>span:not(.pill){width:100%;color:var(--muted);font-size:14px}
+#co-nota b{font:700 20px var(--display)}
+#co-nota span{color:var(--muted);font-size:14px}
+.corr{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.corr.open{border-color:var(--accent)}
+.corr-h{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.corr-h .l{flex:1;min-width:0}
+.corr-h .t{font:700 18px var(--display)}
+.corr-h .s{font-size:13px;color:var(--muted)}
+.corr-v{font:700 22px var(--display);color:var(--good);white-space:nowrap}
+.corr-meta{display:flex;gap:6px;flex-wrap:wrap}
+.st-aberta{background:var(--accent-soft);color:var(--fg)}
+.st-aceita,.st-coletada{background:color-mix(in srgb,var(--good) 20%,var(--surface));color:var(--fg)}
+.st-entregue{background:var(--bg)}
+.st-cancelada{background:var(--bg);text-decoration:line-through}
+.corr-pessoa{margin:0;font-size:14px}
+.corr-end{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.corr-end>div{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.corr-end p{margin:0;font-size:14px;overflow-wrap:anywhere}
+.mbtn{font-size:13px;font-weight:600;color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+.mlinks{display:flex;gap:14px}
+.gps{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.gps .hint{margin:0}
+.gps-h{display:flex;align-items:center;gap:8px}
+.gps-dot{width:10px;height:10px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 25%,transparent);animation:gpsp 1.6s ease-in-out infinite}
+.gps-dot.off{background:var(--muted);box-shadow:none;animation:none}
+@keyframes gpsp{50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--good) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.gps-dot{animation:none}}
+.gps-mapa{margin:-12px -12px 4px;border-radius:10px 10px 0 0;overflow:hidden}
+.rmap{height:240px;background:var(--line)}
+.fc-card{display:flex;flex-direction:column;gap:12px}
+.fc-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fc-it{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.fc-it .l{display:flex;flex-direction:column;min-width:0}.fc-it b{font-weight:600;overflow-wrap:anywhere}.fc-it span{font-size:13px;color:var(--muted)}
+.fc-it.sua b{color:var(--money)}.fc-it.sua span{color:var(--good)}
+.rpin.fac{background:var(--surface);font-size:14px}.rpin.fac.sua{background:var(--accent);width:32px!important;height:32px!important;margin:-16px 0 0 -16px!important}
+.rpin.voce{background:#2f80ed;color:#fff;font-size:10px}
+.vf-prev{width:100%;max-height:220px;object-fit:cover;border-radius:10px;background:var(--bg)}
+.vf-ok{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:10px;padding:8px}
+.vf-ok img{width:72px;height:54px;object-fit:cover;border-radius:8px;flex:none}
+.vf-ok div{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.vf-ok b{color:var(--good)}
+.vf-falta{display:flex;flex-direction:column;gap:6px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}.vf-falta .hint{margin:0;font-size:13px}
+.vf-cli{margin:0;display:flex;flex-direction:column;gap:4px}.vf-cli img{width:100%;max-height:200px;object-fit:cover;border-radius:10px}
+.vf-cli figcaption{font-size:13px;color:var(--muted)}
+.pill.frete{background:var(--accent);color:var(--accent-ink)}.pill.agenda{background:var(--accent-soft);color:var(--fg)}
+.placa{font-family:var(--display);letter-spacing:.06em;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.placa-w{display:flex;flex-direction:column;gap:10px}
+#pf-tipo button{font-size:13px}
+.mpbox:empty{display:none}
+.mp-box{display:flex;flex-direction:column;gap:10px;background:var(--bg);border-radius:10px;padding:12px;box-shadow:inset 0 0 0 1px var(--accent)}
+.mp-linhas{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}.mp-linhas span{color:var(--muted)}.mp-linhas b{font-size:16px}.mp-linhas b.num{color:var(--money)}
+.mp-pago{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good);font-weight:600;border-radius:10px;padding:10px 12px}
+.pixbox{display:flex;flex-direction:column;gap:6px}
+.pix-k{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border-radius:10px;padding:12px;box-shadow:inset 0 0 0 1px var(--accent)}
+.pix-k>div{display:flex;flex-direction:column;gap:2px;min-width:0}.pix-k b{font:700 21px var(--display);color:var(--money);white-space:nowrap}.pix-k .hint{margin:0;font-size:12px}
+.pix-on{color:var(--good);font-weight:600}
+.dmap-w{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.dmap{height:220px;border-radius:10px;overflow:hidden;background:var(--line)}
+.dmap-card{display:flex;flex-direction:column;gap:10px;padding:0 0 12px;overflow:hidden}
+.dmap-card .dmap{border-radius:0}.dmap-card .hint{padding-inline:16px}
+.rpin.mot.on{background:var(--good)}
+.rpin.on{box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 55%,transparent),0 1px 4px rgba(0,0,0,.35);animation:pinp 1.8s ease-in-out infinite}
+@keyframes pinp{50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--good) 0%,transparent),0 1px 4px rgba(0,0,0,.35)}}
+@media (prefers-reduced-motion:reduce){.rpin.on{animation:none}}
+.rpin{display:grid;place-items:center;border-radius:50%;font:700 13px var(--body);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.rpin.col{background:#1d1f22;color:#fff}.rpin.ent{background:var(--good);color:#fff}
+.rpin.mot{background:var(--accent);font-size:15px;width:32px!important;height:32px!important;margin:-16px 0 0 -16px!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rmap .leaflet-tile-pane,:root:not([data-theme="light"]) .dmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
+:root[data-theme="dark"] .rmap .leaflet-tile-pane,:root[data-theme="dark"] .dmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+a.btn{text-align:center;text-decoration:none;display:block}
+.corr-ac{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.corr-ac .link{align-self:center}
+.estrelas{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.estrelas span{font-size:14px;margin-right:6px}
+.estrelas button{border:0;background:none;font-size:30px;line-height:1;color:var(--accent);cursor:pointer;padding:2px}
+.corr-chat{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.cc-lista{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.cc-m{align-self:flex-start;background:var(--bg);border-radius:12px;padding:6px 10px;max-width:85%;font-size:14px;display:flex;flex-direction:column;overflow-wrap:anywhere}
+.cc-m.meu{align-self:flex-end;background:var(--accent-soft)}
+.cc-m small{font-size:10px;color:var(--muted);text-align:right}
+.cc-form{display:flex;flex-direction:row;gap:8px}
+.cc-form input{flex:1}
+.rel-link{align-self:flex-start;font-size:13px;color:var(--muted)}
+.rel-form{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.rel-form input{background:var(--surface)}
+.rel-form .row{align-items:center}
+.end-g{display:flex;flex-direction:column;gap:8px}
+.loc{align-self:flex-start;padding:0;font-size:14px}
+.adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
+.adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
+textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
+@media (max-width:380px){.corr-end{grid-template-columns:1fr}}
+label.check{flex-direction:row;align-items:flex-start;gap:10px;font-size:14px;color:var(--fg)}
+label.check input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--accent)}
+label.check a{color:var(--fg)}
+select{font:500 17px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+.cad-aviso{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.preco{margin:-4px 0 0;font-size:14px;border-radius:8px;padding:8px 10px;background:var(--bg)}
+.preco.ok{background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.preco.baixo{background:color-mix(in srgb,var(--bad) 14%,var(--surface))}
+.pill.justo{background:color-mix(in srgb,var(--good) 18%,var(--surface));color:var(--fg)}
+.pill.abaixo{background:color-mix(in srgb,var(--bad) 16%,var(--surface));color:var(--fg)}
+.longos{align-self:center;font-size:14px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:9}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.warn{font-size:14px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.auth{display:flex;flex-direction:column;gap:16px;padding-top:6vh}
+.auth .lead{font-size:16px;color:var(--muted);margin:0;max-width:34ch}
+.link{border:0;background:transparent;color:var(--fg);font:600 15px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 0}
+.msg{font-size:14px;color:var(--bad);min-height:1em;margin:0}
+.btn:disabled{opacity:.6}
+.stack{display:flex;flex-direction:column;gap:10px}
+code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow" id="ola">Envios e entregas</div><h1>Cadernex</h1></div>
+    <div class="sync" id="sync">Carregando…</div>
+  </header>
+  
+  <section id="s-setup" class="card stack" hidden>
+    <h2>Falta configurar</h2>
+    <p class="hint">Abra o arquivo <code>config.js</code> e cole a Project URL e a chave anon do seu projeto no Supabase. O passo a passo está no LEIA-ME.</p>
+  </section>
+
+  <section id="s-auth" class="auth" hidden>
+    <div class="seg" role="group" aria-label="Tema do app" style="max-width:260px;margin-left:auto;margin-bottom:10px;background:var(--surface);border:1px solid var(--line)">
+      <button type="button" data-tema="auto" aria-pressed="true">Auto</button>
+      <button type="button" data-tema="light" aria-pressed="false">Claro</button>
+      <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
+    </div>
+    <p class="lead">Anote seus turnos, ganhos e gastos, e veja quanto você ganha de verdade por hora.</p>
+    <div class="card">
+      <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
+      <form id="fAuth">
+        <div id="a-tipo-w" hidden><div class="eyebrow" style="margin-bottom:6px">Você quer</div><div class="tipo-op" id="a-tipo" role="radiogroup">
+          <button type="button" role="radio" data-tipo="entregador" aria-checked="true"><b>Rodar</b><span>Sou entregador de moto ou bike</span></button>
+          <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Pedir entregas</b><span>Sou cliente ou comércio</span></button></div></div>
+        <label id="a-nome-w" hidden>Seu nome<input type="text" id="a-nome" autocomplete="name" placeholder="como quer ser chamado"></label>
+        <label>E-mail<input type="email" id="a-email" autocomplete="email" required></label>
+        <label>Senha<input type="password" id="a-senha" autocomplete="current-password" minlength="6" required></label>
+        <p class="msg" id="a-msg" role="status"></p>
+        <button class="btn full" id="a-btn" type="submit">Entrar</button>
+      </form>
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <button class="link" id="a-swap" type="button">Não tenho conta ainda</button>
+        <button class="link" id="a-reset" type="button">Esqueci a senha</button>
+      </div>
+    </div>
+    <p class="hint">Cada entregador tem a própria conta. Ninguém vê os seus números.</p>
+  </section>
+
+  <section id="s-dados" class="auth" hidden>
+    <div class="card">
+      <h2 style="margin-bottom:4px">Complete seu cadastro</h2>
+      <p class="hint" style="margin:0 0 12px">Pedido uma vez só. Serve pra segurança de quem pede e de quem entrega nas corridas.</p>
+      <form id="fDados" class="stack">
+        <label>Nome completo<input type="text" id="dd-nome" autocomplete="name" maxlength="120" required></label>
+        <label>Celular com DDD<input type="tel" id="dd-cel" autocomplete="tel" inputmode="numeric" placeholder="(62) 99999-9999" required></label>
+        <div class="grid2">
+          <label>Data de nascimento<input type="date" id="dd-nasc" autocomplete="bday" required></label>
+          <label>CPF<input type="text" id="dd-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required></label>
+        </div>
+        <label>Nacionalidade<select id="dd-nac"><option>Brasileira</option><option>Venezuelana</option><option>Haitiana</option><option>Boliviana</option><option>Paraguaia</option><option>Colombiana</option><option>Outra</option></select></label>
+        <div id="dd-vei-w" class="stack" hidden style="gap:8px">
+          <div class="eyebrow">Seu veículo de trabalho</div>
+          <div class="chips" id="dd-vei"></div>
+          <div class="eyebrow" id="dd-foto-lbl">Foto da sua bike</div>
+          <img id="dd-prev" class="vf-prev" alt="Prévia da foto do veículo" hidden>
+          <button class="btn ghost full" type="button" id="dd-foto-btn">📷 Tirar ou escolher foto da bike</button>
+          <input type="file" id="dd-file" accept="image/*" hidden>
+          <div id="dd-placa-w" class="placa-w" hidden>
+            <div class="grid2"><label>Placa<input type="text" id="dd-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
+            <label>CNH<select id="dd-cnh"><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
+            <label>RNTRC (opcional)<input type="text" id="dd-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
+          </div>
+          <p class="hint" style="margin:0;font-size:12px">Foto do veículo inteiro, de lado e com boa luz. Fica guardada com segurança: só o cliente de uma corrida sua vê, pra reconhecer você na coleta.</p>
+        </div>
+        <label class="check"><input type="checkbox" id="dd-ok"> <span>Li e aceito a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+        <p class="msg" id="dd-msg" role="status"></p>
+        <button class="btn full" id="dd-btn" type="submit">Salvar e continuar</button>
+      </form>
+      <p class="hint" style="margin:10px 0 0;font-size:12px">Seu CPF e sua data de nascimento ficam guardados com segurança. Nenhum outro usuário vê esses dados. Quem pede ou entrega vê só o seu primeiro nome.</p>
+    </div>
+    <button class="link" type="button" id="dd-depois" style="align-self:center">Fazer depois (sem corridas por enquanto)</button>
+  </section>
+
+  <div id="s-app" hidden style="display:contents">
+
+  <!-- RESUMO -->
+  <section id="v-resumo" class="view" style="display:flex;flex-direction:column;gap:18px">
+    <div class="card timer" id="timerCard">
+      <div><div class="eyebrow" id="timerLbl">Fora de turno</div><div class="clock num" id="clock">00:00</div></div>
+      <button class="btn" id="timerBtn" type="button">Começar turno</button>
+      <p class="velho" id="turnoVelho" hidden></p>
+    </div>
+
+    <div class="card" id="hojeCard" hidden>
+      <div class="row" style="margin-bottom:8px"><h2>Hoje</h2><button class="link" type="button" data-go="agenda" style="padding:0">Ver agenda</button></div>
+      <div id="hojeList" class="stack" style="gap:6px"></div>
+    </div>
+
+    <div class="card hero">
+      <div class="seg" role="group" aria-label="Período">
+        <button type="button" data-p="hoje" aria-pressed="false">Hoje</button>
+        <button type="button" data-p="semana" aria-pressed="true">Semana</button>
+        <button type="button" data-p="mes" aria-pressed="false">Mês</button>
+      </div>
+      <div>
+        <div class="eyebrow">Sobrou no bolso (ganhos − despesas)</div>
+        <div class="big num" id="liq">R$ 0,00</div>
+      </div>
+      <div class="stats">
+        <div class="stat hl"><span>Por hora, líquido</span><b class="num" id="phora">—</b></div>
+        <div class="stat"><span>Horas rodadas</span><b class="num" id="horas">0h</b></div>
+        <div class="stat"><span>Ganhos (app + gorjeta)</span><b class="num pos" id="bruto">R$ 0</b></div>
+        <div class="stat gasto"><span>Despesas</span><b class="num" id="desp">R$ 0</b></div>
+        <div class="stat" id="pkmBox"><span>Por km rodado</span><b class="num" id="pkm">—</b></div>
+        <div class="stat" id="nturnosBox"><span>Turnos</span><b class="num" id="nturnos">0</b></div>
+      </div>
+      <div class="meta" id="metaBox">
+        <div class="row"><span>Meta da semana<b class="num meta-pc" id="metaPc"></b></span><span class="num" id="metaTxt">—</span></div>
+        <div class="bar"><i id="metaBar" style="width:0%"></i></div>
+      </div>
+      <p class="hint" id="res10" data-go="negocio" style="margin:0;cursor:pointer"></p>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:12px"><h2>Últimos 7 dias</h2><span>ganho líquido</span></div>
+      <div class="chart" id="chart"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:6px">Melhor horário</h2>
+      <p class="hint" id="best">Registre alguns turnos que eu mostro em qual faixa do dia você ganha mais por hora.</p>
+    </div>
+  </section>
+
+  <!-- TURNO -->
+  <section id="v-turno" class="view" hidden>
+    <div class="card">
+      <div class="row" style="margin-bottom:12px;align-items:baseline"><h2 id="turnoTitle">Anotar turno</h2><button class="link" type="button" data-go="gasto" style="padding:0">+ Anotar despesa</button></div>
+      <form id="fTurno">
+        <label>Dia<input type="date" id="t-data" required></label>
+        <div class="grid2">
+          <label>Começou<input type="time" id="t-ini" required></label>
+          <label>Terminou<input type="time" id="t-fim" required></label>
+        </div>
+        <div class="grid2">
+          <label>Ganho do turno (R$)<input type="text" inputmode="decimal" id="t-ganho" placeholder="0,00" required></label>
+          <label>Gorjeta (R$)<input type="text" inputmode="decimal" id="t-gorj" placeholder="0,00"></label>
+        </div>
+        <div class="grid2">
+          <label>Km rodados<input type="text" inputmode="decimal" id="t-km" placeholder="0"></label>
+          <label>Entregas<input type="text" inputmode="numeric" id="t-ent" placeholder="0"></label>
+        </div>
+        <button class="btn full" type="submit">Salvar turno</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- DESPESA -->
+  <section id="v-gasto" class="view" hidden>
+    <div class="card">
+      <h2 style="margin-bottom:12px">Anotar despesa</h2>
+      <form id="fGasto">
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px">Com o quê</div>
+          <div class="chips" id="g-cats"></div>
+        </div>
+        <div class="grid2">
+          <label>Valor (R$)<input type="text" inputmode="decimal" id="g-valor" placeholder="0,00" required></label>
+          <label>Dia<input type="date" id="g-data" required></label>
+        </div>
+        <label>Observação (opcional)<input type="text" id="g-nota" placeholder="ex.: troca de óleo"></label>
+        <button class="btn full" type="submit">Salvar despesa</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section id="v-hist" class="view" hidden>
+    <div class="card">
+      <div class="row" style="margin-bottom:4px"><h2>Histórico</h2></div>
+      <div class="list" id="hist"></div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h2 style="margin-bottom:10px">Ajustes</h2>
+      <form id="fCfg">
+        <label>Seu nome<input type="text" id="c-nome" autocomplete="name"></label>
+        <label>Meta de ganho líquido por semana (R$)<input type="text" inputmode="decimal" id="c-meta" placeholder="ex.: 800"></label>
+        <button class="btn ghost full" type="submit">Salvar ajustes</button>
+      </form>
+      <div class="stack" style="margin-top:12px">
+        <button class="btn ghost full" id="exportar" type="button">Baixar planilha (Excel/CSV)</button>
+        <button class="link" type="button" data-go="config">Conta, tema e sair</button>
+      </div>
+    </div>
+  </section>
+  <!-- DINHEIRO DO CORRE -->
+  <section id="v-aprender" class="view" hidden>
+    <div class="stack">
+      <div>
+        <div class="eyebrow">Guia em 5 passos</div>
+        <h2 style="font-size:28px">Dinheiro do Corre</h2>
+        <p class="hint" style="margin-top:4px">Siga na ordem. Cada passo protege o próximo.</p>
+      </div>
+
+      <details class="mod" open>
+        <summary><span class="step">1</span><span class="mt">Controle seus ganhos<small>Saber quanto sobra de verdade</small></span></summary>
+        <div class="mb">
+          <div class="live"><span>Seu ganho líquido por hora (últimos 30 dias)</span><b class="num" id="l-hora">—</b></div>
+          <p>Sem saber quanto você ganha por hora depois da gasolina, não dá pra planejar nada. Anote <b>todo turno e toda despesa por 30 dias</b> aqui no app.</p>
+          <ul>
+            <li><b>Separe o dinheiro da moto do dinheiro de casa.</b> Uma conta só pra gasolina e manutenção já ajuda muito.</li>
+            <li><b>Crie um fundo moto:</b> guarde um valor fixo por dia rodado (R$ 5 a R$ 10) pra óleo, pneu, relação e freio. Assim a manutenção não vira emergência.</li>
+            <li><b>Olhe o "Melhor horário"</b> no Resumo. Rodar mais nas faixas que pagam mais por hora aumenta o ganho sem aumentar o cansaço.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">2</span><span class="mt">Reserva de emergência<small>Pra quando a moto parar</small></span></summary>
+        <div class="mb">
+          <p>É o dinheiro guardado pra quando a moto quebrar, você ficar doente ou o app bloquear sua conta. Quem trabalha por conta própria precisa dela mais que ninguém, porque não tem salário fixo.</p>
+          <ul>
+            <li><b>Quanto:</b> comece com 1 mês dos seus gastos. O ideal é de 3 a 6 meses.</li>
+            <li><b>Onde:</b> num lugar que rende e deixa sacar na hora, como Tesouro Selic, CDB com liquidez diária ou conta remunerada de banco digital. <b>Não em cripto</b>, que pode estar em queda justo quando você precisar.</li>
+            <li><b>Como:</b> R$ 10 por dia rodado dá uns R$ 260 por mês. Comece pequeno, mas comece.</li>
+          </ul>
+          <div class="calc">
+            <label>Quanto você gasta por mês, somando casa e moto? (R$)<input type="text" inputmode="decimal" id="r-gasto" placeholder="ex.: 2500"></label>
+            <div class="calc-out" id="r-out"><span class="hint">Digite o valor pra ver sua meta.</span></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">3</span><span class="mt">MEI e INSS<small>Proteção se você se machucar</small></span></summary>
+        <div class="mb">
+          <p>Moto é profissão de risco. Se você cair e não contribuir pro INSS, fica <b>sem renda nenhuma</b> enquanto se recupera. Como MEI, você paga um valor fixo por mês e ganha:</p>
+          <ul>
+            <li><b>Auxílio por incapacidade</b> se ficar sem poder trabalhar. Em caso de acidente, não precisa ter um número mínimo de contribuições.</li>
+            <li><b>Aposentadoria por idade</b>, salário-maternidade e pensão pra família.</li>
+            <li>CNPJ pra emitir nota e abrir conta PJ.</li>
+          </ul>
+          <table class="kv"><tbody>
+            <tr><td>Atividade</td><td>Motoboy independente (confirme na lista do Portal do Empreendedor)</td></tr>
+            <tr><td>Custo em 2026</td><td class="num">cerca de R$ 86,05 por mês (DAS de serviços)</td></tr>
+            <tr><td>Limite de faturamento</td><td class="num">R$ 81 mil por ano (uns R$ 6.750 por mês)</td></tr>
+            <tr><td>Declaração anual</td><td>DASN-SIMEI, até 31 de maio</td></tr>
+          </tbody></table>
+          <ul>
+            <li><b>Abrir MEI é grátis</b> e se faz pelo gov.br. Desconfie de site que cobra pra abrir.</li>
+            <li>Pague o DAS todo mês pelo app MEI. Atrasar derruba a proteção.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">4</span><span class="mt">Investimentos seguros<small>Fazer o dinheiro render</small></span></summary>
+        <div class="mb">
+          <p class="aviso">Conteúdo educativo. Não é recomendação de investimento.</p>
+          <p>Com a reserva montada, o dinheiro que sobra pode render mais que na poupança, com baixo risco.</p>
+          <ul>
+            <li><b>Tesouro Selic:</b> você empresta dinheiro pro governo. Rende perto da taxa Selic, dá pra começar com pouco e resgatar em qualquer dia útil. Compra pelo app do banco ou de uma corretora.</li>
+            <li><b>CDB:</b> você empresta pro banco. Procure <b>"liquidez diária"</b> e <b>"100% do CDI"</b> ou mais. O FGC garante até R$ 250 mil por CPF em cada banco, se o banco quebrar.</li>
+            <li><b>Imposto:</b> nos dois casos o banco já desconta sozinho. É de 22,5% sobre o rendimento se você resgatar em até 6 meses, e cai até 15% depois de 2 anos.</li>
+          </ul>
+          <p><b>Fuja</b> de quem promete "1% ao dia", "renda garantida" ou "sem risco nenhum" fora de banco ou corretora conhecida.</p>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">5</span><span class="mt">Cripto: riscos e golpes<small>Só depois dos passos 1 a 4</small></span></summary>
+        <div class="mb">
+          <p class="aviso">Conteúdo educativo. Não é recomendação de investimento.</p>
+          <p><b>Regra de ouro:</b> só coloque em cripto o dinheiro que você aceita perder. Nunca use a reserva e nunca pegue empréstimo pra isso.</p>
+          <table class="kv"><tbody>
+            <tr><td>BTC · Bitcoin</td><td>A mais antiga e maior. Tem quantidade limitada e sobe e desce muito.</td></tr>
+            <tr><td>ADA · Cardano</td><td>Rede pra contratos e aplicativos. Oscila mais que o Bitcoin.</td></tr>
+            <tr><td>XRP</td><td>Criada pra pagamentos entre países. Oscila mais que o Bitcoin.</td></tr>
+            <tr><td>AVAX · Avalanche</td><td>Rede pra contratos e aplicativos. Oscila mais que o Bitcoin.</td></tr>
+            <tr><td>USDT · Tether</td><td>Atrelada ao dólar, não foi feita pra valorizar. Depende da empresa que emite.</td></tr>
+          </tbody></table>
+          <ul>
+            <li><b>Pode cair 50% ou mais em poucos meses.</b> Ninguém sabe o preço de amanhã.</li>
+            <li>Use corretora que opera legalmente no Brasil e ative a <b>verificação em duas etapas</b>.</li>
+          </ul>
+          <p><b>Golpes mais comuns:</b></p>
+          <ul>
+            <li>Pirâmide: "indique amigos e ganhe mais".</li>
+            <li>Robô de trade ou "gerente" no WhatsApp ou Telegram com rendimento garantido.</li>
+            <li>Pedido das suas <b>12 ou 24 palavras</b> de recuperação. Nunca passe pra ninguém, nem pra quem diz ser do "suporte".</li>
+            <li>Site clonado de corretora. Digite o endereço você mesmo, não entre por link.</li>
+          </ul>
+          <table class="kv"><tbody>
+            <tr><td>Imposto (2026)</td><td>Em corretora brasileira, vendas de até R$ 35 mil por mês são isentas. Acima disso, paga de 15% a 22,5% sobre o lucro. Em corretora estrangeira, 15% sem isenção.</td></tr>
+            <tr><td>Declaração</td><td>No Imposto de Renda, em Bens e Direitos, se o custo de cada cripto passar de R$ 5 mil.</td></tr>
+          </tbody></table>
+          <p class="hint">As regras de imposto mudam. Confirme com um contador antes de vender.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+  <!-- CORPO -->
+  <section id="v-corpo" class="view" hidden>
+    <div class="stack">
+      <div>
+        <div class="eyebrow">Corpo em dia</div>
+        <h2 style="font-size:28px">Sua moto anda na gasolina. Você anda na comida.</h2>
+        <p class="hint" style="margin-top:4px">Motoboy que come mal cansa antes do pico acabar e perde as melhores corridas. Cuidar do corpo também é ganhar mais.</p>
+      </div>
+
+      <div class="card next">
+        <div><div class="eyebrow" id="n-lbl">Próxima dose</div><div class="clock num" id="n-hora">11:00</div></div>
+        <p class="hint" id="n-txt">30g de whey antes do pico do almoço.</p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:10px">Rotina de um dia de corre</h2>
+        <ol class="tl">
+          <li><time>Antes de sair</time><div><b>Café da manhã de verdade.</b> Ovo, pão, fruta e café. Não saia em jejum.</div></li>
+          <li class="hot"><time>11h</time><div><b>30g de whey + 1 fruta.</b> Bata com água ou leite. Você entra no pico do almoço (11h às 14h) alimentado.</div></li>
+          <li><time>Depois do pico</time><div><b>Almoço completo.</b> Arroz, feijão, carne, frango ou ovo, e salada. O whey não substitui essa refeição.</div></li>
+          <li class="hot"><time>19h</time><div><b>30g de whey + fruta ou pão.</b> Energia pro pico da janta (19h às 22h), que costuma pagar melhor.</div></li>
+          <li><time>Fim do turno</time><div><b>Jantar leve e cama.</b> Dormir de 7 a 8 horas é o que recupera as costas e os braços.</div></li>
+        </ol>
+      </div>
+
+      <details class="mod" open>
+        <summary><span class="step">W</span><span class="mt">Por que whey<small>Proteína rápida, cabe na bag</small></span></summary>
+        <div class="mb">
+          <ul>
+            <li>Fica pronto em 30 segundos, e no pico não dá pra parar pra comer.</li>
+            <li>Ajuda a bater a proteína do dia, o que protege os músculos de quem passa horas na moto.</li>
+            <li><b>Como levar:</b> ponha o pó seco na coqueteleira e adicione a água só na hora de tomar.</li>
+            <li><b>É suplemento, não comida.</b> As refeições do dia continuam valendo.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">R$</span><span class="mt">Cabe no bolso?<small>Faça a conta antes de comprar</small></span></summary>
+        <div class="mb">
+          <p>60g por dia dá uns <b>1,8 kg por mês</b>. Compare o preço <b>por quilo</b>, não pelo pote.</p>
+          <div class="calc">
+            <label>Preço do pote (R$)<input type="text" inputmode="decimal" id="w-preco" placeholder="ex.: 120"></label>
+            <label>Tamanho do pote (kg)<input type="text" inputmode="decimal" id="w-kg" placeholder="ex.: 0,9"></label>
+            <div class="calc-out" id="w-out"><span class="hint">Preencha pra ver o custo por mês.</span></div>
+          </div>
+          <p><b>Semana apertada?</b> Ovo cozido, leite, iogurte, frango e amendoim também dão proteína e custam menos.</p>
+        </div>
+      </details>
+
+      <details class="mod">
+        <summary><span class="step">+</span><span class="mt">Cuide do corpo<small>O que ninguém te fala</small></span></summary>
+        <div class="mb">
+          <ul>
+            <li><b>Água o dia todo.</b> Leve uma garrafinha. Urina clara é sinal de que você está bem hidratado.</li>
+            <li><b>Alongue antes de sair:</b> pescoço, costas, punhos e pernas, uns 5 minutos.</li>
+            <li><b>Protetor solar</b> no rosto e no pescoço, mesmo em dia nublado.</li>
+            <li><b>Energético não é comida.</b> Ele segura o sono por pouco tempo e depois cobra.</li>
+            <li>Dor nas costas ou no punho que não passa? Procure atendimento antes de virar afastamento.</li>
+          </ul>
+        </div>
+      </details>
+
+      <p class="aviso">Conteúdo informativo. Não substitui nutricionista ou médico. Se você tem problema nos rins, diabetes, intolerância à lactose ou usa remédio, converse com um profissional antes de tomar whey. Pra quem tem intolerância à lactose, costuma existir a versão "isolado".</p>
+    </div>
+  </section>
+  <!-- FACULDADE -->
+  <section id="v-agenda" class="view" hidden>
+    <div class="stack">
+      <div>
+        <div class="eyebrow">Faculdade + trabalho</div>
+        <h2 style="font-size:28px">Sua semana</h2>
+        <p class="hint" style="margin-top:4px">Cadastre aulas e o outro trabalho. O Cadernex mostra onde encaixar as entregas nos horários de pico.</p>
+      </div>
+      <div class="card" id="cursoCard">
+        <div id="curso-ver" hidden>
+          <div class="row" style="align-items:flex-start"><div><div class="eyebrow" id="cv-sub"></div><h2 id="cv-curso" style="font-size:24px"></h2></div><button class="link" type="button" id="cv-edit" style="padding:0">Editar</button></div>
+        </div>
+        <form id="fCurso" class="stack">
+          <h2>Seu curso</h2>
+          <label>Curso<input type="text" id="c-curso" list="c-cursos" placeholder="ex.: Agronomia"></label>
+          <datalist id="c-cursos"><option value="Agronomia"></option><option value="Administração"></option><option value="Direito"></option><option value="Enfermagem"></option><option value="Engenharia Civil"></option><option value="Pedagogia"></option><option value="Ciências Contábeis"></option><option value="Educação Física"></option><option value="Medicina Veterinária"></option><option value="Análise e Desenvolvimento de Sistemas"></option><option value="Técnico em Agropecuária"></option><option value="Técnico em Enfermagem"></option><option value="Supletivo / EJA"></option></datalist>
+          <label>Instituição (opcional)<input type="text" id="c-fac" placeholder="ex.: nome da faculdade"></label>
+          <div><div class="eyebrow" style="margin-bottom:6px">Período</div><div class="chips" id="c-per"></div></div>
+          <label>Semestre<input type="text" inputmode="numeric" id="c-sem" placeholder="ex.: 1"></label>
+          <button class="btn full" type="submit">Salvar curso</button>
+        </form>
+      </div>
+      <div class="card fc-card" id="fcCard">
+        <h2>Faculdades perto de você</h2>
+        <p class="hint" id="fc-st" style="margin:0">Veja no mapa as faculdades da sua região e trace a rota até lá.</p>
+        <button class="btn ghost full" id="fc-btn" type="button">Mostrar faculdades perto de mim</button>
+        <div id="fc-mapa" hidden><div class="dmap" id="fc-map"></div></div>
+        <ul class="fc-lista" id="fc-lista"></ul>
+        <p class="hint" style="margin:0;font-size:12px">Dados do OpenStreetMap. Pra buscar, mandamos só um ponto aproximado (uns 1 km), nunca sua localização exata.</p>
+      </div>
+      <p class="warn" id="ag-erro" hidden>Falta criar as tabelas da Faculdade no Supabase. Rode o arquivo <b>agenda.sql</b> no SQL Editor.</p>
+
+      <div class="card">
+        <div class="chips dias" id="ag-dias" role="group" aria-label="Dia da semana"></div>
+        <div class="row" style="margin:14px 0 4px;align-items:baseline"><h2 id="ag-diatit" style="text-transform:capitalize">Hoje</h2></div>
+        <p class="hint" id="ag-diares" style="margin:0 0 10px"></p>
+        <p class="aviso" id="ag-noite" hidden>Sua aula pega o pico da janta. Nesse dia, foque no <b>almoço (11h às 14h)</b> e deixe o fim de semana pra compensar.</p>
+        <div class="legenda"><span><i class="dot t-aula"></i>Aula</span><span><i class="dot t-trabalho"></i>Trabalho</span><span><i class="dot t-rodar"></i>Rodar no pico</span></div>
+        <div class="tl-wrap"><div class="tl" id="ag-tl"></div></div>
+        <p class="hint" id="ag-estudo" style="margin:10px 0 0"></p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:6px">Janelas pra rodar na semana</h2>
+        <p class="hint" id="ag-semtot" style="margin:0 0 8px"></p>
+        <div style="overflow-x:auto"><table class="sem"><thead><tr><th>Dia</th><th>Pico livre</th><th>Horas</th><th>Estimativa</th></tr></thead><tbody id="ag-semana"></tbody></table></div>
+        <p class="hint" id="ag-semnota" style="margin:8px 0 0;font-size:12px"></p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:10px">Provas e trabalhos</h2>
+        <div class="list" id="ag-tarefas"></div>
+        <details class="mod add">
+          <summary><span class="mt">+ Anotar prova ou trabalho</span></summary>
+          <form id="fTarefa" class="mb">
+            <div class="chips" id="tf-tipo"></div>
+            <label>O que é<input type="text" id="tf-tit" placeholder="ex.: Prova de Botânica cap. 1 a 4"></label>
+            <div class="grid2">
+              <label>Matéria<input type="text" id="tf-mat" list="tf-mats" placeholder="opcional"></label>
+              <label>Data<input type="date" id="tf-data" required></label>
+            </div>
+            <datalist id="tf-mats"></datalist>
+            <button class="btn full" type="submit">Salvar</button>
+          </form>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Gastos da faculdade · este mês</div>
+        <div class="big num" id="gf-mes" style="margin:4px 0 10px">R$ 0,00</div>
+        <div class="stats">
+          <div class="stat"><span>No semestre</span><b class="num" id="gf-sem">R$ 0</b></div>
+          <div class="stat"><span>Total desde o início</span><b class="num" id="gf-tot">R$ 0</b></div>
+        </div>
+        <p class="hint" id="gf-horas" style="margin:10px 0 0"></p>
+        <div class="stack" id="gf-cats" style="margin-top:12px"></div>
+        <details class="mod add">
+          <summary><span class="mt">+ Anotar gasto da faculdade</span></summary>
+          <form id="fGfac" class="mb">
+            <div class="chips" id="gf-cat"></div>
+            <div class="grid2">
+              <label>Valor (R$)<input type="text" inputmode="decimal" id="gf-valor" placeholder="0,00" required></label>
+              <label>Dia<input type="date" id="gf-data" required></label>
+            </div>
+            <label>Observação (opcional)<input type="text" id="gf-nota" placeholder="ex.: apostila de Química"></label>
+            <button class="btn full" type="submit">Salvar gasto</button>
+          </form>
+        </details>
+        <div class="list" id="gf-lista"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:10px">Aulas e trabalhos fixos</h2>
+        <div class="list" id="ag-grade"></div>
+        <details class="mod add" open>
+          <summary><span class="mt">+ Adicionar aula ou trabalho</span></summary>
+          <form id="fAgenda" class="mb">
+            <div class="chips" id="ab-tipo"></div>
+            <label>Nome<input type="text" id="ab-tit" placeholder="ex.: Botânica, ou Emprego na loja"></label>
+            <div><div class="eyebrow" style="margin-bottom:6px">Dias</div><div class="chips" id="ab-dias"></div></div>
+            <div class="grid2">
+              <label>Começa<input type="time" id="ab-ini" value="19:00" required></label>
+              <label>Termina<input type="time" id="ab-fim" value="22:30" required></label>
+            </div>
+            <label>Local (opcional)<input type="text" id="ab-local" placeholder="ex.: Bloco B, sala 12"></label>
+            <button class="btn full" type="submit">Salvar na agenda</button>
+          </form>
+        </details>
+        <form id="fDesl" class="grid2" style="margin-top:14px;align-items:end">
+          <label>Tempo de deslocamento (min)<input type="text" inputmode="numeric" id="ag-desl" value="30"></label>
+          <button class="btn ghost" type="submit">Salvar</button>
+        </form>
+        <p class="hint" style="margin:6px 0 0;font-size:12px">Tempo pra chegar e sair da aula ou do trabalho. Não conta como horário livre.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIS -->
+  <section id="v-mais" class="view" hidden>
+    <div class="stack">
+      <h2 style="font-size:28px">Mais</h2>
+      <button class="card maisbtn" type="button" data-go="pedir"><b>Pedir uma entrega</b><span>Precisa mandar algo? Peça pra outro entregador</span></button>
+      <button class="card maisbtn" type="button" data-go="pedidos"><b>Meus pedidos</b><span>Acompanhe as entregas que você pediu</span></button>
+      <button class="card maisbtn destaque" type="button" data-go="negocio"><b>Do corre ao negócio</b><span>Regra dos 10% e 50 lições de empreendedorismo</span></button>
+      <button class="card maisbtn" type="button" data-go="hist"><b>Histórico e ajustes</b><span>Tudo que você anotou, meta da semana e planilha</span></button>
+      <button class="card maisbtn" type="button" data-go="aprender"><b>Dinheiro do Corre</b><span>Reserva, MEI, investimentos e cripto</span></button>
+      <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxa de serviço (6%) dos pagamentos pelo app, por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
+      <div class="card" id="adm-card" hidden><h2>Moderação</h2><p class="hint" style="margin:4px 0 10px">Contas bloqueadas por 3 relatos, esperando sua análise.</p><div class="stack" id="adm-lista"></div></div>
+      <button class="card maisbtn" type="button" data-go="corpo"><b>Corpo</b><span>Whey nos picos, alimentação e cuidados</span></button>
+      <button class="card maisbtn" type="button" data-go="config"><b>Configurações</b><span>Sua conta, modo claro ou escuro, trocar senha e sair</span></button>
+    </div>
+  </section>
+  <!-- CONFIGURAÇÕES -->
+  <section id="v-config" class="view" hidden>
+    <div class="stack">
+      <h2 style="font-size:28px">Configurações</h2>
+      <div class="card stack">
+        <h2>Aparência</h2>
+        <div class="seg" role="group" aria-label="Tema do app">
+          <button type="button" data-tema="auto" aria-pressed="true">Automático</button>
+          <button type="button" data-tema="light" aria-pressed="false">Claro</button>
+          <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
+        </div>
+        <p class="hint" style="margin:0">Automático segue o modo do seu celular. O escuro gasta menos bateria em tela OLED e cansa menos a vista à noite.</p>
+      </div>
+      <div class="card stack">
+        <h2>Sua conta</h2>
+        <div><div class="eyebrow">Entrou como</div><b id="cf-email" style="word-break:break-all">—</b> <span class="hint" id="cf-tipo"></span></div>
+        <form id="fSenha" class="stack">
+          <label>Nova senha<input type="password" id="cf-senha" autocomplete="new-password" minlength="6" placeholder="mínimo 6 caracteres"></label>
+          <p class="msg" id="cf-msg" role="status"></p>
+          <button class="btn ghost full" type="submit">Trocar senha</button>
+        </form>
+      </div>
+      <div class="card stack" id="cf-mp" hidden>
+        <h2>Receber pelo app</h2>
+        <p class="hint" id="cf-mp-st" style="margin:0">Carregando…</p>
+        <button class="btn full" id="cf-mp-btn" type="button">Conectar Mercado Pago</button>
+        <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
+        <p class="hint" style="margin:0;font-size:12px">O pagamento acontece no Mercado Pago. O Cadernex nunca vê sua senha e não guarda seu dinheiro: a taxa de serviço é paga pelo cliente.</p>
+      </div>
+      <div class="card stack" id="cf-pix" hidden>
+        <h2>Pix pra receber</h2>
+        <p class="hint" id="cf-pix-st" style="margin:0">Carregando…</p>
+        <button class="btn full" id="cf-pix-btn" type="button">Ativar Pix com meu CPF</button>
+        <p class="hint" style="margin:0;font-size:12px">A chave é sempre o CPF do seu cadastro, então só o titular da conta recebe. O cliente vê a chave e seu primeiro nome com a inicial do sobrenome, só durante a corrida e até 3 dias depois. O Cadernex não recebe nem guarda dinheiro: o pagamento vai direto pra sua conta.</p>
+      </div>
+      <div class="card stack">
+        <h2>Sair</h2>
+        <p class="hint" style="margin:0">Seus dados ficam salvos na nuvem. Pra voltar, é só entrar de novo com seu e-mail e senha, em qualquer celular.</p>
+        <button class="btn full" id="sair" type="button">Sair da conta</button>
+        <button class="btn ghost full" id="cf-trocar" type="button">Entrar com outra conta</button>
+      </div>
+      <a class="link" href="privacidade.html" style="align-self:center">Política de privacidade</a>
+    </div>
+  </section>
+  <!-- NEGÓCIO -->
+  <section id="v-negocio" class="view" hidden>
+    <div class="stack">
+      <div>
+        <div class="eyebrow">Do corre ao negócio</div>
+        <h2 style="font-size:28px">Pague você primeiro</h2>
+        <p class="hint" style="margin-top:4px">A regra mais antiga do dinheiro, do livro <i>O Homem Mais Rico da Babilônia</i>: de tudo que você ganha, 10% ficam com você.</p>
+      </div>
+      <p class="warn" id="ng-erro" hidden>Falta criar a tabela do cofre no Supabase. Rode o arquivo <b>negocio.sql</b> no SQL Editor.</p>
+
+      <div class="card cofre">
+        <div class="eyebrow">Seu cofre (tudo que você já guardou)</div>
+        <div class="big num" id="ng-total">R$ 0,00</div>
+        <div class="stats" style="margin-top:12px">
+          <div class="stat"><span>10% desta semana</span><b class="num" id="ng-sem">R$ 0</b></div>
+          <div class="stat"><span>10% deste mês</span><b class="num" id="ng-mesalvo">R$ 0</b></div>
+        </div>
+        <div class="meta" style="margin-top:12px">
+          <div class="row"><span>Guardado no mês</span><span class="num" id="ng-mesg">R$ 0</span></div>
+          <div class="bar"><i id="ng-bar" style="width:0%"></i></div>
+        </div>
+        <p class="hint" id="ng-msg" style="margin:10px 0"></p>
+        <button class="btn full" type="button" id="ng-rapido">Guardei</button>
+        <form id="fCofre" class="grid2" style="margin-top:10px;align-items:end">
+          <label>Outro valor (R$)<input type="text" inputmode="decimal" id="ng-valor" placeholder="0,00"></label>
+          <button class="btn ghost" type="submit">Guardar</button>
+        </form>
+        <p class="hint" style="margin:8px 0 0;font-size:12px">O Cadernex não mexe no seu dinheiro. Você guarda no seu banco e anota aqui pra acompanhar.</p>
+        <div class="list" id="ng-hist"></div>
+      </div>
+
+      <div class="card">
+        <h2>50 lições</h2>
+        <p class="hint" id="ng-prog" style="margin:4px 0 6px"></p>
+        <div class="bar"><i id="ng-progbar" style="width:0%"></i></div>
+        <p class="aviso" id="ng-selo" hidden style="margin-top:10px">Você é Apoiador do Cadernex. Todas as trilhas estão liberadas. Obrigado!</p>
+      </div>
+      <div class="stack" id="ng-trilhas"></div>
+
+      <div class="card apoio" id="ng-apoio">
+        <h2>Apoie o Cadernex</h2>
+        <p>Com o seu apoio você libera as trilhas 2 a 5, ganha o selo de Apoiador e ajuda a manter o app grátis pra todos os entregadores.</p>
+        <p class="hint" style="margin:0">A área de apoio por Pix chega na próxima atualização.</p>
+      </div>
+    </div>
+  </section>
+  <!-- RESENHA -->
+  <section id="v-chat" class="view" hidden>
+    <div class="ch-top">
+      <div class="row" style="align-items:baseline"><h2 style="font-size:26px">Resenha</h2><button class="link" type="button" id="ch-sil" hidden style="padding:0;font-size:13px"></button></div>
+      <div class="chips" id="ch-salas" role="group" aria-label="Sala"></div>
+      <p class="warn" id="ch-erro" hidden>Falta criar o chat no Supabase. Rode o arquivo <b>chat.sql</b> no SQL Editor.</p>
+    </div>
+    <div class="ch-lista" id="ch-lista" aria-live="polite"></div>
+    <form id="fChat" class="ch-form">
+      <label class="sr" for="ch-txt">Mensagem</label>
+      <textarea id="ch-txt" rows="1" maxlength="500" placeholder="Escreva pra galera…"></textarea>
+      <span class="ch-cont" id="ch-cont"></span>
+      <button class="btn" id="ch-env" type="submit" aria-label="Enviar">Enviar</button>
+    </form>
+    <p class="hint ch-regras">Respeito sempre. Não passe telefone, endereço nem senha de ninguém. Toque numa mensagem pra denunciar ou silenciar.</p>
+  </section>
+  <!-- CORRIDAS (entregador) -->
+  <section id="v-corridas" class="view" hidden>
+    <div class="stack">
+      <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
+      <div><div class="eyebrow">Corridas diretas</div><h2 style="font-size:28px">Corridas</h2></div>
+      <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
+      <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Você recebeu 3 relatos de problema em corridas. Enquanto a análise não termina, você não pode ficar disponível. Seu controle financeiro continua funcionando normal.</p><p class="hint bloq-mot"></p>
+        <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
+      <div class="card" id="co-dispbox">
+        <div id="co-on" hidden class="disp-on"><div><span class="dot-on"></span><b>Você está disponível</b><p class="hint" id="co-ontxt" style="margin:2px 0 0"></p></div><button class="btn ghost" id="co-off" type="button">Ficar indisponível</button></div>
+        <div id="co-dmap-w" class="dmap-w" hidden><div class="dmap" id="co-dmap" hidden></div><p class="hint" id="co-dtxt" style="margin:0"></p></div>
+        <form id="fDisp" class="stack">
+          <h2>Ficar disponível</h2>
+          <div class="chips" id="dp-vei"></div>
+          <div id="dp-foto"></div><input type="file" id="dp-file" accept="image/*" hidden>
+          <div id="dp-placa-w" class="placa-w" hidden>
+            <div class="grid2"><label>Placa<input type="text" id="dp-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
+            <label>CNH<select id="dp-cnh"><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
+            <label>RNTRC (opcional)<input type="text" id="dp-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
+          </div>
+          <label>Sua região<input type="text" id="dp-reg" placeholder="ex.: Setor Bueno, Centro, Aparecida"></label>
+          <button class="btn full" type="submit">Ficar disponível pra corridas</button>
+          <p class="hint" style="margin:0">Quem pede vê seu primeiro nome, o veículo, a região e uma posição aproximada no mapa (uns 400 m), nunca o ponto exato. Saiu do disponível, some do mapa.</p>
+        </form>
+      </div>
+      <div class="card nota-card"><div id="co-nota"><b>Sua reputação</b></div><p class="hint rel-cont" style="margin:6px 0 0"></p></div>
+      <div id="co-andam-w" hidden><h2 style="margin-bottom:8px">Em andamento</h2><div class="stack" id="co-andam"></div></div>
+      <div><h2 style="margin-bottom:8px">Pedidos abertos</h2><div class="stack" id="co-abertas"></div></div>
+      <div id="co-feitas-w" hidden><h2 style="margin-bottom:8px">Feitas recentemente</h2><div class="stack" id="co-feitas"></div></div>
+      <p class="hint" style="margin:0">O Cadernex só conecta quem pede com quem entrega. O pagamento é combinado direto entre vocês (Pix ou dinheiro). Confira a encomenda na coleta e não leve nada ilegal.</p>
+    </div>
+  </section>
+
+  <!-- PEDIR (cliente e entregador) -->
+  <section id="v-pedir" class="view" hidden>
+    <div class="stack">
+      <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
+      <div><div class="eyebrow">Entrega rápida com entregador da região</div><h2 style="font-size:28px">Pedir entrega</h2></div>
+      <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
+      <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Sua conta recebeu 3 relatos de problema. Enquanto a análise não termina, você não pode fazer pedidos.</p><p class="hint bloq-mot"></p>
+        <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
+      <div class="card pd-disp" id="pd-disp"></div>
+      <div class="card dmap-card" id="pd-dmap-w" hidden><div class="dmap" id="pd-dmap"></div><p class="hint" id="pd-dtxt" style="margin:0"></p></div>
+      <form id="fPedir" class="card stack">
+        <div class="seg" id="pf-tipo" role="group" aria-label="Tipo de pedido">
+          <button type="button" data-pt="entrega" aria-pressed="true">🛵 Entrega rápida</button>
+          <button type="button" data-pt="frete" aria-pressed="false">🛻 Frete e mudança</button>
+        </div>
+        <p class="hint so-frete" hidden style="margin:0">Picape ou caminhão pequeno pra móveis, mudança, materiais e mercadorias. Dá pra agendar o dia.</p>
+        <div class="end-g"><div class="eyebrow">Onde buscar</div>
+          <label>Endereço de coleta<input type="text" id="pf-cend" autocomplete="street-address" placeholder="Rua, número, ponto de referência"></label>
+          <button type="button" class="link loc" id="pf-cloc">Usar minha localização</button>
+          <label>Bairro<input type="text" id="pf-cb" placeholder="ex.: Setor Oeste"></label></div>
+        <div class="end-g"><div class="eyebrow">Onde entregar</div>
+          <label>Endereço de entrega<input type="text" id="pf-eend" placeholder="Rua, número, ponto de referência"></label>
+          <button type="button" class="link loc" id="pf-eloc">Usar minha localização</button>
+          <label>Bairro<input type="text" id="pf-eb" placeholder="ex.: Jardim Goiás"></label></div>
+        <label>O que vai ser levado<input type="text" id="pf-item" maxlength="120" placeholder="ex.: 2 marmitas, documento, remédio"></label>
+        <div><div class="eyebrow" style="margin-bottom:6px">Veículo</div><div class="chips" id="pf-vei"></div>
+          <p class="hint so-frete" hidden style="margin:6px 0 0;font-size:12px">"Qualquer com carroceria": qualquer picape ou caminhão pode aceitar. Picape pequena: Saveiro, Strada · Picape média: S10, Hilux · Caminhão pequeno: VUC, 3/4, pra mudança.</p></div>
+        <div class="so-frete stack" hidden style="gap:12px">
+          <label>Quando? (deixe vazio pra agora)<input type="datetime-local" id="pf-quando"></label>
+          <div><div class="eyebrow" style="margin-bottom:6px">Ajudantes pra carregar (R$ 70 cada)</div><div class="chips" id="pf-aj"></div></div>
+          <label>Andares de escada, sem elevador (coleta + entrega)<input type="text" inputmode="numeric" id="pf-and" placeholder="0"></label>
+        </div>
+        <div class="grid2">
+          <label>Distância da coleta à entrega (km)<input type="text" inputmode="decimal" id="pf-km" placeholder="ex.: 3,5"></label>
+          <label>Quanto você paga (R$)<input type="text" inputmode="decimal" id="pf-valor" placeholder="0,00"></label>
+        </div>
+        <p class="preco" id="pf-sug"></p>
+        <p class="hint so-entrega" style="margin:-4px 0 0;font-size:12px">Tabela Cadernex: R$ 8 de taxa base (ida até a coleta e espera) + R$ 2,50 por km depois da coleta. Mínimo R$ 8.</p>
+        <p class="hint so-frete" hidden style="margin:-4px 0 0;font-size:12px">Tabela de frete Cadernex: picape pequena R$ 40 + R$ 3/km · picape média R$ 60 + R$ 3,50/km · caminhão pequeno R$ 150 + R$ 5/km. Ajudante R$ 70 cada, escada R$ 15 por andar. Confira os itens na coleta.</p>
+        <label>Telefone pra contato (opcional)<input type="tel" id="pf-tel" placeholder="só o entregador que aceitar vê"></label>
+        <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
+        <button class="btn full" type="submit" id="pf-btn">Pedir entrega</button>
+        <p class="hint" style="margin:0">Depois que alguém aceitar, você paga pelo app por Pix (com taxa de serviço: 6% do Cadernex + a taxa do Pix) ou combina direto com o entregador. Os endereços só aparecem pra quem aceitar.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- MEUS PEDIDOS -->
+  <section id="v-pedidos" class="view" hidden>
+    <div class="stack">
+      <h2 style="font-size:28px">Meus pedidos</h2>
+      <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
+      <div class="stack" id="pd-lista"></div>
+    </div>
+  </section>
+
+  <!-- PERFIL DO CLIENTE -->
+  <section id="v-perfilc" class="view" hidden>
+    <div class="stack">
+      <h2 style="font-size:28px">Perfil</h2>
+      <form id="fPerfilC" class="card stack">
+        <label>Seu nome<input type="text" id="pc-nome" autocomplete="name"></label>
+        <label>Telefone<input type="tel" id="pc-tel" autocomplete="tel"></label>
+        <label>Endereço que você mais usa<input type="text" id="pc-end" autocomplete="street-address" placeholder="vem preenchido no pedido"></label>
+        <button class="btn full" type="submit">Salvar</button>
+      </form>
+      <p class="hint rel-cont" style="margin:0"></p>
+      <div class="card stack"><h2>Quer rodar também?</h2><p class="hint" style="margin:0">Vire entregador e tenha o Cadernex completo: controle de ganhos, corridas, faculdade e a Resenha.</p><button class="btn ghost full" id="pc-virar" type="button">Quero ser entregador também</button></div>
+      <button class="btn ghost full" type="button" data-go="config">Configurações, tema e sair</button>
+    </div>
+  </section>
+  </div>
+</div>
+
+<nav id="nav" hidden><div class="in">
+  <button class="tab so-ent" data-v="resumo" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resumo</button>
+  <button class="tab so-ent" data-v="turno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Turno</button>
+  <button class="tab so-ent" data-v="corridas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h3l2 6M5.5 17.5L9 10h6l3.5 7.5M9 10l-1.5-3H5"/></svg>Corridas</button>
+  <button class="tab so-ent" data-v="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Faculdade</button>
+  <button class="tab so-ent" data-v="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1121 12z"/></svg>Resenha</button>
+  <button class="tab so-ent" data-v="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
+  <button class="tab so-cli" data-v="pedir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Pedir</button>
+  <button class="tab so-cli" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>Pedidos</button>
+  <button class="tab so-cli" data-v="perfilc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button>
+</div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="agenda.js"></script>
+<script src="licoes.js"></script>
+<script src="negocio.js"></script>
+<script src="chat.js"></script>
+<script src="corridas.js"></script>
+<script src="dados.js"></script>
+<script src="rastreio.js"></script>
+<script src="faculdades.js"></script>
+<script src="pix.js"></script>
+<script src="mp.js"></script>
+<script src="veiculo.js"></script>
+<script src="ajustes.js"></script>
+</body>
+</html>
