@@ -2,7 +2,7 @@
 // 6% vão pro Cadernex (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
 // O cliente paga também a taxa do Mercado Pago, pra o entregador receber o valor inteiro.
 // Publicar com "Verify JWT" LIGADO (padrão).
-import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const TAXA_APP = 0.06; // 6% do Cadernex
 const SITE = "https://cadernex.com.br";

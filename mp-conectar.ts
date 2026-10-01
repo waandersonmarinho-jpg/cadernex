@@ -1,6 +1,6 @@
 // Cadernex — mp-conectar: liga a conta Mercado Pago do entregador (OAuth)
 // Publicar com "Verify JWT" LIGADO (padrão).
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",

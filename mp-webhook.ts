@@ -1,7 +1,7 @@
 // Cadernex — mp-webhook: o Mercado Pago avisa aqui quando um pagamento muda.
 // Publicar com "Verify JWT" DESLIGADO (o Mercado Pago não manda login).
 // Segurança: nunca confia no aviso. Sempre confere o pagamento direto no Mercado Pago.
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const ok = () => new Response("ok", { status: 200 });
 
