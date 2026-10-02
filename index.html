@@ -901,12 +901,6 @@ label.check{min-height:40px;align-items:center}
         <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
         <p class="hint" style="margin:0;font-size:12px">O pagamento acontece no Mercado Pago. O Cadernex nunca vê sua senha e não guarda seu dinheiro: a taxa de serviço é paga pelo cliente.</p>
       </div>
-      <div class="card stack" id="cf-pix" hidden>
-        <h2>Pix pra receber</h2>
-        <p class="hint" id="cf-pix-st" style="margin:0">Carregando…</p>
-        <button class="btn full" id="cf-pix-btn" type="button">Ativar Pix com meu CPF</button>
-        <p class="hint" style="margin:0;font-size:12px">A chave é sempre o CPF do seu cadastro, então só o titular da conta recebe. O cliente vê a chave e seu primeiro nome com a inicial do sobrenome, só durante a corrida e até 3 dias depois. O Cadernex não recebe nem guarda dinheiro: o pagamento vai direto pra sua conta.</p>
-      </div>
       <div class="card stack">
         <h2>Sair</h2>
         <p class="hint" style="margin:0">Seus dados ficam salvos na nuvem. Pra voltar, é só entrar de novo com seu e-mail e senha, em qualquer celular.</p>
@@ -1007,7 +1001,7 @@ label.check{min-height:40px;align-items:center}
       <div id="co-andam-w" hidden><h2 style="margin-bottom:8px">Em andamento</h2><div class="stack" id="co-andam"></div></div>
       <div><h2 style="margin-bottom:8px">Pedidos abertos</h2><div class="stack" id="co-abertas"></div></div>
       <div id="co-feitas-w" hidden><h2 style="margin-bottom:8px">Feitas recentemente</h2><div class="stack" id="co-feitas"></div></div>
-      <p class="hint" style="margin:0">O cliente paga pelo app (Pix pelo Mercado Pago), pela sua chave Pix ou em dinheiro na entrega. Confira a encomenda na coleta e não leve nada ilegal.</p>
+      <p class="hint" style="margin:0">O cliente paga pelo app (Pix pelo Mercado Pago), que cai na sua conta Mercado Pago, ou em dinheiro na entrega. Confira a encomenda na coleta e não leve nada ilegal.</p>
     </div>
   </section>
 
@@ -1061,7 +1055,7 @@ label.check{min-height:40px;align-items:center}
         <label>Telefone pra contato (opcional)<input type="tel" id="pf-tel" placeholder="só o entregador que aceitar vê"></label>
         <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
         <button class="btn full" type="submit" id="pf-btn">Pedir entrega</button>
-        <p class="hint" style="margin:0">Depois que alguém aceitar, você paga pelo app por Pix (com taxa de serviço: 6% do Cadernex + a taxa do Pix) ou combina direto com o entregador. Os endereços só aparecem pra quem aceitar.</p>
+        <p class="hint" style="margin:0">Depois que alguém aceitar, você paga pelo app por Pix de qualquer banco (com taxa de serviço: 6% do Cadernex + a taxa do Pix) ou em dinheiro na entrega. Os endereços só aparecem pra quem aceitar.</p>
       </form>
       <div class="card stack" id="vitrine" hidden><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div><div id="vt-lista" class="stack" style="gap:8px"></div></div>
     </div>
@@ -1135,7 +1129,6 @@ label.check{min-height:40px;align-items:center}
 <script src="dados.js"></script>
 <script src="rastreio.js"></script>
 <script src="faculdades.js"></script>
-<script src="pix.js"></script>
 <script src="mp.js"></script>
 <script src="veiculo.js"></script>
 <script src="loja.js"></script>

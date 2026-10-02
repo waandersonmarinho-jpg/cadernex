@@ -64,10 +64,10 @@ function pintar(){
     if(el.dataset.papel==="ent"){
       el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(Number(p.valor))} na sua conta Mercado Pago</div>`
         :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o pagamento pelo app. Aguardando o Pix cair…</p>`
-        :conectado===false?`<p class="hint" style="margin:0">Quer que o cliente pague pelo app? <button class="link" type="button" data-go="config" style="padding:0">Conectar Mercado Pago</button></p>`:"";
+        :conectado===false?`<div class="mp-box"><b>Conecte seu Mercado Pago pra receber pelo app</b><p class="hint" style="margin:0">Sem isso, o cliente só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Conectar Mercado Pago</button></div>`:"";
       return}
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ Pago pelo app · ${brl(Number(p.total))}</div>`;return}
-    if(!recebe[c.entregador_id]){el.innerHTML="";return}
+    if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">Esse entregador ainda não recebe pelo app. Pague ${brl(Number(c.valor))} em dinheiro na entrega.</p>`;return}
     const k=contaTotal(Number(c.valor));
     el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>Taxa de serviço (Cadernex 6% + Pix)</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
