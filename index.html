@@ -458,6 +458,11 @@ label.check{min-height:40px;align-items:center}
 @keyframes ac-p{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 70%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
 @keyframes ac-in{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.ac-dlg,.ac-pulso{animation:none}}
+
+.sobre-card{flex-direction:row!important;align-items:center;gap:14px;text-decoration:none;color:var(--fg)}
+.sobre-card b{color:var(--fg)}
+.sobre-card img{width:70px;height:35px;border-radius:9px;flex:none;box-shadow:0 0 0 1px var(--line)}
+.sobre-t{display:flex;flex-direction:column;gap:2px}
 </style>
 </head>
 <body>
@@ -982,13 +987,14 @@ label.check{min-height:40px;align-items:center}
         <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
         <p class="hint" style="margin:0;font-size:12px">O pagamento acontece no Mercado Pago. O Cadernex nunca vê sua senha e não guarda seu dinheiro: a taxa de serviço é paga pelo cliente.</p>
       </div>
+      <a class="card maisbtn sobre-card" href="sobre.html"><img src="marca.svg" alt="" width="70" height="35"><span class="sobre-t"><b>Sobre o Cadernex</b><span>Missão, como funciona, preços e segurança</span></span></a>
       <div class="card stack">
         <h2>Sair</h2>
         <p class="hint" style="margin:0">Seus dados ficam salvos na nuvem. Pra voltar, é só entrar de novo com seu e-mail e senha, em qualquer celular.</p>
         <button class="btn full" id="sair" type="button">Sair da conta</button>
         <button class="btn ghost full" id="cf-trocar" type="button">Entrar com outra conta</button>
       </div>
-      <a class="link" href="privacidade.html" style="align-self:center">Política de privacidade</a>
+      <div style="display:flex;justify-content:center;gap:20px"><a class="link" href="sobre.html">Sobre o Cadernex</a><a class="link" href="privacidade.html">Política de privacidade</a></div>
     </div>
   </section>
   <!-- NEGÓCIO -->
