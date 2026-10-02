@@ -242,7 +242,7 @@ $("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.datase
 let papelAplicado=null;
 function aplicaPapel(forcar){const cli=perfil.tipo==="cliente";document.body.classList.toggle("cli",cli);
   $("ola").textContent=perfil.nome?"Oi, "+perfil.nome.split(" ")[0]:(cli?"Envios e entregas":"Envios e entregas");
-  if(forcar||papelAplicado!==perfil.tipo){papelAplicado=perfil.tipo;go(cli?"pedir":"resumo")}
+  if(forcar||papelAplicado!==perfil.tipo){papelAplicado=perfil.tipo;go(cli?(perfil.loja&&perfil.loja_nome?"loja":"pedir"):"resumo")}
   preencherPedido();perfilRender()}
 
 const _agL4=window.agendaLoad;window.agendaLoad=async()=>{await _agL4();aplicaPapel();corrLoad();minhaNota()};

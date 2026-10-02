@@ -178,7 +178,7 @@ $("exportar").onclick=()=>{
 
 /* ---------------- navegação e formulários ---------------- */
 const TAB_DE={config:"mais",hist:"mais",aprender:"mais",corpo:"mais",negocio:"mais",pedir:"mais",pedidos:"mais",gasto:"turno"};
-function go(v){document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!=="v-"+v);const t0=document.body.classList.contains("cli")?(v==="config"?"perfilc":v):(TAB_DE[v]||v);document.querySelectorAll(".tab").forEach(t=>{if(t.dataset.v===t0)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});scrollTo(0,0)}
+function go(v){document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!=="v-"+v);const t0=document.body.classList.contains("cli")?(v==="config"?"perfilc":v==="pedir"&&document.documentElement.classList.contains("area-loja")?"loja":v):(TAB_DE[v]||v);document.querySelectorAll(".tab").forEach(t=>{if(t.dataset.v===t0)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});scrollTo(0,0)}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b)go(b.dataset.go)});
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>go(t.dataset.v));
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{periodo=b.dataset.p;document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
