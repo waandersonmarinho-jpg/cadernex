@@ -237,6 +237,8 @@ table.sem{width:100%;border-collapse:collapse;font-size:14px}
 .ch-regras{margin:0;font-size:12px}
 body.cli .so-ent{display:none!important}
 body:not(.cli) .so-cli{display:none!important}
+:root:not(.area-loja) .so-lj{display:none!important}
+:root.area-loja .so-cf{display:none!important}
 body.cli #timerCard,body.cli #hojeCard{display:none}
 .tipo-op{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tipo-op button{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer;font:inherit}
@@ -486,13 +488,35 @@ label.check{min-height:40px;align-items:center}
 .mc-a{margin:0 16px 12px}
 #direcaoSegura .mod summary b{font-size:15px}
 
+/* compras nas lojas */
+.qt{display:flex;align-items:center;gap:8px;flex:none}.qt b{min-width:18px;text-align:center}
+.qt-b{width:36px;height:36px;border-radius:50%;border:1px solid var(--accent);background:transparent;color:var(--accent);font:700 20px/1 var(--body);cursor:pointer}
+.qt-add{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:8px 14px;font:600 14px var(--body);cursor:pointer;min-height:36px}
+.vt-preco{display:block;margin-top:2px;color:var(--money);font-weight:700}
+.vt-app{font-style:normal;display:block;color:var(--accent);font-weight:700;font-size:11px;text-align:right}
+.enc-bar{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;max-width:536px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 10px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--accent);box-shadow:0 10px 30px -8px rgba(0,0,0,.5);--accent:#0fc46e;--accent-ink:#03200f}
+[data-theme="dark"] .enc-bar{--accent:#1ee88a;--accent-ink:#03140b}
+.enc-bar span{display:flex;flex-direction:column;min-width:0;white-space:nowrap}.enc-bar .btn{white-space:nowrap;flex:none}.enc-bar small{color:var(--muted);font-size:12px}
+#enc-ck,#enc-loja,#enc-mp,#enc-cli .enc-c{border-color:var(--accent)}
+#enc-ck{--accent:#0fc46e;--accent-ink:#03200f;--money:#0a8f4f}[data-theme="dark"] #enc-ck{--accent:#1ee88a;--accent-ink:#03140b;--money:#5cf5aa}
+.ek-it{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.enc-c.fim{opacity:.6}.enc-c.novo{border-style:solid;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.enc-st{margin:0;font-weight:600}
+#v-lojas{padding-bottom:90px}#enc-cli .eyebrow{color:var(--accent)}
+.enc-passos{list-style:none;margin:2px 0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center}
+.enc-passos li{display:flex;flex-direction:column;align-items:center;gap:4px}.enc-passos i{height:4px;width:100%;border-radius:4px;background:var(--line)}
+.enc-passos li.ok i{background:#1ec77a}.enc-passos li.agora i{background:#1ee88a;box-shadow:0 0 8px #1ee88a}.enc-passos li.agora{color:var(--fg);font-weight:700}
 /* área do lojista em verde: a conta de loja inteira, e as partes de loja pra todo mundo */
-:root.area-loja,#vitrine,#lj-card,#lj-painel,.pill.loja{--accent:#16865a;--accent-ink:#ffffff;--accent-soft:#d6f2e4;--money:#127048}
-:root[data-theme="dark"].area-loja,[data-theme="dark"] #vitrine,[data-theme="dark"] #lj-card,[data-theme="dark"] #lj-painel,[data-theme="dark"] .pill.loja{--accent:#2ebd85;--accent-ink:#0c0e11;--accent-soft:#0f2a1f;--money:#6fe0a8}
+:root.area-loja,#vitrine,#lj-card,#lj-painel,#lj-prod-w,#enc-cli,.pill.loja{--accent:#0fc46e;--accent-ink:#03200f;--accent-soft:#d3fbe6;--money:#0a8f4f;--brilho:#3df5a0}
+:root[data-theme="dark"].area-loja,[data-theme="dark"] #vitrine,[data-theme="dark"] #lj-card,[data-theme="dark"] #lj-painel,[data-theme="dark"] #lj-prod-w,[data-theme="dark"] #enc-cli,[data-theme="dark"] .pill.loja{--accent:#1ee88a;--accent-ink:#03140b;--accent-soft:#0a3220;--money:#5cf5aa;--brilho:#6bffbf}
 .pill.loja{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
-#lj-painel,#lj-card,#vitrine{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 140px)}
-#lj-painel .eyebrow,#vitrine .eyebrow{color:var(--accent)}
+#lj-painel,#lj-card,#vitrine,#lj-prod-w{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 150px);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent),0 10px 30px -14px color-mix(in srgb,var(--accent) 70%,transparent)}
+#lj-painel .eyebrow,#vitrine .eyebrow,#lj-prod-w .eyebrow{color:var(--accent)}
 #lj-painel .lote-l{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+/* botões da loja: verde brilhante com reflexo */
+:root.area-loja .btn:not(.ghost),#vitrine .btn:not(.ghost),#lj-card .btn:not(.ghost){background:linear-gradient(135deg,var(--brilho),var(--accent) 55%);box-shadow:0 6px 18px -6px color-mix(in srgb,var(--accent) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+:root.area-loja #nav .tab[aria-current]{color:var(--accent)}
+:root.area-loja #nav .tab[aria-current] svg{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 70%,transparent))}
 
 .pf-kmnota{margin:-6px 0 0;font-size:12px;color:var(--good)}
 .pf-cep{max-width:180px}
@@ -1068,6 +1092,11 @@ label.check{min-height:40px;align-items:center}
         <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
         <p class="hint" style="margin:0;font-size:12px">O pagamento acontece no Mercado Pago. O Cadernex nunca vê sua senha e não guarda seu dinheiro: a taxa de serviço é paga pelo cliente.</p>
       </div>
+      <div class="card stack" id="cf-push">
+        <h2>Notificações</h2>
+        <p class="hint" id="cf-push-st" style="margin:0">Receba corrida nova e o andamento dos seus pedidos mesmo com o app fechado.</p>
+        <button class="btn full" id="cf-push-btn" type="button">Ativar notificações</button>
+      </div>
       <div class="card stack" id="cf-suporte">
         <h2>Suporte</h2>
         <a class="btn ghost full" href="mailto:suporte@cadernex.com.br?subject=Suporte%20Cadernex" style="text-decoration:none;text-align:center">suporte@cadernex.com.br</a>
@@ -1172,7 +1201,7 @@ label.check{min-height:40px;align-items:center}
       <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Você recebeu 3 relatos de problema em corridas. Enquanto a análise não termina, você não pode ficar disponível. Seu controle financeiro continua funcionando normal.</p><p class="hint bloq-mot"></p>
         <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
       <div class="card" id="co-dispbox">
-        <div id="co-on" hidden class="disp-on"><div><span class="dot-on"></span><b>Você está disponível</b><p class="hint" id="co-ontxt" style="margin:2px 0 0"></p></div><button class="btn ghost" id="co-off" type="button">Ficar indisponível</button></div>
+        <div id="co-on" hidden class="disp-on"><div><span class="dot-on"></span><b>Você está disponível</b><p class="hint" id="co-ontxt" style="margin:2px 0 0"></p><button class="link" id="ac-teste" type="button" style="padding:0;font-size:14px">Testar som do alerta</button><button class="link" id="push-co" type="button" hidden style="padding:0;font-size:14px;display:block">Ativar aviso com o app fechado</button></div><button class="btn ghost" id="co-off" type="button">Ficar indisponível</button></div>
         <div id="co-dmap-w" class="dmap-w" hidden><div class="dmap" id="co-dmap" hidden></div><p class="hint" id="co-dtxt" style="margin:0"></p></div>
         <form id="fDisp" class="stack">
           <h2>Ficar disponível</h2>
@@ -1200,20 +1229,13 @@ label.check{min-height:40px;align-items:center}
   <section id="v-pedir" class="view" hidden>
     <div class="stack">
       <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
-      <div><div class="eyebrow">Entrega rápida com entregador da região</div><h2 style="font-size:28px">Pedir entrega</h2></div>
+      <div><div class="eyebrow">Entrega rápida com entregador da região</div><h2 style="font-size:28px">Pedir corrida</h2></div>
+      <button type="button" class="link so-lj" data-go="loja" style="align-self:flex-start">← Voltar pro pedido rápido da loja</button>
       <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
       <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Sua conta recebeu 3 relatos de problema. Enquanto a análise não termina, você não pode fazer pedidos.</p><p class="hint bloq-mot"></p>
         <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
       <div class="card pd-disp" id="pd-disp"></div>
       <div class="card dmap-card" id="pd-dmap-w" hidden><div class="dmap" id="pd-dmap"></div><p class="hint" id="pd-dtxt" style="margin:0"></p></div>
-      <div class="card stack" id="lj-painel" hidden>
-        <div><div class="eyebrow" style="display:flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Pedido rápido da loja</div><h2 id="lj-titulo" style="margin:2px 0 0"></h2><p class="hint" id="lj-coleta" style="margin:4px 0 0"></p></div>
-        <p class="lj-hoje" id="lj-hoje"></p>
-        <form id="fLote" class="stack"><div id="lj-linhas" class="stack"></div>
-          <button type="button" class="btn ghost full" id="lj-mais">+ Adicionar outra entrega</button>
-          <button class="btn full" id="lj-enviar">Pedir entrega</button></form>
-        <button type="button" class="link" id="lj-completo" style="align-self:center"></button>
-      </div>
       <form id="fPedir" class="card pf" novalidate>
         <div class="seg pf-tipo" id="pf-tipo" role="group" aria-label="Tipo de pedido">
           <button type="button" data-pt="entrega" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="16.5" r="3"/><circle cx="18.5" cy="16.5" r="3"/><path d="M5.5 16.5 9 11h5l3 5.5M14 11l-1.5-4H10M15 7h3"/></svg>Entrega rápida</button>
@@ -1265,7 +1287,59 @@ label.check{min-height:40px;align-items:center}
           <p class="hint" style="margin:0;font-size:12px;text-align:center">Pague pelo app (Pix) ou em dinheiro. Os endereços só aparecem pra quem aceitar.</p>
         </div>
       </form>
-      <div class="card stack" id="vitrine" hidden><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div><div id="vt-lista" class="stack" style="gap:8px"></div></div>
+    </div>
+  </section>
+
+  <!-- ÁREA DO LOJISTA -->
+  <section id="v-loja" class="view" hidden>
+    <div class="stack">
+      <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
+      <div><div class="eyebrow">Área do lojista</div><h2 style="font-size:28px">Minha loja</h2></div>
+      <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Sua conta recebeu 3 relatos de problema. Enquanto a análise não termina, você não pode fazer pedidos.</p><p class="hint bloq-mot"></p>
+        <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>
+      <div class="card stack" id="enc-mp" hidden><div><div class="eyebrow">Venda pelo app</div><h2 style="margin:2px 0 0">Receba as compras no Pix</h2></div>
+        <p class="hint" style="margin:0">Conecte o Mercado Pago da loja e os clientes compram direto na aba Lojas. O dinheiro dos produtos e da entrega cai na sua conta na hora. A taxa de 6% é paga pelo cliente.</p>
+        <button class="btn full" type="button" id="enc-mp-btn">Conectar Mercado Pago</button></div>
+      <div class="card stack" id="enc-loja" hidden><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">Vendas pelo app</div><h2 style="margin:2px 0 0">Pedidos dos clientes</h2></div><span class="pill loja" id="enc-lj-n" hidden></span></div>
+        <div id="enc-lj-lista" class="stack" style="gap:10px"></div></div>
+      <div class="card stack" id="lj-painel" hidden>
+        <div><div class="eyebrow" style="display:flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Pedido rápido da loja</div><h2 id="lj-titulo" style="margin:2px 0 0"></h2><p class="hint" id="lj-coleta" style="margin:4px 0 0"></p></div>
+        <p class="lj-hoje" id="lj-hoje"></p>
+        <form id="fLote" class="stack"><div id="lj-linhas" class="stack"></div>
+          <button type="button" class="btn ghost full" id="lj-mais">+ Adicionar outra entrega</button>
+          <button class="btn full" id="lj-enviar">Pedir entrega</button></form>
+        <button type="button" class="link" id="lj-completo" data-go="pedir" style="align-self:center">Pedido completo (frete, agendar, localização…)</button>
+      </div>
+      <div id="lj-prod-w" class="card stack" hidden><div><div class="eyebrow">Aparecem na aba Lojas dos clientes</div><h2 style="margin:2px 0 0">Produtos e preços</h2></div><div id="lj-prods" class="stack" style="gap:8px"></div>
+        <form id="fProd" class="stack lote-l">
+          <div class="grid2"><label>Produto<input type="text" id="pr-nome" maxlength="60" placeholder="ex.: Açaí 500 ml"></label><label>Preço (R$)<input type="text" inputmode="decimal" id="pr-preco" placeholder="0,00"></label></div>
+          <label>Descrição (opcional)<input type="text" id="pr-desc" maxlength="140" placeholder="ex.: com granola e leite em pó"></label>
+          <button class="btn ghost full" type="submit">+ Adicionar produto</button></form></div>
+      <button type="button" class="link" data-go="perfilc" style="align-self:center">Nome, endereço e horário da loja ficam no Perfil</button>
+    </div>
+  </section>
+
+  <!-- LOJAS (VITRINE PARA CLIENTES) -->
+  <section id="v-lojas" class="view" hidden>
+    <div class="stack">
+      <div><div class="eyebrow">Compre de quem é daqui</div><h2 style="font-size:28px">Lojas</h2></div>
+      <div class="card stack" id="vitrine" hidden><div><div class="eyebrow">Toque na loja pra ver os produtos</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div><div id="vt-lista" class="stack" style="gap:8px"></div></div>
+      <form class="card stack" id="enc-ck" hidden novalidate>
+        <button type="button" class="link" id="ek-voltar" style="align-self:flex-start">← Continuar comprando</button>
+        <div><div class="eyebrow">Seu carrinho</div><h2 style="margin:2px 0 0" id="ek-loja"></h2></div>
+        <div id="ek-itens" class="stack" style="gap:6px"></div>
+        <div class="pf-rot" style="margin-top:4px">Onde entregar</div>
+        <input type="text" id="ek-cep" class="pf-cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="CEP" aria-label="CEP da entrega">
+        <p class="hint" id="ek-cepnota" style="margin:-4px 0 0;font-size:12px"></p>
+        <input type="text" id="ek-end" autocomplete="street-address" placeholder="Rua, número, referência" aria-label="Endereço de entrega">
+        <input type="text" id="ek-bairro" placeholder="Bairro" aria-label="Bairro">
+        <div class="grid2"><input type="tel" id="ek-tel" placeholder="Seu telefone" aria-label="Telefone"><input type="text" id="ek-obs" maxlength="200" placeholder="Observação (opcional)" aria-label="Observação"></div>
+        <div class="mp-linhas" id="ek-conta"></div>
+        <button class="btn full" type="submit" id="ek-btn">Fazer pedido</button>
+        <p class="hint" style="margin:0;font-size:12px;text-align:center">Pagamento só pelo app, no Pix do Mercado Pago, depois que a loja aceitar. Se a loja recusar, nada é cobrado.</p>
+      </form>
+      <div class="enc-bar" id="enc-bar" hidden><span id="enc-bar-t"></span><button class="btn" type="button" id="enc-bar-b">Ver carrinho</button></div>
+      <div class="card" id="vt-vazio" hidden><p class="hint" style="margin:0">Ainda não tem loja cadastrada perto de você. Volte em breve.</p></div>
     </div>
   </section>
 
@@ -1274,6 +1348,7 @@ label.check{min-height:40px;align-items:center}
     <div class="stack">
       <h2 style="font-size:28px">Meus pedidos</h2>
       <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
+      <div class="stack" id="enc-cli" hidden></div>
       <div class="stack" id="pd-lista"></div>
     </div>
   </section>
@@ -1293,6 +1368,7 @@ label.check{min-height:40px;align-items:center}
         <label class="check"><input type="checkbox" id="lj-on"> <span>Sou uma loja ou comércio</span></label>
         <form id="fLoja" class="stack" hidden>
           <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" placeholder="ex.: Açaí do Setor"></label>
+          <label>CEP da loja<input type="text" id="lj-cep" inputmode="numeric" maxlength="9" placeholder="ex.: 74000-000"></label>
           <label>Endereço de coleta<input type="text" id="lj-end" placeholder="Rua, número, onde o entregador busca"></label>
           <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" placeholder="ex.: Centro"></label><label>Horário<input type="text" id="lj-horario" maxlength="40" placeholder="ex.: 10h às 22h"></label></div>
           <label>WhatsApp da loja (aparece na vitrine)<input type="tel" id="lj-whats" placeholder="(62) 99999-9999"></label>
@@ -1300,11 +1376,6 @@ label.check{min-height:40px;align-items:center}
           <p class="hint" id="lj-msg" style="margin:0;color:var(--bad,#d33)"></p>
           <button class="btn full" type="submit">Salvar loja</button>
         </form>
-        <div id="lj-prod-w" class="stack" hidden><h2>Produtos e preços</h2><div id="lj-prods" class="stack" style="gap:8px"></div>
-          <form id="fProd" class="stack lote-l">
-            <div class="grid2"><label>Produto<input type="text" id="pr-nome" maxlength="60" placeholder="ex.: Açaí 500 ml"></label><label>Preço (R$)<input type="text" inputmode="decimal" id="pr-preco" placeholder="0,00"></label></div>
-            <label>Descrição (opcional)<input type="text" id="pr-desc" maxlength="140" placeholder="ex.: com granola e leite em pó"></label>
-            <button class="btn ghost full" type="submit">+ Adicionar produto</button></form></div>
       </div>
       <div class="card stack"><h2>Quer rodar também?</h2><p class="hint" style="margin:0">Vire entregador e tenha o Cadernex completo: controle de ganhos, corridas, faculdade e a Resenha.</p><button class="btn ghost full" id="pc-virar" type="button">Quero ser entregador também</button></div>
       <button class="btn ghost full" type="button" data-go="config">Configurações, tema e sair</button>
@@ -1330,7 +1401,9 @@ label.check{min-height:40px;align-items:center}
   <button class="tab so-ent" data-v="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Faculdade</button>
   <button class="tab so-ent" data-v="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1121 12z"/></svg>Resenha</button>
   <button class="tab so-ent" data-v="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
-  <button class="tab so-cli" data-v="pedir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Pedir</button>
+  <button class="tab so-cli so-lj" data-v="loja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Minha loja</button>
+  <button class="tab so-cli so-cf" data-v="pedir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Pedir</button>
+  <button class="tab so-cli so-cf" data-v="lojas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Lojas</button>
   <button class="tab so-cli" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>Pedidos</button>
   <button class="tab so-cli" data-v="perfilc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button>
 </div></nav>
@@ -1351,8 +1424,10 @@ label.check{min-height:40px;align-items:center}
 <script src="veiculo.js"></script>
 <script src="pedir.js"></script>
 <script src="loja.js"></script>
+<script src="encomendas.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
+<script src="push.js"></script>
 </body>
 </html>

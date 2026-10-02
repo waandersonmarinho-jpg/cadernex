@@ -23,11 +23,13 @@ function notificar(titulo,corpo,tag){
     navigator.serviceWorker.ready.then(r=>r.showNotification(titulo,{body:corpo,icon:"icon-192.png",badge:"icon-192.png",tag,renotify:true,vibrate:[300,120,300,120,300],data:{url:"./"}}))}catch(e){}
 }
 // pede a permissão quando o entregador fica disponível (é quando ele quer ser avisado)
-document.addEventListener("submit",e=>{if(e.target.id==="fDisp"){liberarSom();pedirPermissao()}});
+document.addEventListener("submit",e=>{if(e.target.id==="fDisp"){liberarSom();if(!window.cxPushAtivar)pedirPermissao()}});
 
 /* ---------- cartão grande de corrida nova ---------- */
 function fechar(){pararSom();clearInterval(timer);timer=null;atual=null;$("ac-dlg").hidden=true}
+const vistos=new Set();
 window.alertaCorrida=function(c){
+  if(vistos.has(c.id))return;vistos.add(c.id);
   if(atual&&atual.id!==c.id){toast(`Mais uma corrida: ${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}`);return}
   atual=c;const fr=c.tipo==="frete",km=c.distancia_km?`${String(Number(c.distancia_km)).replace(".",",")} km`:"";
   $("ac-tit").textContent=fr?"Frete novo":"Corrida nova";
@@ -51,8 +53,30 @@ $("ac-ok").onclick=()=>{const b=$("ac-ok"),id=b.dataset.id;b.disabled=true;b.tex
 window.alertaSumir=function(id){if(atual&&atual.id===id){fechar();toast("Outro entregador aceitou essa corrida.")}};
 
 /* ---------- cliente: aviso quando o pedido muda ---------- */
+// outras partes do app usam o mesmo som e a mesma notificação
+window.cxSom=(n)=>{liberarSom();chamar(n||3)};window.cxNotificar=notificar;
 window.alertaPedido=function(c,txt){plim();try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}
   if(document.hidden)notificar("Seu pedido no Cadernex",txt,"pedido-"+c.id)};
 // o cliente também recebe notificação: pede quando ele faz o primeiro pedido
-document.addEventListener("submit",e=>{if(e.target.id==="fPedir"||e.target.id==="fLote"){liberarSom();pedirPermissao()}});
+document.addEventListener("submit",e=>{if(e.target.id==="fPedir"||e.target.id==="fLote"){liberarSom();if(!window.cxPushAtivar)pedirPermissao()}});
+/* ---------- conferência a cada 20 s (se o aviso em tempo real falhar) ---------- */
+const serve=c=>{const md=typeof meuDisp==="function"&&meuDisp();return md&&c&&c.status==="aberta"&&c.cliente_id!==uid&&perfil.tipo==="entregador"
+  &&(c.veiculo==="qualquer"||c.veiculo===md.veiculo||(c.veiculo==="carroceria"&&FRETE_VEIC.includes(md.veiculo)))&&!(md.veiculo==="bike"&&Number(c.distancia_km)>BIKE_MAX)};
+let primeira=true;
+function confere(){
+  if(typeof abertas==="undefined")return;
+  abertas.forEach(c=>{if(!serve(c)){return}
+    const recente=Date.now()-new Date(c.created_at).getTime()<3*60000; // na 1ª conferência, só avisa os pedidos de até 3 min
+    if(primeira&&!recente){vistos.add(c.id);return}
+    alertaCorrida(c)});
+  primeira=false;
+}
+if(typeof corrLoad==="function"){const cl=corrLoad;corrLoad=async function(){const r=await cl.apply(this,arguments);try{confere()}catch(e){}return r}}
+setInterval(()=>{if(uid&&perfil.tipo==="entregador"&&typeof meuDisp==="function"&&meuDisp())corrLoad()},20000);
+
+/* ---------- testar o som ---------- */
+document.addEventListener("click",e=>{if(!e.target.closest("#ac-teste"))return;liberarSom();
+  setTimeout(()=>{if(!ctx){toast("Seu celular não liberou som pro app.");return}chamar(2);try{navigator.vibrate&&navigator.vibrate([300,120,300])}catch(e){}
+    toast("É assim que toca quando chega corrida. Deixe o volume ligado.")},50)});
+
 })();

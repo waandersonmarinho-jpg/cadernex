@@ -1,4 +1,4 @@
-// Cadernex — mp-conectar: liga a conta Mercado Pago do entregador (OAuth)
+// Cadernex — mp-conectar: liga a conta Mercado Pago do entregador ou da loja (OAuth)
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
@@ -25,8 +25,8 @@ Deno.serve(async (req) => {
     const { data: { user } } = await admin.auth.getUser(jwt);
     if (!user) return json({ erro: "Entre na sua conta de novo." }, 401);
 
-    const { data: perfil } = await admin.from("perfis").select("tipo,bloqueado").eq("user_id", user.id).maybeSingle();
-    if (perfil?.tipo !== "entregador") return json({ erro: "Só entregadores conectam conta pra receber." }, 403);
+    const { data: perfil } = await admin.from("perfis").select("tipo,bloqueado,loja").eq("user_id", user.id).maybeSingle();
+    if (perfil?.tipo !== "entregador" && !perfil?.loja) return json({ erro: "Só entregadores e lojas conectam conta pra receber." }, 403);
     if (perfil?.bloqueado) return json({ erro: "Sua conta está bloqueada para análise." }, 403);
 
     const { code, redirect_uri } = await req.json();

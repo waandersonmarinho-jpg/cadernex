@@ -1,7 +1,7 @@
 // Deixa o app instalável e abre na hora: os arquivos do app saem da memória do celular
 // e são atualizados por trás. Os dados (Supabase) sempre vêm da internet.
-const C="cadernex-v54";
-const F=["./","index.html","app.js","agenda.js","licoes.js","negocio.js","chat.js","corridas.js","dados.js","ajustes.js","instalar.js","alerta.js","rastreio.js","faculdades.js","mp.js","veiculo.js","pedir.js","loja.js","config.js","manifest.json","icon-192.png","icon.svg","marca.svg"];
+const C="cadernex-v59";
+const F=["./","index.html","app.js","agenda.js","licoes.js","negocio.js","chat.js","corridas.js","dados.js","ajustes.js","instalar.js","alerta.js","push.js","rastreio.js","faculdades.js","mp.js","veiculo.js","pedir.js","loja.js","encomendas.js","config.js","manifest.json","icon-192.png","icon.svg","marca.svg"];
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>Promise.all([c.addAll(F.map(u=>new Request(u,{cache:"reload"}))),c.add(LIB).catch(()=>{})])));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
@@ -20,3 +20,8 @@ self.addEventListener("fetch",e=>{
 });
 // toque na notificação: abre (ou traz pra frente) o Cadernex
 self.addEventListener("notificationclick",e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(l=>{const a=l.find(c=>"focus" in c);return a?a.focus():self.clients.openWindow("./")}))});
+// aviso do servidor (app fechado): pergunta o texto e mostra a notificação
+const PUSH_FN="https://pwmnczoiybktyxavjbjl.supabase.co/functions/v1/push";
+self.addEventListener("push",e=>{e.waitUntil(self.registration.pushManager.getSubscription()
+  .then(s=>s?fetch(PUSH_FN+"?e="+encodeURIComponent(s.endpoint)).then(r=>r.json()):{}).catch(()=>({}))
+  .then(m=>self.registration.showNotification(m.titulo||"Cadernex",{body:m.corpo||"Tem novidade no Cadernex. Toque pra ver.",icon:"icon-192.png",badge:"icon-192.png",tag:m.tag||"cadernex",renotify:true,vibrate:[300,120,300,120,300],requireInteraction:/^(corrida|enc)-/.test(m.tag||""),data:{url:"./"}})))});

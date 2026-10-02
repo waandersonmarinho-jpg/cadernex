@@ -6,7 +6,7 @@ let conectado=null; // entregador logado tem conta MP ligada?
 const recebe={},pags={};// entregador_id -> bool ; corrida_id -> pagamento
 const retorno=()=>location.origin+"/";
 // mesma conta do servidor: o entregador recebe o valor inteiro
-function contaTotal(valor){const t=Math.round(valor*TAXA_APP*100)/100;const total=Math.ceil((valor+t)/(1-MP_TAXA)*100)/100;return{total,taxa:Math.round((total-valor)*100)/100}}
+function contaTotal(valor,sem6){const t=sem6?0:Math.round(valor*TAXA_APP*100)/100;const total=Math.ceil((valor+t)/(1-MP_TAXA)*100)/100;return{total,taxa:Math.round((total-valor)*100)/100}}
 
 async function erroDe(error,data){
   if(data&&data.erro)return data.erro;
@@ -31,14 +31,15 @@ async function voltouDoMP(){ // o Mercado Pago devolve ?code=...&state=...
   const{data,error}=await sb.functions.invoke("mp-conectar",{body:{code,redirect_uri:retorno()}});
   if(error||!data||!data.ok){toast(await erroDe(error,data));return}
   conectado=true;cfgRender();introRender();toast("Conta Mercado Pago conectada ✓ Agora os clientes podem te pagar pelo app.");
-  if(typeof go==="function")go("config");
+  if(typeof go==="function")go(perfil.tipo==="cliente"&&perfil.loja?"loja":"config");
 }
+window.mpConectar=conectar;
 async function statusLoad(){
-  if(!sb||!uid||perfil.tipo==="cliente")return;
+  if(!sb||!uid||(perfil.tipo==="cliente"&&!perfil.loja))return;
   const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;cfgRender();introRender();pintar();
 }
 function cfgRender(){
-  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente";if(card.hidden)return;
+  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente"&&!perfil.loja;window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
   const st=$("cf-mp-st"),b=$("cf-mp-btn"),d=$("cf-mp-off");
   if(conectado===null){st.textContent="Falta ligar o pagamento pelo app no banco (mp.sql).";b.hidden=true;d.hidden=true;return}
   b.hidden=!!conectado;d.hidden=!conectado;
@@ -78,8 +79,8 @@ function pintar(){
       return}
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ Pago pelo app · ${brl(Number(p.total))}</div>`;return}
     if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">Esse entregador ainda não recebe pelo app. Pague ${brl(Number(c.valor))} em dinheiro na entrega.</p>`;return}
-    const k=contaTotal(Number(c.valor));
-    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>Taxa de serviço (Cadernex 6% + Pix)</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
+    const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
+    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem os 6%: já cobrados na compra)":"Taxa de serviço (Cadernex 6% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
       <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último pagamento não passou. Tente de novo. ":""}Abre o Mercado Pago, você paga no Pix e volta pro Cadernex. O entregador recebe o valor inteiro da corrida.</p></div>`;
   });

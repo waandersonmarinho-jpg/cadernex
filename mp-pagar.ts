@@ -64,7 +64,9 @@ Deno.serve(async (req) => {
 
     const mpTaxa = Number(Deno.env.get("MP_TAXA") || "0.0099");
     const valor = Number(c.valor);
-    const taxaApp = Math.round(valor * TAXA_APP * 100) / 100;
+    // entrega de uma compra da loja: os 6% já foram cobrados na compra, não cobra de novo
+    const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
+    const taxaApp = enc ? 0 : Math.round(valor * TAXA_APP * 100) / 100;
     const total = Math.ceil(((valor + taxaApp) / (1 - mpTaxa)) * 100) / 100;
 
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -78,7 +80,7 @@ Deno.serve(async (req) => {
           unit_price: total,
           currency_id: "BRL",
         }],
-        marketplace_fee: taxaApp,
+        ...(taxaApp > 0 ? { marketplace_fee: taxaApp } : {}),
         external_reference: c.id,
         notification_url: `${url}/functions/v1/mp-webhook?c=${c.id}`,
         back_urls: { success: `${SITE}/#pago`, pending: `${SITE}/#pago`, failure: `${SITE}/#pedidos` },
