@@ -1,9 +1,9 @@
 // Deixa o app instalável e abre na hora: os arquivos do app saem da memória do celular
 // e são atualizados por trás. Os dados (Supabase) sempre vêm da internet.
-const C="cadernex-v28";
+const C="cadernex-v29";
 const F=["./","index.html","app.js","agenda.js","licoes.js","negocio.js","chat.js","corridas.js","dados.js","ajustes.js","rastreio.js","faculdades.js","mp.js","veiculo.js","loja.js","config.js","manifest.json","icon-192.png","icon.svg"];
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>Promise.all([c.addAll(F),c.add(LIB).catch(()=>{})])));self.skipWaiting()});
+self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>Promise.all([c.addAll(F.map(u=>new Request(u,{cache:"reload"}))),c.add(LIB).catch(()=>{})])));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener("fetch",e=>{
   if(e.request.method!=="GET")return;
@@ -13,7 +13,7 @@ self.addEventListener("fetch",e=>{
   if(u.origin!==location.origin)return;
   // arquivos do app: responde na hora com o que está guardado e atualiza por trás
   e.respondWith(caches.open(C).then(c=>c.match(e.request,{ignoreSearch:true}).then(guardado=>{
-    const rede=fetch(e.request).then(r=>{if(r.ok)c.put(e.request.url.split("?")[0],r.clone());return r}).catch(()=>guardado||c.match("./").then(x=>x||Response.error()));
+    const rede=fetch(e.request,{cache:"no-cache"}).then(r=>{if(r.ok)c.put(e.request.url.split("?")[0],r.clone());return r}).catch(()=>guardado||c.match("./").then(x=>x||Response.error()));
     if(guardado){e.waitUntil(rede);return guardado}
     return rede;
   })));
