@@ -47,8 +47,9 @@ function corrSub(){
   corrCanal=sb.channel("corridas")
     .on("postgres_changes",{event:"*",schema:"public",table:"corridas"},p=>{
       const c=p.new;const md0=meuDisp();if(p.eventType==="INSERT"&&c&&c.status==="aberta"&&c.cliente_id!==uid&&md0&&perfil.tipo==="entregador"&&(c.veiculo==="qualquer"||c.veiculo===md0.veiculo||(c.veiculo==="carroceria"&&FRETE_VEIC.includes(md0.veiculo)))&&!(md0.veiculo==="bike"&&Number(c.distancia_km)>BIKE_MAX)){
-        toast(`Corrida nova: ${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}`);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
-      if(c&&c.cliente_id===uid&&p.eventType==="UPDATE"&&p.old&&c.status!==p.old.status&&c.status!=="aberta")toast("Seu pedido: "+ST[c.status]);
+        if(window.alertaCorrida)alertaCorrida(c);else{toast(`Corrida nova: ${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}`);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}}
+      if(c&&p.eventType==="UPDATE"&&c.status!=="aberta"&&c.entregador_id!==uid&&window.alertaSumir)alertaSumir(c.id);
+      if(c&&c.cliente_id===uid&&p.eventType==="UPDATE"&&p.old&&c.status!==p.old.status&&c.status!=="aberta"){toast("Seu pedido: "+ST[c.status]);if(window.alertaPedido)alertaPedido(c,ST[c.status])}
       corrRecarregar()})
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"corrida_msgs"},p=>{const m=p.new;if(!cmsgs[m.corrida_id])return;if(cmsgs[m.corrida_id].some(x=>x.id===m.id))return;cmsgs[m.corrida_id].push(m);corrRender();if(m.user_id!==uid)toast("Mensagem nova na corrida")})
     .on("postgres_changes",{event:"*",schema:"public",table:"disponiveis"},corrRecarregar)

@@ -443,6 +443,21 @@ label.check{min-height:40px;align-items:center}
 .pf-resumo .r-tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:10px}
 .pf-resumo .r-tot b{font:700 26px var(--display);color:var(--money,var(--accent))}
 .pf-resumo .r-tot span{font-size:13px;color:var(--muted)}
+
+/* alerta de corrida nova */
+.ac-dlg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;animation:ac-in .2s ease-out}
+.ac-card{width:100%;max-width:420px;background:var(--surface);border:2px solid var(--accent);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ac-top{display:flex;align-items:center;gap:10px;font:700 20px var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--accent)}
+.ac-pulso{width:12px;height:12px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 var(--good);animation:ac-p 1.2s infinite}
+.ac-val{font:700 44px var(--display);color:var(--money,var(--accent));line-height:1}
+.ac-rota{font:700 22px var(--display);line-height:1.15}
+.ac-info{font-size:14px;color:var(--muted)}
+.ac-tempo{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin:4px 0}
+.ac-tempo span{display:block;height:100%;width:100%;background:var(--accent)}
+.ac-ok{font-size:18px;padding-block:16px}
+@keyframes ac-p{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 70%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+@keyframes ac-in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ac-dlg,.ac-pulso{animation:none}}
 </style>
 </head>
 <body>
@@ -1205,6 +1220,15 @@ label.check{min-height:40px;align-items:center}
 </div>
 
 <div id="inst-dlg" class="inst-dlg" hidden role="dialog" aria-label="Como instalar o Cadernex"><div class="card stack"><h2>Como baixar o Cadernex</h2><ol id="inst-passos"></ol><p class="hint" style="margin:0">Não ocupa espaço como os apps da loja e se atualiza sozinho.</p><button class="btn full" type="button" data-inst-fechar>Entendi</button></div></div>
+<div id="ac-dlg" class="ac-dlg" hidden role="alertdialog" aria-labelledby="ac-tit"><div class="ac-card">
+  <div class="ac-top"><span class="ac-pulso" aria-hidden="true"></span><b id="ac-tit">Corrida nova</b></div>
+  <div class="ac-val num" id="ac-val"></div>
+  <div class="ac-rota" id="ac-rota"></div>
+  <div class="ac-info" id="ac-info"></div>
+  <div class="ac-tempo"><span id="ac-barra"></span></div>
+  <button class="btn full ac-ok" type="button" id="ac-ok">Aceitar</button>
+  <button class="btn ghost full" type="button" id="ac-nao">Agora não</button>
+</div></div>
 <nav id="nav" hidden><div class="in">
   <button class="tab so-ent" data-v="resumo" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resumo</button>
   <button class="tab so-ent" data-v="turno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Turno</button>
@@ -1235,5 +1259,6 @@ label.check{min-height:40px;align-items:center}
 <script src="loja.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
+<script src="alerta.js"></script>
 </body>
 </html>
