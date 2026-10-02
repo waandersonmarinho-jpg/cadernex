@@ -478,6 +478,13 @@ label.check{min-height:40px;align-items:center}
 .corr-mais[open] summary::after{content:"−"}
 .corr-mais-c{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding-bottom:4px}
 .corr-mais-c .rel-form{align-self:stretch}
+
+.mc-lista{margin:0;padding:4px 16px 14px 34px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+#motoCurso .mod summary b{font-size:15px}
+.mc-fontes{display:flex;flex-direction:column;gap:2px;align-items:flex-start}.mc-fontes .hint{font-size:12px}
+
+.mc-a{margin:0 16px 12px}
+#direcaoSegura .mod summary b{font-size:15px}
 </style>
 </head>
 <body>
@@ -871,6 +878,56 @@ label.check{min-height:40px;align-items:center}
       </div>
       <p class="warn" id="ag-erro" hidden>Falta criar as tabelas da Faculdade no Supabase. Rode o arquivo <b>agenda.sql</b> no SQL Editor.</p>
 
+      <div class="card stack" id="motoCurso">
+        <div><div class="eyebrow">Regularize seu corre</div><h2 style="margin:2px 0 0">Curso de motofrete e mototáxi</h2></div>
+        <p class="hint" style="margin:0">Pra trabalhar como motoboy profissional, a lei exige um curso especializado regulamentado pelo Contran.</p>
+        <details class="mod"><summary><b>Quem pode fazer</b></summary><ul class="mc-lista">
+          <li>Ter 21 anos ou mais</li>
+          <li>CNH categoria A há pelo menos 2 anos</li>
+          <li>Sem suspensão ou cassação da CNH</li>
+          <li>Colete de segurança com faixas refletivas</li></ul></details>
+        <details class="mod"><summary><b>Como é o curso</b></summary><ul class="mc-lista">
+          <li>30 horas-aula: 25 de teoria e 5 de pilotagem</li>
+          <li>Ética, legislação, risco sobre duas rodas, segurança e saúde</li>
+          <li>Aprova com 100% de presença e 70% na prova</li>
+          <li>Reciclagem a cada 5 anos, com 10 horas-aula</li>
+          <li>Feito no Detran-GO ou em escolas autorizadas por ele</li></ul></details>
+        <details class="mod"><summary><b>Moto e equipamentos</b></summary><ul class="mc-lista">
+          <li>Moto na categoria aluguel, com placa vermelha</li>
+          <li>Protetor de motor (mata-cachorro) e antena corta-pipa</li>
+          <li>Baú ou grelha para levar a carga</li>
+          <li>Capacete com selo do Inmetro e faixas refletivas</li></ul></details>
+        <div class="mc-fontes"><span class="hint">Fonte: Lei 12.009/2009 e resoluções do Contran.</span>
+          <a class="link" href="https://www.portaldotransito.com.br/noticias/mobilidade-e-tecnologia/veiculos/contran-regulamenta-curso-para-mototaxi-e-motofrete-2/amp/" target="_blank" rel="noopener">Ler no Portal do Trânsito</a></div>
+      </div>
+      <div class="card stack" id="direcaoSegura">
+        <div><div class="eyebrow">Chegue inteiro em casa</div><h2 style="margin:2px 0 0">Direção segura</h2></div>
+        <p class="hint" style="margin:0">Cursos gratuitos e hábitos que protegem quem passa o dia na rua.</p>
+        <details class="mod"><summary><b>Cursos gratuitos</b></summary><ul class="mc-lista">
+          <li>SEST SENAT: cursos grátis pra quem trabalha com transporte, online e presenciais</li>
+          <li>Procure por direção defensiva, pilotagem segura, cuidados para o motofretista e primeiros socorros</li>
+          <li>Muitos dão certificado, que conta ponto com loja e cliente</li></ul>
+          <a class="link mc-a" href="https://ead.sestsenat.org.br" target="_blank" rel="noopener">Abrir os cursos online do SEST SENAT</a></details>
+        <details class="mod"><summary><b>Antes de sair</b></summary><ul class="mc-lista">
+          <li>Confira pneus, freios, luzes e corrente</li>
+          <li>Capacete fechado e afivelado, luvas, jaqueta e calçado fechado</li>
+          <li>Capa de chuva com faixa refletiva na mochila</li>
+          <li>Celular preso no suporte e com bateria</li></ul></details>
+        <details class="mod"><summary><b>No trânsito</b></summary><ul class="mc-lista">
+          <li>Aceite a corrida com a moto parada, nunca andando</li>
+          <li>Fique fora do ponto cego de ônibus e caminhão</li>
+          <li>No corredor, vá devagar: porta abre e carro muda de faixa</li>
+          <li>Na chuva, freie antes da curva e evite faixa pintada e tampa de bueiro</li>
+          <li>Dê mais distância do carro da frente à noite</li></ul></details>
+        <details class="mod"><summary><b>Corpo e cansaço</b></summary><ul class="mc-lista">
+          <li>Pare uns minutos a cada 2 horas rodando</li>
+          <li>Beba água o dia todo, não só quando der sede</li>
+          <li>Com sono, não rode: nenhuma corrida vale um acidente</li></ul></details>
+        <details class="mod"><summary><b>Pra quem roda de bike</b></summary><ul class="mc-lista">
+          <li>Luz branca na frente e vermelha atrás, mesmo de dia</li>
+          <li>Capacete e roupa clara ou com refletivo</li>
+          <li>Ande no sentido dos carros e use ciclovia quando tiver</li></ul></details>
+      </div>
       <div class="card">
         <div class="chips dias" id="ag-dias" role="group" aria-label="Dia da semana"></div>
         <div class="row" style="margin:14px 0 4px;align-items:baseline"><h2 id="ag-diatit" style="text-transform:capitalize">Hoje</h2></div>
