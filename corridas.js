@@ -182,10 +182,10 @@ $("pf-tipo").addEventListener("click",e=>{const b=e.target.closest("[data-pt]");
 pfVeiChips();
 let locs={c:null,e:null};
 function usarLoc(qual){if(!navigator.geolocation){toast("Seu celular não liberou a localização");return}
-  const b=$(qual==="c"?"pf-cloc":"pf-eloc");b.textContent="Pegando localização…";
-  navigator.geolocation.getCurrentPosition(p=>{locs[qual]={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};b.textContent="Localização marcada ✓";
+  const b=$(qual==="c"?"pf-cloc":"pf-eloc");b.textContent="Localizando…";
+  navigator.geolocation.getCurrentPosition(p=>{locs[qual]={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};b.textContent="Marcado ✓";
     const inp=$(qual==="c"?"pf-cend":"pf-eend");if(!inp.value.trim())inp.value="Minha localização atual";sugerir()},
-    ()=>{b.textContent="Usar minha localização";toast("Não deu pra pegar a localização. Escreva o endereço.")},{enableHighAccuracy:true,timeout:15000});}
+    ()=>{b.textContent="Minha localização";toast("Não deu pra pegar a localização. Escreva o endereço.")},{enableHighAccuracy:true,timeout:15000});}
 $("pf-cloc").onclick=()=>usarLoc("c");$("pf-eloc").onclick=()=>usarLoc("e");
 const BASE=8,POR_KM=2.5;
 const justo=k=>Math.max(BASE,Math.ceil((BASE+POR_KM*k)*2)/2); // arredonda pra cima de 50 em 50 centavos
@@ -210,8 +210,8 @@ $("fPedir").onsubmit=e=>{e.preventDefault();
   safe(async()=>{const{data,error}=await sb.from("corridas").insert({coleta_bairro:cb,entrega_bairro:eb,item,valor,veiculo:pfVei(),distancia_km:k,...(fr?{tipo:"frete",ajudantes:+picked($("pf-aj")),andares:Math.max(0,Math.round(num($("pf-and").value)||0)),agendado_para:quando?quando.toISOString():null}:{})}).select().single();if(error)throw error;
     const det={corrida_id:data.id,coleta_end:cend,entrega_end:eend,coleta_lat:locs.c?.lat??null,coleta_lng:locs.c?.lng??null,entrega_lat:locs.e?.lat??null,entrega_lng:locs.e?.lng??null,contato:$("pf-tel").value.trim()||null,obs:$("pf-obs").value.trim()||null};
     const r=await sb.from("corridas_det").insert(det);if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
-    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};$("pf-cloc").textContent=$("pf-eloc").textContent="Usar minha localização";
-    corrAberta=data.id;await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
+    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";
+    corrAberta=data.id;if(window.pfEtapa)pfEtapa(1);await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
 function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=perfil.telefone;sugerir()}
 
 // perfil do cliente

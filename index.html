@@ -410,6 +410,39 @@ label.check{min-height:40px;align-items:center}
 .inst-dlg{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px}
 .inst-dlg>.card{max-width:520px;width:100%}
 .inst-dlg ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+
+/* pedir entrega em etapas */
+.pf{display:flex;flex-direction:column;gap:16px}
+.pf-tipo button{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 4px;white-space:nowrap;font-size:13.5px}
+.pf-tipo svg,.pf-ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pf-tipo button[aria-pressed="true"] svg{color:var(--accent)}
+.pf-passos{list-style:none;margin:0;padding:0;display:flex;gap:6px}
+.pf-passos li{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;position:relative}
+.pf-passos li i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);font:700 13px var(--display)}
+.pf-passos li::before{content:"";position:absolute;top:13px;right:calc(50% + 16px);width:calc(100% - 26px);height:2px;background:var(--line)}
+.pf-passos li:first-child::before{display:none}
+.pf-passos li.feito i{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pf-passos li.feito::before,.pf-passos li[aria-current="step"]::before{background:var(--accent)}
+.pf-passos li[aria-current="step"]{color:var(--fg)}
+.pf-passos li[aria-current="step"] i{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.pf-etapa{display:flex;flex-direction:column;gap:14px}
+.pf-rot{font-size:13px;color:var(--muted);margin-bottom:6px}
+.pf-rota{display:flex;flex-direction:column;gap:18px;position:relative}
+.pf-rota::before{content:"";position:absolute;left:7px;top:22px;bottom:96px;border-left:2px dashed var(--line)}
+.pf-ponto{display:grid;grid-template-columns:16px 1fr;gap:12px}
+.pf-pin{width:16px;height:16px;border-radius:50%;margin-top:3px;position:relative;z-index:1}
+.pf-pin.coleta{background:var(--surface);box-shadow:inset 0 0 0 4px var(--accent)}
+.pf-pin.entrega{background:var(--accent)}
+.pf-cab{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pf-cab b{font-size:15px;white-space:nowrap}.pf-cab .loc{font-size:13px;padding:0;white-space:nowrap}
+.pf-nav{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.pf-resumo{background:var(--bg);border-radius:14px;padding:14px;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:10px}
+.pf-resumo .r-rota{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.pf-resumo .r-rota div{display:flex;gap:8px;align-items:baseline}.pf-resumo .r-rota small{color:var(--muted);flex:none;width:58px}
+.pf-resumo .r-lin{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted)}.pf-resumo .r-lin b{color:var(--fg);text-align:right}
+.pf-resumo .r-tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:10px}
+.pf-resumo .r-tot b{font:700 26px var(--display);color:var(--money,var(--accent))}
+.pf-resumo .r-tot span{font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1075,39 +1108,53 @@ label.check{min-height:40px;align-items:center}
           <button class="btn full" id="lj-enviar">Pedir entrega</button></form>
         <button type="button" class="link" id="lj-completo" style="align-self:center"></button>
       </div>
-      <form id="fPedir" class="card stack">
-        <div class="seg" id="pf-tipo" role="group" aria-label="Tipo de pedido">
-          <button type="button" data-pt="entrega" aria-pressed="true">🛵 Entrega rápida</button>
-          <button type="button" data-pt="frete" aria-pressed="false">🛻 Frete e mudança</button>
+      <form id="fPedir" class="card pf" novalidate>
+        <div class="seg pf-tipo" id="pf-tipo" role="group" aria-label="Tipo de pedido">
+          <button type="button" data-pt="entrega" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="16.5" r="3"/><circle cx="18.5" cy="16.5" r="3"/><path d="M5.5 16.5 9 11h5l3 5.5M14 11l-1.5-4H10M15 7h3"/></svg>Entrega rápida</button>
+          <button type="button" data-pt="frete" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 15V11h9V7h5l3 4h3v4"/><circle cx="7" cy="16.5" r="2"/><circle cx="17" cy="16.5" r="2"/><path d="M9 16.5h6M2 15h3M19 15h3"/></svg>Frete e mudança</button>
         </div>
-        <p class="hint so-frete" hidden style="margin:0">Picape ou caminhão pequeno pra móveis, mudança, materiais e mercadorias. Dá pra agendar o dia.</p>
-        <div class="end-g"><div class="eyebrow">Onde buscar</div>
-          <label>Endereço de coleta<input type="text" id="pf-cend" autocomplete="street-address" placeholder="Rua, número, ponto de referência"></label>
-          <button type="button" class="link loc" id="pf-cloc">Usar minha localização</button>
-          <label>Bairro<input type="text" id="pf-cb" placeholder="ex.: Setor Oeste"></label></div>
-        <div class="end-g"><div class="eyebrow">Onde entregar</div>
-          <label>Endereço de entrega<input type="text" id="pf-eend" placeholder="Rua, número, ponto de referência"></label>
-          <button type="button" class="link loc" id="pf-eloc">Usar minha localização</button>
-          <label>Bairro<input type="text" id="pf-eb" placeholder="ex.: Jardim Goiás"></label></div>
-        <label>O que vai ser levado<input type="text" id="pf-item" maxlength="120" placeholder="ex.: 2 marmitas, documento, remédio"></label>
-        <div><div class="eyebrow" style="margin-bottom:6px">Veículo</div><div class="chips" id="pf-vei"></div>
-          <p class="hint so-frete" hidden style="margin:6px 0 0;font-size:12px">"Qualquer com carroceria": qualquer picape ou caminhão pode aceitar. Picape pequena: Saveiro, Strada · Picape média: S10, Hilux · Caminhão pequeno: VUC, 3/4, pra mudança.</p></div>
-        <div class="so-frete stack" hidden style="gap:12px">
-          <label>Quando? (deixe vazio pra agora)<input type="datetime-local" id="pf-quando"></label>
-          <div><div class="eyebrow" style="margin-bottom:6px">Ajudantes pra carregar (R$ 70 cada)</div><div class="chips" id="pf-aj"></div></div>
-          <label>Andares de escada, sem elevador (coleta + entrega)<input type="text" inputmode="numeric" id="pf-and" placeholder="0"></label>
+        <ol class="pf-passos" aria-label="Etapas do pedido"><li data-ir="1" aria-current="step"><i>1</i>Endereços</li><li data-ir="2"><i>2</i>Detalhes</li><li data-ir="3"><i>3</i>Confirmar</li></ol>
+
+        <div class="pf-etapa" data-etapa="1">
+          <div class="pf-rota">
+            <div class="pf-ponto"><span class="pf-pin coleta" aria-hidden="true"></span><div class="stack" style="gap:8px">
+              <div class="pf-cab"><b>Onde buscar</b><button type="button" class="link loc" id="pf-cloc">Minha localização</button></div>
+              <input type="text" id="pf-cend" autocomplete="street-address" placeholder="Rua, número, referência" aria-label="Endereço de coleta">
+              <input type="text" id="pf-cb" placeholder="Bairro" aria-label="Bairro da coleta"></div></div>
+            <div class="pf-ponto"><span class="pf-pin entrega" aria-hidden="true"></span><div class="stack" style="gap:8px">
+              <div class="pf-cab"><b>Onde entregar</b><button type="button" class="link loc" id="pf-eloc">Minha localização</button></div>
+              <input type="text" id="pf-eend" placeholder="Rua, número, referência" aria-label="Endereço de entrega">
+              <input type="text" id="pf-eb" placeholder="Bairro" aria-label="Bairro da entrega"></div></div>
+          </div>
+          <button class="btn full" type="button" data-pf-prox>Continuar</button>
         </div>
-        <div class="grid2">
-          <label>Distância da coleta à entrega (km)<input type="text" inputmode="decimal" id="pf-km" placeholder="ex.: 3,5"></label>
-          <label>Quanto você paga (R$)<input type="text" inputmode="decimal" id="pf-valor" placeholder="0,00"></label>
+
+        <div class="pf-etapa" data-etapa="2" hidden>
+          <label>O que vai ser levado<input type="text" id="pf-item" maxlength="120" placeholder="ex.: 2 marmitas, documento, remédio"></label>
+          <div><div class="pf-rot">Veículo</div><div class="chips" id="pf-vei"></div>
+            <p class="hint so-frete" hidden style="margin:6px 0 0;font-size:12px">Pequena: Saveiro, Strada · Média: S10, Hilux · Caminhão: VUC, 3/4.</p></div>
+          <div class="so-frete stack" hidden style="gap:12px">
+            <label>Quando? (vazio = agora)<input type="datetime-local" id="pf-quando"></label>
+            <div><div class="pf-rot">Ajudantes (R$ 70 cada)</div><div class="chips" id="pf-aj"></div></div>
+            <label>Andares de escada sem elevador<input type="text" inputmode="numeric" id="pf-and" placeholder="0"></label>
+          </div>
+          <div class="grid2">
+            <label>Distância (km)<input type="text" inputmode="decimal" id="pf-km" placeholder="ex.: 3,5"></label>
+            <label>Você paga (R$)<input type="text" inputmode="decimal" id="pf-valor" placeholder="0,00"></label>
+          </div>
+          <p class="preco" id="pf-sug"></p>
+          <p class="hint so-entrega" style="margin:-4px 0 0;font-size:12px">Tabela: R$ 8 + R$ 2,50 por km. Mínimo R$ 8.</p>
+          <p class="hint so-frete" hidden style="margin:-4px 0 0;font-size:12px">Tabela: pequena R$ 40 + R$ 3/km · média R$ 60 + R$ 3,50/km · caminhão R$ 150 + R$ 5/km · escada R$ 15/andar.</p>
+          <div class="pf-nav"><button class="btn ghost" type="button" data-pf-volta>Voltar</button><button class="btn" type="button" data-pf-prox>Continuar</button></div>
         </div>
-        <p class="preco" id="pf-sug"></p>
-        <p class="hint so-entrega" style="margin:-4px 0 0;font-size:12px">Tabela Cadernex: R$ 8 de taxa base (ida até a coleta e espera) + R$ 2,50 por km depois da coleta. Mínimo R$ 8.</p>
-        <p class="hint so-frete" hidden style="margin:-4px 0 0;font-size:12px">Tabela de frete Cadernex: picape pequena R$ 40 + R$ 3/km · picape média R$ 60 + R$ 3,50/km · caminhão pequeno R$ 150 + R$ 5/km. Ajudante R$ 70 cada, escada R$ 15 por andar. Confira os itens na coleta.</p>
-        <label>Telefone pra contato (opcional)<input type="tel" id="pf-tel" placeholder="só o entregador que aceitar vê"></label>
-        <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
-        <button class="btn full" type="submit" id="pf-btn">Pedir entrega</button>
-        <p class="hint" style="margin:0">Depois que alguém aceitar, você paga pelo app por Pix de qualquer banco (com taxa de serviço: 6% do Cadernex + a taxa do Pix) ou em dinheiro na entrega. Os endereços só aparecem pra quem aceitar.</p>
+
+        <div class="pf-etapa" data-etapa="3" hidden>
+          <div class="pf-resumo" id="pf-resumo"></div>
+          <label>Telefone (opcional)<input type="tel" id="pf-tel" placeholder="só quem aceitar vê"></label>
+          <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
+          <div class="pf-nav"><button class="btn ghost" type="button" data-pf-volta>Voltar</button><button class="btn" type="submit" id="pf-btn">Pedir entrega</button></div>
+          <p class="hint" style="margin:0;font-size:12px;text-align:center">Pague pelo app (Pix) ou em dinheiro. Os endereços só aparecem pra quem aceitar.</p>
+        </div>
       </form>
       <div class="card stack" id="vitrine" hidden><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div><div id="vt-lista" class="stack" style="gap:8px"></div></div>
     </div>
@@ -1184,6 +1231,7 @@ label.check{min-height:40px;align-items:center}
 <script src="faculdades.js"></script>
 <script src="mp.js"></script>
 <script src="veiculo.js"></script>
+<script src="pedir.js"></script>
 <script src="loja.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
