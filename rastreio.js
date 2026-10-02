@@ -64,7 +64,7 @@ function montaMapa(el,c){
   const id=c.id;
   if(mapas[id]){if(mapas[id].el!==el){el.replaceWith(mapas[id].el);mapas[id].map.invalidateSize()}return mapas[id]}
   if(!window.L){leaflet().then(()=>pintar()).catch(()=>{el.innerHTML=`<p class="hint" style="margin:8px">Não deu pra carregar o mapa. Verifique a internet.</p>`});return null}
-  const map=L.map(el,{zoomControl:false,attributionControl:true}).setView([-16.6869,-49.2648],13); // Goiânia
+  const map=L.map(el,{zoomControl:false,attributionControl:true}).setView([-14.235,-51.925],4); // Brasil (o mapa centraliza na pessoa quando tem a posição)
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   const m={el,map,ent:null,mexeu:false,pts:L.layerGroup().addTo(map)};
   map.on("dragstart zoomstart",e=>{if(e.originalEvent||e.type==="dragstart")m.mexeu=true});

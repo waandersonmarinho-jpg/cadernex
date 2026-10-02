@@ -59,7 +59,7 @@ function linhaHTML(i){
   return `<div class="lote-l" data-l="${i}"><div class="row" style="align-items:center"><b class="eyebrow">Entrega ${i+1}</b>${i?`<button class="del" type="button" data-lrm aria-label="Tirar essa entrega">✕</button>`:""}</div>
     <label${ops?"":" hidden"}>Produto<select data-f="prod"><option value="">— escolher (opcional) —</option>${ops}</select></label>
     <label>Endereço do cliente<input data-f="end" placeholder="Rua, número, ponto de referência"></label>
-    <div class="grid2"><label>Bairro<input data-f="bairro" placeholder="ex.: Setor Sul"></label><label>Telefone do cliente<input data-f="tel" type="tel" placeholder="opcional"></label></div>
+    <div class="grid2"><label>Bairro<input data-f="bairro" placeholder="ex.: Centro"></label><label>Telefone do cliente<input data-f="tel" type="tel" placeholder="opcional"></label></div>
     <div class="grid2"><label>Distância (km)<input data-f="km" inputmode="decimal" placeholder="ex.: 3"></label><label>Taxa de entrega (R$)<input data-f="valor" inputmode="decimal" placeholder="pela tabela"></label></div></div>`;
 }
 function preencheOps(box){box.querySelectorAll('select[data-f="prod"] option[value]').forEach(o=>{if(!o.value)return;const p=prods.find(x=>x.id===o.value);if(p)o.textContent=`${p.nome} · ${brl(Number(p.preco))}`})}

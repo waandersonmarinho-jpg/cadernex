@@ -1,7 +1,7 @@
 {
   "name": "Cadernex",
   "short_name": "Cadernex",
-  "description": "Coleta, envios e fretes em Goiânia, e controle de ganhos para entregadores.",
+  "description": "Coleta, envios e fretes, e controle de ganhos para entregadores.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
