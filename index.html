@@ -428,7 +428,7 @@ label.check{min-height:40px;align-items:center}
 .pf-etapa{display:flex;flex-direction:column;gap:14px}
 .pf-rot{font-size:13px;color:var(--muted);margin-bottom:6px}
 .pf-rota{display:flex;flex-direction:column;gap:18px;position:relative}
-.pf-rota::before{content:"";position:absolute;left:7px;top:22px;bottom:96px;border-left:2px dashed var(--line)}
+.pf-rota::before{content:"";position:absolute;left:7px;top:22px;bottom:168px;border-left:2px dashed var(--line)}
 .pf-ponto{display:grid;grid-template-columns:16px 1fr;gap:12px}
 .pf-pin{width:16px;height:16px;border-radius:50%;margin-top:3px;position:relative;z-index:1}
 .pf-pin.coleta{background:var(--surface);box-shadow:inset 0 0 0 4px var(--accent)}
@@ -493,6 +493,9 @@ label.check{min-height:40px;align-items:center}
 #lj-painel,#lj-card,#vitrine{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 140px)}
 #lj-painel .eyebrow,#vitrine .eyebrow{color:var(--accent)}
 #lj-painel .lote-l{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+
+.pf-kmnota{margin:-6px 0 0;font-size:12px;color:var(--good)}
+.pf-cep{max-width:180px}
 </style>
 </head>
 <body>
@@ -1222,10 +1225,12 @@ label.check{min-height:40px;align-items:center}
           <div class="pf-rota">
             <div class="pf-ponto"><span class="pf-pin coleta" aria-hidden="true"></span><div class="stack" style="gap:8px">
               <div class="pf-cab"><b>Onde buscar</b><button type="button" class="link loc" id="pf-cloc">Minha localização</button></div>
+              <input type="text" id="pf-ccep" class="pf-cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="CEP" aria-label="CEP da coleta">
               <input type="text" id="pf-cend" autocomplete="street-address" placeholder="Rua, número, referência" aria-label="Endereço de coleta">
               <input type="text" id="pf-cb" placeholder="Bairro" aria-label="Bairro da coleta"></div></div>
             <div class="pf-ponto"><span class="pf-pin entrega" aria-hidden="true"></span><div class="stack" style="gap:8px">
-              <div class="pf-cab"><b>Onde entregar</b><button type="button" class="link loc" id="pf-eloc">Minha localização</button></div>
+              <div class="pf-cab"><b>Ponto de entrega</b><button type="button" class="link loc" id="pf-eloc" hidden>Minha localização</button></div>
+              <input type="text" id="pf-ecep" class="pf-cep" inputmode="numeric" maxlength="9" placeholder="CEP" aria-label="CEP da entrega">
               <input type="text" id="pf-eend" placeholder="Rua, número, referência" aria-label="Endereço de entrega">
               <input type="text" id="pf-eb" placeholder="Bairro" aria-label="Bairro da entrega"></div></div>
           </div>
@@ -1245,6 +1250,7 @@ label.check{min-height:40px;align-items:center}
             <label>Distância (km)<input type="text" inputmode="decimal" id="pf-km" placeholder="ex.: 3,5"></label>
             <label>Você paga (R$)<input type="text" inputmode="decimal" id="pf-valor" placeholder="0,00"></label>
           </div>
+          <p class="hint pf-kmnota" id="pf-kmnota" hidden></p>
           <p class="preco" id="pf-sug"></p>
           <p class="hint so-entrega" style="margin:-4px 0 0;font-size:12px">Tabela: R$ 8 + R$ 2,50 por km. Mínimo R$ 8.</p>
           <p class="hint so-frete" hidden style="margin:-4px 0 0;font-size:12px">Tabela: pequena R$ 40 + R$ 3/km · média R$ 60 + R$ 3,50/km · caminhão R$ 150 + R$ 5/km · escada R$ 15/andar.</p>

@@ -200,7 +200,7 @@ pfVeiChips();
 let locs={c:null,e:null};
 function usarLoc(qual){if(!navigator.geolocation){toast("Seu celular não liberou a localização");return}
   const b=$(qual==="c"?"pf-cloc":"pf-eloc");b.textContent="Localizando…";
-  navigator.geolocation.getCurrentPosition(p=>{locs[qual]={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};b.textContent="Marcado ✓";
+  navigator.geolocation.getCurrentPosition(p=>{locs[qual]={lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)};window.kmRota=null;b.textContent="Marcado ✓";
     const inp=$(qual==="c"?"pf-cend":"pf-eend");if(!inp.value.trim())inp.value="Minha localização atual";sugerir()},
     ()=>{b.textContent="Minha localização";toast("Não deu pra pegar a localização. Escreva o endereço.")},{enableHighAccuracy:true,timeout:15000});}
 $("pf-cloc").onclick=()=>usarLoc("c");$("pf-eloc").onclick=()=>usarLoc("e");
@@ -208,7 +208,7 @@ const BASE=8,POR_KM=2.5;
 const justo=k=>Math.max(BASE,Math.ceil((BASE+POR_KM*k)*2)/2); // arredonda pra cima de 50 em 50 centavos
 function pfJusto(k){if(pfTipo!=="frete")return justo(k);return precoFrete(pfVei(),k,+picked($("pf-aj")),Math.max(0,Math.round(num($("pf-and").value)||0)))}
 function sugerir(){
-  const auto=locs.c&&locs.e?km(locs.c.lat,locs.c.lng,locs.e.lat,locs.e.lng):null;
+  const auto=window.kmRota!=null?window.kmRota:(locs.c&&locs.e?km(locs.c.lat,locs.c.lng,locs.e.lat,locs.e.lng):null);
   if(auto!=null&&document.activeElement!==$("pf-km"))$("pf-km").value=String(auto).replace(".",",");
   const k=num($("pf-km").value)||null,el=$("pf-sug"),v=num($("pf-valor").value);
   if(k==null){el.className="preco";el.textContent="Coloque a distância, ou use a localização nos dois endereços, que o app calcula o valor justo.";return null}
@@ -227,7 +227,7 @@ $("fPedir").onsubmit=e=>{e.preventDefault();
   safe(async()=>{const{data,error}=await sb.from("corridas").insert({coleta_bairro:cb,entrega_bairro:eb,item,valor,veiculo:pfVei(),distancia_km:k,...(fr?{tipo:"frete",ajudantes:+picked($("pf-aj")),andares:Math.max(0,Math.round(num($("pf-and").value)||0)),agendado_para:quando?quando.toISOString():null}:{})}).select().single();if(error)throw error;
     const det={corrida_id:data.id,coleta_end:cend,entrega_end:eend,coleta_lat:locs.c?.lat??null,coleta_lng:locs.c?.lng??null,entrega_lat:locs.e?.lat??null,entrega_lng:locs.e?.lng??null,contato:$("pf-tel").value.trim()||null,obs:$("pf-obs").value.trim()||null};
     const r=await sb.from("corridas_det").insert(det);if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
-    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";
+    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};window.kmRota=null;["pf-ccep","pf-ecep"].forEach(i=>$(i).value="");$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";
     corrAberta=data.id;if(window.pfEtapa)pfEtapa(1);await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
 function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=perfil.telefone;sugerir()}
 
