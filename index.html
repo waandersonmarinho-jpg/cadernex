@@ -382,6 +382,22 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
 .link{min-height:40px;display:inline-flex;align-items:center}
 label.check{min-height:40px;align-items:center}
 .prod-ac .link{padding:0 6px!important}
+
+/* apresentação: receber pelo Mercado Pago */
+.mpi{display:flex;flex-direction:column;gap:14px;border-color:var(--accent);background:linear-gradient(160deg,var(--accent-soft),var(--surface) 55%)}
+.mpi-t{font-size:26px;margin:0;line-height:1.1}.mpi-t span{color:var(--accent)}
+.mpi-lead{margin:0;font-size:15px;color:var(--fg)}
+.mpi-ex{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--bg);border-radius:14px;padding:14px;box-shadow:inset 0 0 0 1px var(--line)}
+.mpi-ex>div{display:flex;flex-direction:column;gap:2px}.mpi-ex small{font-size:12px;color:var(--muted)}.mpi-ex b{font:700 22px var(--display)}
+.mpi-voce b{color:var(--good)}.mpi-seta{color:var(--muted);font-size:20px}
+.mpi-ex p{grid-column:1/-1;margin:4px 0 0;font-size:12px;color:var(--muted)}
+.mpi-passos{list-style:none;counter-reset:p;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.mpi-passos li{counter-increment:p;display:grid;grid-template-columns:30px 1fr;column-gap:10px}
+.mpi-passos li::before{content:counter(p);grid-row:span 2;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 15px var(--display);display:grid;place-items:center}
+.mpi-passos b{font-size:15px}.mpi-passos span{font-size:13px;color:var(--muted)}
+.mpi-classe{margin:0;font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
+.mpi-rodape{display:flex;justify-content:space-between;gap:10px}
+.auth-selo{margin:0 0 14px;font-size:14px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}.auth-selo b{color:var(--fg)}
 </style>
 </head>
 <body>
@@ -403,6 +419,7 @@ label.check{min-height:40px;align-items:center}
       <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
     </div>
     <p class="lead">Coleta e envios em Goiânia: peça uma entrega, um frete ou receba corridas como entregador.</p>
+    <p class="auth-selo"><b>Entregador recebe 100% da corrida.</b> A taxa de serviço é paga por quem pede.</p>
     <div class="card">
       <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
       <form id="fAuth">
@@ -979,6 +996,25 @@ label.check{min-height:40px;align-items:center}
     <div class="stack">
       <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
       <div><div class="eyebrow">Corridas diretas</div><h2 style="font-size:28px">Corridas</h2></div>
+      <div class="card mpi" id="mp-intro" hidden>
+        <div class="eyebrow">Feito por entregador, pra entregador</div>
+        <h2 class="mpi-t">Receba <span>100%</span> da sua corrida</h2>
+        <p class="mpi-lead">No Cadernex quem paga a taxa de serviço é o cliente. O valor que você aceitou cai inteiro na sua conta Mercado Pago, por Pix.</p>
+        <div class="mpi-ex" aria-label="Exemplo de corrida de 15 reais">
+          <div><small>Corrida aceita</small><b class="num">R$ 15,00</b></div>
+          <div class="mpi-seta">→</div>
+          <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 15,00</b></div>
+          <p>O cliente paga R$ 16,06: a corrida + 6% do Cadernex + a taxa do Pix. Nada sai do seu bolso.</p>
+        </div>
+        <ol class="mpi-passos">
+          <li><b>Tenha uma conta no Mercado Pago</b><span>É grátis e abre pelo celular, com seu CPF. Se já tem, pule este passo.</span></li>
+          <li><b>Toque em Conectar</b><span>Você entra com seu login do Mercado Pago e autoriza o Cadernex. Sua senha fica só lá.</span></li>
+          <li><b>Pronto, é só rodar</b><span>Cliente paga pelo app e o dinheiro cai na sua conta. Sem esperar repasse do Cadernex.</span></li>
+        </ol>
+        <p class="mpi-classe">Taxa baixa é pra fortalecer a classe: quem roda fica com o valor da corrida, quem pede paga um preço justo, e a tabela de valor justo ajuda ninguém a trabalhar abaixo do custo.</p>
+        <button class="btn full" type="button" id="mpi-con">Conectar meu Mercado Pago</button>
+        <div class="mpi-rodape"><a class="link" href="https://www.mercadopago.com.br/" target="_blank" rel="noopener">Ainda não tenho conta</a><button class="link" type="button" id="mpi-depois">Agora não</button></div>
+      </div>
       <p class="warn co-erro" hidden>Falta criar as corridas no Supabase. Rode o arquivo <b>corridas.sql</b> no SQL Editor.</p>
       <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Você recebeu 3 relatos de problema em corridas. Enquanto a análise não termina, você não pode ficar disponível. Seu controle financeiro continua funcionando normal.</p><p class="hint bloq-mot"></p>
         <form class="stack"><label>Sua defesa (conte o que aconteceu)<textarea rows="3" maxlength="600"></textarea></label><button class="btn full" type="submit">Enviar defesa</button></form></div>

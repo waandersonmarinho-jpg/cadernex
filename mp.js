@@ -30,12 +30,12 @@ async function voltouDoMP(){ // o Mercado Pago devolve ?code=...&state=...
   toast("Conectando sua conta Mercado Pago…");
   const{data,error}=await sb.functions.invoke("mp-conectar",{body:{code,redirect_uri:retorno()}});
   if(error||!data||!data.ok){toast(await erroDe(error,data));return}
-  conectado=true;cfgRender();toast("Conta Mercado Pago conectada ✓ Agora os clientes podem te pagar pelo app.");
+  conectado=true;cfgRender();introRender();toast("Conta Mercado Pago conectada ✓ Agora os clientes podem te pagar pelo app.");
   if(typeof go==="function")go("config");
 }
 async function statusLoad(){
   if(!sb||!uid||perfil.tipo==="cliente")return;
-  const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;cfgRender();pintar();
+  const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;cfgRender();introRender();pintar();
 }
 function cfgRender(){
   const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente";if(card.hidden)return;
@@ -46,8 +46,18 @@ function cfgRender(){
     :`Conecte sua conta Mercado Pago pra receber pelo app. O cliente paga por Pix e o dinheiro cai direto na sua conta. Você recebe o valor inteiro da corrida.`;
 }
 $("cf-mp-btn").onclick=conectar;
+
+/* ---------- Apresentação pro entregador (até conectar) ---------- */
+const INTRO_KEY="cx-mpi-depois";
+function introRender(){
+  const el=$("mp-intro");if(!el)return;
+  let adiado=0;try{adiado=Number(localStorage.getItem(INTRO_KEY))||0}catch(e){}
+  el.hidden=!(perfil.tipo==="entregador"&&conectado===false&&Date.now()-adiado>3*864e5);
+}
+$("mpi-con").onclick=conectar;
+$("mpi-depois").onclick=()=>{try{localStorage.setItem(INTRO_KEY,String(Date.now()))}catch(e){}introRender();toast("Tudo bem. O botão de conectar fica em Configurações.")};
 $("cf-mp-off").onclick=()=>{const b=$("cf-mp-off");if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo pra desconectar";return}
-  b.dataset.ok="";safe(async()=>{const{error}=await sb.rpc("mp_desconectar");if(error)throw error;conectado=false;cfgRender();b.textContent="Desconectar"},"Conta desconectada")};
+  b.dataset.ok="";safe(async()=>{const{error}=await sb.rpc("mp_desconectar");if(error)throw error;conectado=false;cfgRender();introRender();b.textContent="Desconectar"},"Conta desconectada")};
 
 /* ---------- Cartões das corridas ---------- */
 async function dadosLoad(){
