@@ -4,6 +4,19 @@ const VEIC={bike:{n:"Bike",i:"🚲"},moto:{n:"Moto",i:"🛵"},
   picape_p:{n:"Picape pequena",ex:"Saveiro, Strada, Montana",i:"🛻",frete:1,base:40,km:3},
   picape_m:{n:"Picape média",ex:"S10, Hilux, Ranger",i:"🛻",frete:1,base:60,km:3.5},
   caminhao:{n:"Caminhão pequeno",ex:"VUC, 3/4, baú",i:"🚚",frete:1,base:150,km:5}};
+/* ícones de linha, no mesmo estilo da barra de baixo */
+const _sv=d=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const IC={
+  bike:_sv('<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9 12 16.5h-1M15 9l-1-3h-2"/>'),
+  moto:_sv('<circle cx="5.5" cy="16.5" r="3"/><circle cx="18.5" cy="16.5" r="3"/><path d="M5.5 16.5 9 11h5l3 5.5M14 11l-1.5-4H10M15 7h3"/>'),
+  picape:_sv('<path d="M2 15V11h9V7h5l3 4h3v4"/><circle cx="7" cy="16.5" r="2"/><circle cx="17" cy="16.5" r="2"/><path d="M9 16.5h6M2 15h3M19 15h3"/>'),
+  caminhao:_sv('<path d="M2 6h11v10H2zM13 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/>'),
+  loja:_sv('<path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>'),
+  cal:_sv('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  cam:_sv('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+  chat:_sv('<path d="M4 5h16v11H9l-5 4z"/>')
+};
+const icVei=v=>IC[{bike:"bike",moto:"moto",picape_p:"picape",picape_m:"picape",caminhao:"caminhao"}[v]]||IC.picape;
 const FRETE_VEIC=["picape_p","picape_m","caminhao"],AJUDANTE=70,ANDAR=15;
 const CARROC="Qualquer com carroceria";
 const veiNome=v=>v==="carroceria"?CARROC:(VEIC[v]||{}).n||"Qualquer";
@@ -11,7 +24,7 @@ const veiCod=nome=>Object.keys(VEIC).find(k=>VEIC[k].n===nome)||"bike";
 const precoFrete=(v,k,aj,an)=>{const x=VEIC[v]||VEIC.picape_p; // "qualquer com carroceria" usa a tabela da picape pequena
  return Math.ceil((x.base+x.km*(k||0)+(aj||0)*AJUDANTE+(an||0)*ANDAR)*2)/2};
 const quandoTxt=iso=>{const d=new Date(iso),h=new Date(),am=new Date(h);am.setDate(h.getDate()+1);const dia=d.toDateString()===h.toDateString()?"hoje":d.toDateString()===am.toDateString()?"amanhã":d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"});return dia+" às "+hm(d)};
-let relatos=[],relForm=null,abertas=[],minhas=[],disp=[],dets={},cmsgs={},corrOk=true,corrCanal=null,corrAberta=null,medias={},corrT=null;
+let maisAbertos=new Set(),relatos=[],relForm=null,abertas=[],minhas=[],disp=[],dets={},cmsgs={},corrOk=true,corrCanal=null,corrAberta=null,medias={},corrT=null;
 const ST={aberta:"Procurando entregador",aceita:"Entregador a caminho da coleta",coletada:"A caminho da entrega",entregue:"Entregue",cancelada:"Cancelada"};
 const ANOT_KEY="cadernex_corridas_anotadas";
 let anotadas=(()=>{try{return JSON.parse(localStorage.getItem(ANOT_KEY))||[]}catch(e){return[]}})();
@@ -63,7 +76,7 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   const pill=`<span class="pill st-${c.status}">${c.tipo==="frete"?ST[c.status].replace("Entregador","Freteiro").replace("entregador","freteiro"):ST[c.status]}</span>`;
   let h=`<div class="corr${aberto?" open":""}" data-corr="${c.id}"><div class="corr-h" data-toggle="${c.id}"><div class="l"><div class="t">${esc(c.coleta_bairro)} → ${esc(c.entrega_bairro)}</div><div class="s">${esc(c.item)}${c.distancia_km?` · ~${String(c.distancia_km).replace(".",",")} km`:""} · ${ha(c.created_at)}</div></div><div class="corr-v num">${brl(Number(c.valor))}</div></div>`;
   const fr=c.tipo==="frete",jj=c.distancia_km?(fr?precoFrete(c.veiculo,Number(c.distancia_km),c.ajudantes,c.andares):justo(Number(c.distancia_km))):null,selo=jj==null?"":Number(c.valor)>=jj?`<span class="pill justo">Valor justo</span>`:`<span class="pill abaixo">Abaixo do justo (${brl(jj)})</span>`;
-  h+=`<div class="corr-meta">${c.loja?`<span class="pill loja">🏪 Loja</span>`:""}${fr?`<span class="pill frete">Frete</span>`:""}${pill}${selo}${c.veiculo!=="qualquer"?`<span class="pill">${(VEIC[c.veiculo]||{i:"🛻"}).i} ${veiNome(c.veiculo)}</span>`:""}${c.agendado_para?`<span class="pill agenda">📅 ${quandoTxt(c.agendado_para)}</span>`:""}${fr&&c.ajudantes?`<span class="pill">${c.ajudantes} ajudante${c.ajudantes>1?"s":""}</span>`:""}${fr&&c.andares?`<span class="pill">${c.andares} andar${c.andares>1?"es":""} de escada</span>`:""}</div>`;
+  h+=`<div class="corr-meta">${c.loja?`<span class="pill loja">${IC.loja}Loja</span>`:""}${fr?`<span class="pill frete">Frete</span>`:""}${pill}${selo}${c.veiculo!=="qualquer"?`<span class="pill">${icVei(c.veiculo)}${veiNome(c.veiculo)}</span>`:""}${c.agendado_para?`<span class="pill agenda">${IC.cal}${quandoTxt(c.agendado_para)}</span>`:""}${fr&&c.ajudantes?`<span class="pill">${c.ajudantes} ajudante${c.ajudantes>1?"s":""}</span>`:""}${fr&&c.andares?`<span class="pill">${c.andares} andar${c.andares>1?"es":""} de escada</span>`:""}</div>`;
   if(!aberto)return h+(papel==="ent"&&c.status==="aberta"?`<button class="btn full" data-aceitar="${c.id}">Aceitar por ${brl(Number(c.valor))}</button>`:"")+`</div>`;
   if(papel==="cli"&&c.entregador_nome){const md=medias[c.entregador_id];h+=`<p class="corr-pessoa">${fr?"Freteiro":"Entregador"}: <b>${esc(c.entregador_nome)}</b>${c.ent_veiculo?` · ${veiNome(c.ent_veiculo)}`:""}${c.ent_placa?` · placa <b class="placa">${esc(c.ent_placa.replace(/^(...)/,"$1-"))}</b>`:""}${md&&md.avaliacoes?` · ★ ${String(md.media).replace(".",",")} (${md.avaliacoes})`:""}${md&&md.entregas?` · ${md.entregas} entregas`:""}</p>`}
   if(papel==="cli"&&c.entregador_id&&["aceita","coletada","entregue"].includes(c.status))h+=`<div class="vfoto-cli" data-vfoto="${c.id}"></div>`;
@@ -77,23 +90,25 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   if(ativo&&c.entregador_id)h+=`<div class="gps" data-gps="${c.id}" data-papel="${papel}"></div>`;
   if(c.entregador_id&&(ativo||(c.status==="entregue"&&Date.now()-new Date(c.entregue_em||c.created_at)<3*864e5)))h+=`<div class="mpbox" data-mp="${c.id}" data-papel="${papel}"></div><div class="pixbox" data-pix="${c.id}" data-papel="${papel}"></div>`;
   // ações
-  let ac="";
+  let ac="",mais="";
   if(papel==="ent"){
     if(c.status==="aberta")ac=`<button class="btn full" data-aceitar="${c.id}">Aceitar por ${brl(Number(c.valor))}</button>`;
-    if(c.status==="aceita")ac=`<button class="btn full" data-acao="coletada" data-id="${c.id}">Peguei a encomenda</button><button class="link" data-acao="devolver" data-id="${c.id}">Não vou conseguir (devolver)</button>`;
+    if(c.status==="aceita"){ac=`<button class="btn full" data-acao="coletada" data-id="${c.id}">Peguei a encomenda</button>`;mais+=`<button class="link" data-acao="devolver" data-id="${c.id}">Não vou conseguir (devolver)</button>`}
     if(c.status==="coletada")ac=`<button class="btn full" data-acao="entregue" data-id="${c.id}">Entreguei</button>`;
     if(c.status==="entregue"&&!anotadas.includes(c.id))ac=`<button class="btn ghost full" data-anotar="${c.id}">Anotar ${brl(Number(c.valor))} no meu Cadernex</button>`;
   }else{
-    if(["aberta","aceita"].includes(c.status))ac=`<button class="link" data-acao="cancelar" data-id="${c.id}" style="color:var(--bad)">Cancelar pedido</button>`;
+    if(c.status==="aberta")ac=`<button class="link" data-acao="cancelar" data-id="${c.id}" style="color:var(--bad)">Cancelar pedido</button>`;
+    if(c.status==="aceita")mais+=`<button class="link" data-acao="cancelar" data-id="${c.id}" style="color:var(--bad)">Cancelar pedido</button>`;
     if(c.status==="entregue"&&!c.nota)ac=`<div class="estrelas"><span>Avalie o entregador:</span>${[1,2,3,4,5].map(n=>`<button type="button" data-nota="${n}" data-id="${c.id}" aria-label="${n} estrelas">★</button>`).join("")}</div>`;
     if(c.status==="entregue"&&c.nota)ac=`<p class="hint" style="margin:0">Você avaliou com ${"★".repeat(c.nota)}</p>`;
   }
   if(ac)h+=`<div class="corr-ac">${ac}</div>`;
   if(c.entregador_id&&c.status!=="aberta"&&!relatos.some(r=>r.corrida_id===c.id&&r.autor_id===uid)){
-    if(relForm!==c.id)h+=`<button class="link rel-link" data-relform="${c.id}">Relatar problema</button>`;
+    if(relForm!==c.id)mais+=`<button class="link rel-link" data-relform="${c.id}">Relatar problema</button>`;
     else{const ms=papel==="cli"?["nao_entregou","atraso","avaria","cobranca","conduta"]:["nao_pagou","endereco","item_proibido","conduta"];
-      h+=`<form class="rel-form" data-relsend="${c.id}"><div class="eyebrow">Qual foi o problema?</div><div class="chips">${ms.map((m,i)=>`<button type="button" class="chip" data-mot="${m}" aria-pressed="${i===0}">${MOT[m]}</button>`).join("")}</div><input type="text" maxlength="300" placeholder="Conte rapidinho o que aconteceu (opcional)" aria-label="Detalhe"><p class="hint" style="margin:0">Relatos falsos prejudicam um trabalhador. Use só se aconteceu mesmo. Com 3 relatos a conta é bloqueada para análise.</p><div class="row"><button type="button" class="link" data-relcancel="1">Cancelar</button><button class="btn" type="submit">Enviar relato</button></div></form>`}
-  }else if(relatos.some(r=>r.corrida_id===c.id&&r.autor_id===uid))h+=`<p class="hint" style="margin:0">Você relatou um problema nessa corrida.</p>`;
+      mais+=`<form class="rel-form" data-relsend="${c.id}"><div class="eyebrow">Qual foi o problema?</div><div class="chips">${ms.map((m,i)=>`<button type="button" class="chip" data-mot="${m}" aria-pressed="${i===0}">${MOT[m]}</button>`).join("")}</div><input type="text" maxlength="300" placeholder="Conte rapidinho o que aconteceu (opcional)" aria-label="Detalhe"><p class="hint" style="margin:0">Relatos falsos prejudicam um trabalhador. Use só se aconteceu mesmo. Com 3 relatos a conta é bloqueada para análise.</p><div class="row"><button type="button" class="link" data-relcancel="1">Cancelar</button><button class="btn" type="submit">Enviar relato</button></div></form>`}
+  }else if(relatos.some(r=>r.corrida_id===c.id&&r.autor_id===uid))mais+=`<p class="hint" style="margin:0">Você relatou um problema nessa corrida.</p>`;
+  if(mais){const ab=maisAbertos.has(c.id)||relForm===c.id;h+=`<details class="corr-mais"${ab?" open":""}><summary data-mais="${c.id}">Mais opções</summary><div class="corr-mais-c">${mais}</div></details>`}
   // chat
   if(c.status!=="aberta"&&c.status!=="cancelada"){const ms=cmsgs[c.id];
     h+=`<div class="corr-chat"><div class="eyebrow">Conversa da corrida</div>`;
@@ -140,6 +155,7 @@ function corrRender(){
 
 /* ---------- ações ---------- */
 function onCorrClick(e){
+  const sm=e.target.closest("summary[data-mais]");if(sm){const id=sm.dataset.mais;setTimeout(()=>{const d=sm.parentElement;if(d.open)maisAbertos.add(id);else maisAbertos.delete(id)},0);return}
   if(e.target.closest("[data-longos]")){verLongos=!verLongos;corrRender();return}
   const t=e.target.closest("[data-toggle]");if(t){corrAberta=corrAberta===t.dataset.toggle?"__nenhuma":t.dataset.toggle;corrRender();return}
   const a=e.target.closest("[data-aceitar]");if(a){a.disabled=true;safe(async()=>{const{error}=await sb.rpc("aceitar_corrida",{cid:a.dataset.aceitar});if(error)throw error;corrAberta=a.dataset.aceitar;await corrLoad()},"Corrida aceita! Veja o endereço de coleta.").finally(()=>a.disabled=false);return}

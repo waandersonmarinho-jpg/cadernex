@@ -108,9 +108,9 @@ async function vitrineLoad(){
 function vitrineRender(){
   const w=$("vitrine"),el=$("vt-lista");if(!w||vitrine==null)return;
   w.hidden=!vitrine.length;if(!vitrine.length)return;
-  el.innerHTML=vitrine.map(l=>`<div class="vt-loja${vtAberta===l.id?" open":""}"><button type="button" class="vt-h" data-vt="${l.id}"><span class="vt-ico">🏪</span><span class="vt-t"><b data-vn></b><small data-vs></small></span><span class="vt-n">${l.produtos} produto${l.produtos==1?"":"s"}</span></button>
+  el.innerHTML=vitrine.map(l=>`<div class="vt-loja${vtAberta===l.id?" open":""}"><button type="button" class="vt-h" data-vt="${l.id}"><span class="vt-ico">${IC.loja}</span><span class="vt-t"><b data-vn></b><small data-vs></small></span><span class="vt-n">${l.produtos} produto${l.produtos==1?"":"s"}</span></button>
     ${vtAberta===l.id?`<div class="vt-prods">${vtProds[l.id]?(vtProds[l.id].length?vtProds[l.id].map(p=>`<div class="prod"><div><b data-xn="${p.id}"></b><small data-xd="${p.id}"></small></div><span class="num">${brl(Number(p.preco))}</span></div>`).join(""):`<p class="hint" style="margin:0">Essa loja ainda não cadastrou produtos.</p>`):`<p class="hint" style="margin:0">Carregando…</p>`}
-    ${l.whats?`<a class="btn ghost full" target="_blank" rel="noopener" href="https://wa.me/55${so(l.whats)}">💬 Chamar no WhatsApp</a>`:""}</div>`:""}</div>`).join("");
+    ${l.whats?`<a class="btn ghost full" target="_blank" rel="noopener" href="https://wa.me/55${so(l.whats)}">${IC.chat}Chamar no WhatsApp</a>`:""}</div>`:""}</div>`).join("");
   vitrine.forEach((l,i)=>{const n=el.querySelectorAll(".vt-loja")[i];n.querySelector("[data-vn]").textContent=l.nome;n.querySelector("[data-vs]").textContent=[l.bairro,l.horario].filter(Boolean).join(" · ")});
   Object.values(vtProds).flat().forEach(p=>{const a=el.querySelector(`[data-xn="${p.id}"]`);if(a){a.textContent=p.nome;el.querySelector(`[data-xd="${p.id}"]`).textContent=p.descricao||""}});
 }

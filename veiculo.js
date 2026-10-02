@@ -54,7 +54,7 @@ function dispRender(){
   if(!carregou){el.innerHTML="";return}
   el.innerHTML=tenho[v]
     ?`<div class="vf-ok">${thumbs[v]?`<img alt="Foto ${fotoDe(v)}" src="${thumbs[v]}">`:""}<div><b>Foto ${fotoDe(v)} ✓</b><button class="link" type="button" data-vfoto-trocar style="padding:0">Trocar foto</button></div></div>`
-    :`<div class="vf-falta"><b>Falta a foto ${fotoDe(v)}</b><span class="hint">Tire uma foto inteira do veículo, de lado e com boa luz${ehFrete(v)?", com a placa aparecendo":""}. O cliente vê essa foto pra reconhecer você na coleta.</span><button class="btn ghost full" type="button" data-vfoto-trocar>📷 Mandar foto ${fotoDe(v)}</button></div>`;
+    :`<div class="vf-falta"><b>Falta a foto ${fotoDe(v)}</b><span class="hint">Tire uma foto inteira do veículo, de lado e com boa luz${ehFrete(v)?", com a placa aparecendo":""}. O cliente vê essa foto pra reconhecer você na coleta.</span><button class="btn ghost full" type="button" data-vfoto-trocar>${IC.cam}Mandar foto ${fotoDe(v)}</button></div>`;
 }
 $("dp-vei").addEventListener("click",()=>setTimeout(dispRender,0));
 document.addEventListener("click",e=>{if(e.target.closest("[data-vfoto-trocar]")){const f=$("dp-file");f.value="";f.click()}});
@@ -73,7 +73,7 @@ function ddRender(){
   const w=$("dd-vei-w");if(!w)return;w.hidden=!ehEnt();
   const v=ddVei();$("dd-foto-lbl").textContent=`Foto ${fotoDe(v)}`;preenchePlaca(v,"dd");
   $("dd-prev").hidden=!ddArquivo;if(ddArquivo){$("dd-prev").src=URL.createObjectURL(ddArquivo)}
-  $("dd-foto-btn").textContent=ddArquivo?"Trocar foto":`📷 Tirar ou escolher foto ${fotoDe(v)}`;
+  $("dd-foto-btn").innerHTML=ddArquivo?"Trocar foto":`${IC.cam}Tirar ou escolher foto ${fotoDe(v)}`;
 }
 $("dd-vei").addEventListener("click",()=>setTimeout(ddRender,0));
 $("dd-foto-btn").onclick=()=>{const f=$("dd-file");f.value="";f.click()};

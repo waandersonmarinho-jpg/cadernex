@@ -1,16 +1,14 @@
 // Configurações: tema claro/escuro, conta, trocar senha, sair e entrar com outra conta
 (function(){
-const raiz=document.documentElement,mq=matchMedia("(prefers-color-scheme: dark)");
-function lerTema(){try{return localStorage.getItem("cx-tema")||"auto"}catch(e){return "auto"}}
+const raiz=document.documentElement;
+function lerTema(){let t;try{t=localStorage.getItem("cx-tema")}catch(e){}return t==="light"||t==="dark"?t:(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark")}
 function aplicaTema(t){
-  if(t==="light"||t==="dark")raiz.dataset.theme=t;else delete raiz.dataset.theme;
-  const escuro=t==="dark"||(t!=="light"&&mq.matches);
-  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=escuro?"#0c0e11":"#f7f5ef";
+  raiz.dataset.theme=t;
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dark"?"#0c0e11":"#f7f5ef";
   document.querySelectorAll("[data-tema]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tema===t));
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-tema]");if(!b)return;
-  const t=b.dataset.tema;try{if(t==="auto")localStorage.removeItem("cx-tema");else localStorage.setItem("cx-tema",t)}catch(e){}aplicaTema(t)});
-mq.addEventListener?.("change",()=>aplicaTema(lerTema()));
+  const t=b.dataset.tema;try{localStorage.setItem("cx-tema",t)}catch(e){}aplicaTema(t)});
 aplicaTema(lerTema());
 
 // Conta

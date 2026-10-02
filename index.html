@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0c0e11">
-<script>try{var t=localStorage.getItem("cx-tema");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>(function(){var t;try{t=localStorage.getItem("cx-tema")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
 <meta name="description" content="Peça entregas de moto e bike, coletas e fretes com picape em Goiânia. Entregadores e freteiros da região, rastreio por GPS e pagamento por Pix. Lojas cadastram produtos e pedem várias entregas de uma vez.">
 <link rel="canonical" href="https://cadernex.com.br/">
 <meta property="og:type" content="website">
@@ -463,6 +463,21 @@ label.check{min-height:40px;align-items:center}
 .sobre-card b{color:var(--fg)}
 .sobre-card img{width:70px;height:35px;border-radius:9px;flex:none;box-shadow:0 0 0 1px var(--line)}
 .sobre-t{display:flex;flex-direction:column;gap:2px}
+
+/* ícones de linha */
+.ic{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em}
+.pill .ic{margin-right:4px;width:14px;height:14px}
+.pill{display:inline-flex;align-items:center}
+.btn .ic{margin-right:8px;width:20px;height:20px}
+.vt-ico .ic{width:24px;height:24px;color:var(--accent)}
+/* mais opções no cartão da corrida */
+.corr-mais{border-top:1px solid var(--line);padding-top:4px}
+.corr-mais summary{list-style:none;cursor:pointer;min-height:40px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:14px;color:var(--muted)}
+.corr-mais summary::-webkit-details-marker{display:none}
+.corr-mais summary::after{content:"+";font:600 20px var(--display)}
+.corr-mais[open] summary::after{content:"−"}
+.corr-mais-c{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding-bottom:4px}
+.corr-mais-c .rel-form{align-self:stretch}
 </style>
 </head>
 <body>
@@ -478,8 +493,7 @@ label.check{min-height:40px;align-items:center}
   </section>
 
   <section id="s-auth" class="auth" hidden>
-    <div class="seg" role="group" aria-label="Tema do app" style="max-width:260px;margin-left:auto;margin-bottom:10px;background:var(--surface);border:1px solid var(--line)">
-      <button type="button" data-tema="auto" aria-pressed="true">Auto</button>
+    <div class="seg" role="group" aria-label="Tema do app" style="max-width:200px;margin-left:auto;margin-bottom:10px;background:var(--surface);border:1px solid var(--line)">
       <button type="button" data-tema="light" aria-pressed="false">Claro</button>
       <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
     </div>
@@ -523,7 +537,7 @@ label.check{min-height:40px;align-items:center}
           <div class="chips" id="dd-vei"></div>
           <div class="eyebrow" id="dd-foto-lbl">Foto da sua bike</div>
           <img id="dd-prev" class="vf-prev" alt="Prévia da foto do veículo" hidden>
-          <button class="btn ghost full" type="button" id="dd-foto-btn">📷 Tirar ou escolher foto da bike</button>
+          <button class="btn ghost full" type="button" id="dd-foto-btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tirar ou escolher foto da bike</button>
           <input type="file" id="dd-file" accept="image/*" hidden>
           <div id="dd-placa-w" class="placa-w" hidden>
             <div class="grid2"><label>Placa<input type="text" id="dd-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
@@ -965,11 +979,10 @@ label.check{min-height:40px;align-items:center}
       <div class="card stack">
         <h2>Aparência</h2>
         <div class="seg" role="group" aria-label="Tema do app">
-          <button type="button" data-tema="auto" aria-pressed="true">Automático</button>
           <button type="button" data-tema="light" aria-pressed="false">Claro</button>
           <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
         </div>
-        <p class="hint" style="margin:0">Automático segue o modo do seu celular. O escuro gasta menos bateria em tela OLED e cansa menos a vista à noite.</p>
+        <p class="hint" style="margin:0">O escuro gasta menos bateria e cansa menos a vista à noite.</p>
       </div>
       <div class="card stack">
         <h2>Sua conta</h2>
@@ -1126,7 +1139,7 @@ label.check{min-height:40px;align-items:center}
       <div class="card pd-disp" id="pd-disp"></div>
       <div class="card dmap-card" id="pd-dmap-w" hidden><div class="dmap" id="pd-dmap"></div><p class="hint" id="pd-dtxt" style="margin:0"></p></div>
       <div class="card stack" id="lj-painel" hidden>
-        <div><div class="eyebrow">🏪 Pedido rápido da loja</div><h2 id="lj-titulo" style="margin:2px 0 0"></h2><p class="hint" id="lj-coleta" style="margin:4px 0 0"></p></div>
+        <div><div class="eyebrow" style="display:flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Pedido rápido da loja</div><h2 id="lj-titulo" style="margin:2px 0 0"></h2><p class="hint" id="lj-coleta" style="margin:4px 0 0"></p></div>
         <p class="lj-hoje" id="lj-hoje"></p>
         <form id="fLote" class="stack"><div id="lj-linhas" class="stack"></div>
           <button type="button" class="btn ghost full" id="lj-mais">+ Adicionar outra entrega</button>
