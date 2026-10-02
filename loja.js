@@ -119,7 +119,7 @@ $("vt-lista").addEventListener("click",async e=>{const b=e.target.closest("[data
   if(vtAberta&&!vtProds[id]){const r=await sb.from("produtos").select("id,nome,preco,descricao").eq("loja_id",id).eq("ativo",true).order("nome");vtProds[id]=r.error?[]:r.data;vitrineRender()}});
 
 /* ---------- ligações com o resto do app ---------- */
-function tudo(){perfilRender();painelRender()}
+function tudo(){document.documentElement.classList.toggle("area-loja",ehLoja());perfilRender();painelRender()}
 const _r=corrRender;corrRender=function(){_r();painelRender()};
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="perfilc")perfilRender();if(v==="pedir"){painelRender();if(vitrine==null)vitrineLoad()}}}
 const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();tudo();prodLoad();vitrineLoad()};

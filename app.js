@@ -18,7 +18,7 @@ let sb=null,uid=null,turnos=[],gastos=[],perfil={meta:0,nome:"",turno_inicio:nul
 function show(which){ // "setup" | "auth" | "app"
   $("s-setup").hidden=which!=="setup";$("s-auth").hidden=which!=="auth";if($("s-dados"))$("s-dados").hidden=which!=="dados";
   $("s-app").hidden=which!=="app";$("nav").hidden=which!=="app";
-  if(which==="auth"){$("ola").textContent="Envios e entregas";$("sync").textContent=""}
+  if(which==="auth"){$("ola").textContent="Envios e entregas";$("sync").textContent="";document.documentElement.classList.remove("area-loja")}
 }
 
 /* ---------------- início ---------------- */

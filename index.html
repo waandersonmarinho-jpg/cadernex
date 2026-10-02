@@ -485,6 +485,14 @@ label.check{min-height:40px;align-items:center}
 
 .mc-a{margin:0 16px 12px}
 #direcaoSegura .mod summary b{font-size:15px}
+
+/* área do lojista em verde: a conta de loja inteira, e as partes de loja pra todo mundo */
+:root.area-loja,#vitrine,#lj-card,#lj-painel,.pill.loja{--accent:#16865a;--accent-ink:#ffffff;--accent-soft:#d6f2e4;--money:#127048}
+:root[data-theme="dark"].area-loja,[data-theme="dark"] #vitrine,[data-theme="dark"] #lj-card,[data-theme="dark"] #lj-painel,[data-theme="dark"] .pill.loja{--accent:#2ebd85;--accent-ink:#0c0e11;--accent-soft:#0f2a1f;--money:#6fe0a8}
+.pill.loja{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+#lj-painel,#lj-card,#vitrine{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 140px)}
+#lj-painel .eyebrow,#vitrine .eyebrow{color:var(--accent)}
+#lj-painel .lote-l{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
 </style>
 </head>
 <body>
