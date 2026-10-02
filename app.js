@@ -207,5 +207,5 @@ $("fCfg").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({meta:num($("c-met
 /* volta a sincronizar quando o app volta pra tela (ex.: usou em outro celular) */
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&uid)loadAll()});
 
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator){const tinha=!!navigator.serviceWorker.controller;let rec=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(tinha&&!rec&&!document.querySelector("input:focus,textarea:focus")){rec=true;location.reload()}});navigator.serviceWorker.register("sw.js").catch(()=>{})}
 boot();
