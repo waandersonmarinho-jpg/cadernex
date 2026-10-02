@@ -204,7 +204,7 @@ function usarLoc(qual){if(!navigator.geolocation){toast("Seu celular não libero
     const inp=$(qual==="c"?"pf-cend":"pf-eend");if(!inp.value.trim())inp.value="Minha localização atual";sugerir()},
     ()=>{b.textContent="Minha localização";toast("Não deu pra pegar a localização. Escreva o endereço.")},{enableHighAccuracy:true,timeout:15000});}
 $("pf-cloc").onclick=()=>usarLoc("c");$("pf-eloc").onclick=()=>usarLoc("e");
-const BASE=8,POR_KM=2.5;
+const BASE=8,POR_KM=0.55;
 const justo=k=>Math.max(BASE,Math.ceil((BASE+POR_KM*k)*2)/2); // arredonda pra cima de 50 em 50 centavos
 function pfJusto(k){if(pfTipo!=="frete")return justo(k);return precoFrete(pfVei(),k,+picked($("pf-aj")),Math.max(0,Math.round(num($("pf-and").value)||0)))}
 function sugerir(){
