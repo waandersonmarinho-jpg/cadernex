@@ -32,7 +32,7 @@ function pintar(){
     const id=el.dataset.pix;
     if(el.dataset.papel==="ent"){
       el.innerHTML=meu&&meu.pix_ativo?`<span class="pix-on">Pix ativo</span> <span class="hint">· o cliente vê sua chave CPF pra te pagar</span>`
-        :`<span class="hint">Quer receber por Pix? </span><button class="link" type="button" data-go="config" style="padding:0">Ativar meu Pix</button>`;return}
+        :`<p class="hint" style="margin:0">Quer receber por Pix? <button class="link" type="button" data-go="config" style="padding:0">Ativar meu Pix</button></p>`;return}
     const p=pixCache[id];
     if(!p){el.innerHTML=`<button class="btn ghost full" type="button" data-verpix="${id}">Ver Pix do entregador</button>`;return}
     if(p==="carregando"){el.innerHTML=`<p class="hint" style="margin:0">Buscando o Pix…</p>`;return}
