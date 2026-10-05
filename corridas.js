@@ -128,7 +128,7 @@ function corrRender(){
   const contra=relatos.filter(r=>r.alvo_id===uid&&!r.arquivada);
   document.querySelectorAll(".bloq").forEach(b=>{b.hidden=!perfil.bloqueado;if(perfil.bloqueado){b.querySelector(".bloq-mot").textContent=contra.map(r=>MOT[r.motivo]).join(" · ")||"3 relatos de problema";const ta=b.querySelector("textarea");if(document.activeElement!==ta)ta.value=perfil.defesa||""}});
   document.querySelectorAll(".rel-cont").forEach(el=>el.textContent=contra.length&&!perfil.bloqueado?`Relatos contra você: ${contra.length} de 3 (${contra.map(r=>MOT[r.motivo]).join(", ")})`:"");
-  $("co-dispbox").hidden=!!perfil.bloqueado;$("fPedir").hidden=!!perfil.bloqueado;
+  $("co-dispbox").hidden=!!perfil.bloqueado;$("fPedir").hidden=!!perfil.bloqueado||!$("lt-painel").hidden;$("lt-painel").hidden=$("lt-painel").hidden||!!perfil.bloqueado;$("lt-abrir").hidden=!!perfil.bloqueado||!$("lt-painel").hidden;
   // ENTREGADOR
   const md=meuDisp();
   $("co-on").hidden=!md;$("fDisp").hidden=!!md;
@@ -220,14 +220,14 @@ function sugerir(){
 $("pf-km").addEventListener("input",sugerir);$("pf-valor").addEventListener("input",sugerir);
 $("fPedir").onsubmit=e=>{e.preventDefault();
   const k0=sugerir();let valor=num($("pf-valor").value);if(!valor&&k0!=null)valor=pfJusto(k0);
-  const cend=$("pf-cend").value.trim(),eend=$("pf-eend").value.trim(),cb=$("pf-cb").value.trim(),eb=$("pf-eb").value.trim(),item=$("pf-item").value.trim();
+  const cend=$("pf-cend").value.trim(),eend=$("pf-eend").value.trim(),cb=$("pf-cb").value.trim(),eb=$("pf-eb").value.trim(),item=window.pfItem?pfItem():$("pf-item").value.trim();
   if(!cend||!eend){toast("Coloque os endereços de coleta e entrega");return}if(!cb||!eb){toast("Coloque os bairros");return}if(item.length<2){toast("Diga o que vai ser levado");return}if(!(valor>0)){toast("Coloque quanto você paga");return}if(valor<BASE){toast("O mínimo é R$ 8,00");return}
   const fr=pfTipo==="frete",quando=fr&&$("pf-quando").value?new Date($("pf-quando").value):null;if(quando&&quando<Date.now()-6e5){toast("Essa data já passou");return}
   const k=sugerir();
   safe(async()=>{const{data,error}=await sb.from("corridas").insert({coleta_bairro:cb,entrega_bairro:eb,item,valor,veiculo:pfVei(),distancia_km:k,...(fr?{tipo:"frete",ajudantes:+picked($("pf-aj")),andares:Math.max(0,Math.round(num($("pf-and").value)||0)),agendado_para:quando?quando.toISOString():null}:{})}).select().single();if(error)throw error;
     const det={corrida_id:data.id,coleta_end:cend,entrega_end:eend,coleta_lat:locs.c?.lat??null,coleta_lng:locs.c?.lng??null,entrega_lat:locs.e?.lat??null,entrega_lng:locs.e?.lng??null,contato:$("pf-tel").value.trim()||null,obs:$("pf-obs").value.trim()||null};
     const r=await sb.from("corridas_det").insert(det);if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
-    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};window.kmRota=null;["pf-ccep","pf-ecep"].forEach(i=>$(i).value="");$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";
+    ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};window.kmRota=null;["pf-ccep","pf-ecep"].forEach(i=>$(i).value="");$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";if(window.pfCatReset)pfCatReset();
     corrAberta=data.id;if(window.pfEtapa)pfEtapa(1);await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
 function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=perfil.telefone;sugerir()}
 
@@ -242,7 +242,7 @@ $("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.datase
 let papelAplicado=null;
 function aplicaPapel(forcar){const cli=perfil.tipo==="cliente";document.body.classList.toggle("cli",cli);
   $("ola").textContent=perfil.nome?"Oi, "+perfil.nome.split(" ")[0]:(cli?"Envios e entregas":"Envios e entregas");
-  if(forcar||papelAplicado!==perfil.tipo){papelAplicado=perfil.tipo;go(cli?(perfil.loja&&perfil.loja_nome?"loja":"pedir"):"resumo")}
+  if(forcar||papelAplicado!==perfil.tipo){papelAplicado=perfil.tipo;go(cli?"pedir":"resumo")}
   preencherPedido();perfilRender()}
 
 const _agL4=window.agendaLoad;window.agendaLoad=async()=>{await _agL4();aplicaPapel();corrLoad();minhaNota()};

@@ -16,7 +16,7 @@ function ok(n){
     if(!val("pf-eb")){toast("Coloque o bairro da entrega");$("pf-eb").focus();return false}
   }
   if(n===2){
-    if(val("pf-item").length<2){toast("Diga o que vai ser levado");$("pf-item").focus();return false}
+    if((window.pfItem?pfItem():val("pf-item")).length<2){toast("Escolha o que vai enviar ou escreva o que é");$("pf-item").focus();return false}
     const{v}=valorFinal();
     if(!(v>0)){toast("Coloque a distância ou quanto você paga");$("pf-km").focus();return false}
     if(v<BASE){toast("O mínimo é R$ 8,00");$("pf-valor").focus();return false}
@@ -38,7 +38,7 @@ function resumo(){
     <div class="r-tot"><div><span>${fr?"Frete":"Entrega"}</span><br><b class="num">${brl(v)}</b></div><span style="text-align:right">Pelo app (Pix): ${brl(totalApp(v))}<br>Em dinheiro: ${brl(v)}</span></div>`;
   el.querySelector('[data-r="c"]').textContent=`${val("pf-cend")} · ${val("pf-cb")}`;
   el.querySelector('[data-r="e"]').textContent=`${val("pf-eend")} · ${val("pf-eb")}`;
-  el.querySelector('[data-r="i"]').textContent=val("pf-item");
+  el.querySelector('[data-r="i"]').textContent=window.pfItem?pfItem():val("pf-item");
 }
 
 

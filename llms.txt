@@ -1,10 +1,10 @@
 # Cadernex
 
-> Cadernex é um aplicativo brasileiro de entregas, coletas, fretes e compras em lojas do bairro. Ele conecta clientes, lojas e entregadores autônomos (moto, bike, picape e caminhão). Funciona no navegador e pode ser instalado na tela inicial do celular. Site: https://cadernex.com.br
+> Cadernex é um aplicativo brasileiro para enviar coisas pela cidade: comida, documentos, encomendas e outros, com entregadores autônomos de moto e bike. Também faz fretes e mudanças com picape e caminhão. Funciona no navegador e pode ser instalado na tela inicial do celular. Site: https://cadernex.com.br
 
-- Entrega rápida: o cliente informa os CEPs e o app calcula a distância e o valor (R$ 8 + R$ 0,55 por km, mínimo R$ 8). Um entregador próximo aceita e o cliente acompanha pelo GPS.
+- Como funciona: o cliente informa os CEPs de coleta e entrega e escolhe o que vai enviar. O app calcula a distância e o valor (R$ 8 + R$ 0,55 por km, mínimo R$ 8). Um entregador próximo aceita e o cliente acompanha pelo GPS.
+- Várias entregas de uma vez: restaurantes, farmácias e lojas colocam um endereço de coleta e vários destinos; cada destino vira uma corrida.
 - Pagamento: Pix pelo app (Mercado Pago) ou dinheiro. O entregador recebe o valor inteiro da corrida; a taxa de serviço de 6% é paga pelo cliente.
-- Lojas: cadastram produtos e preços, aparecem na aba Lojas e vendem pelo app com Pix direto na conta Mercado Pago da loja. Também pedem várias entregas de uma vez.
 - Fretes e mudanças: picape pequena, picape média ou caminhão, com agendamento e ajudantes.
 - Segurança: cadastro com CPF, endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
 - Abrangência: todo o Brasil.

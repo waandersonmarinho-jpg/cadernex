@@ -31,15 +31,15 @@ async function voltouDoMP(){ // o Mercado Pago devolve ?code=...&state=...
   const{data,error}=await sb.functions.invoke("mp-conectar",{body:{code,redirect_uri:retorno()}});
   if(error||!data||!data.ok){toast(await erroDe(error,data));return}
   conectado=true;cfgRender();introRender();toast("Conta Mercado Pago conectada ✓ Agora os clientes podem te pagar pelo app.");
-  if(typeof go==="function")go(perfil.tipo==="cliente"&&perfil.loja?"loja":"config");
+  if(typeof go==="function")go("config");
 }
 window.mpConectar=conectar;
 async function statusLoad(){
-  if(!sb||!uid||(perfil.tipo==="cliente"&&!perfil.loja))return;
+  if(!sb||!uid||perfil.tipo==="cliente")return;
   const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;cfgRender();introRender();pintar();
 }
 function cfgRender(){
-  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente"&&!perfil.loja;window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
+  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente";window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
   const st=$("cf-mp-st"),b=$("cf-mp-btn"),d=$("cf-mp-off");
   if(conectado===null){st.textContent="Falta ligar o pagamento pelo app no banco (mp.sql).";b.hidden=true;d.hidden=true;return}
   b.hidden=!!conectado;d.hidden=!conectado;
