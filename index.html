@@ -582,7 +582,7 @@ label.check{min-height:40px;align-items:center}
       <form id="fDados" class="stack">
         <div class="seg" id="dd-doc" role="group" aria-label="Tipo de cadastro" hidden><button type="button" data-doc="cpf" aria-pressed="true">Pessoa (CPF)</button><button type="button" data-doc="cnpj" aria-pressed="false">Empresa (CNPJ)</button></div>
         <div class="stack" id="dd-emp" hidden>
-          <label>Nome da empresa<input type="text" id="dd-emp-nome" autocomplete="organization" maxlength="80" placeholder="Ex.: Drogaria Bela Vista"></label>
+          <label>Nome da empresa<input type="text" id="dd-emp-nome" autocomplete="organization" maxlength="80"></label>
           <label>CNPJ<input type="text" id="dd-cnpj" inputmode="text" autocapitalize="characters" placeholder="00.000.000/0000-00" maxlength="18"></label>
         </div>
         <label><span id="dd-nome-lbl">Nome completo</span><input type="text" id="dd-nome" autocomplete="name" maxlength="120" required></label>
@@ -1370,19 +1370,19 @@ label.check{min-height:40px;align-items:center}
           <input type="file" accept="image/*" hidden></div>
       </div>
       <form id="fPerfilC" class="card stack">
-        <label>Nome da loja ou seu nome<input type="text" id="pc-nome" autocomplete="organization" placeholder="Ex.: Farmácia Bela Vista" maxlength="60"></label>
+        <label>Nome da loja ou seu nome<input type="text" id="pc-nome" autocomplete="organization" maxlength="60"></label>
         <label>Telefone / WhatsApp<input type="tel" id="pc-tel" autocomplete="tel-national" inputmode="numeric" placeholder="(62) 99999-9999"></label>
-        <label>Endereço de coleta<input type="text" id="pc-end" autocomplete="street-address" placeholder="Ex.: Av. Bela Vista, 1253"><small class="hint" style="font-weight:400">Já vem preenchido quando você pede uma entrega.</small></label>
+        <label>Endereço de coleta<input type="text" id="pc-end" autocomplete="street-address"><small class="hint" style="font-weight:400">Já vem preenchido quando você pede uma entrega.</small></label>
         <button class="btn full" type="submit">Salvar</button>
       </form>
       <div class="card stack" id="lj-card"><button type="button" class="cad-h" id="lj-abre" aria-expanded="false" aria-controls="lj-corpo"><span class="cad-ht"><h2>Informações da loja</h2><span id="lj-res">Para lojas, farmácias e restaurantes</span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <form class="stack" id="lj-corpo" hidden>
           <p class="hint" style="margin:0">Com o nome da loja preenchido, ele aparece para o entregador nas corridas e você pode ter até 15 pedidos abertos. Se você envia como pessoa, deixe em branco.</p>
-          <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" autocomplete="organization" placeholder="Ex.: Drogavit"></label>
+          <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" autocomplete="organization"></label>
           <label>Ramo<select id="lj-ramo"><option value="">Escolha</option><option>Farmácia</option><option>Restaurante</option><option>Lanchonete</option><option>Mercado</option><option>Loja</option><option>Outro</option></select></label>
-          <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" maxlength="40" placeholder="Ex.: Setor Noroeste"></label>
-          <label>WhatsApp da loja<input type="tel" id="lj-whats" inputmode="numeric" placeholder="(62) 3333-3333"></label></div>
-          <label>Horário de funcionamento<input type="text" id="lj-hora" maxlength="60" placeholder="Ex.: Seg a sáb, 8h às 22h"></label>
+          <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" maxlength="40"></label>
+          <label>WhatsApp da loja<input type="tel" id="lj-whats" inputmode="numeric"></label></div>
+          <label>Horário de funcionamento<input type="text" id="lj-hora" maxlength="60"></label>
           <div class="lj-doc" id="lj-doc" hidden></div>
           <button class="btn full" type="submit">Salvar informações da loja</button>
         </form></div>
