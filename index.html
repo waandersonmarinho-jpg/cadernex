@@ -495,6 +495,11 @@ label.check{min-height:40px;align-items:center}
 .pf-kmnota{margin:-6px 0 0;font-size:12px;color:var(--good)}
 .pf-cep{max-width:180px}
 
+/* foto do perfil */
+.pf-foto{display:flex;gap:14px;align-items:center}
+.pf-av{flex:none;width:84px;height:84px;border-radius:50%;overflow:hidden;background:var(--bg);border:2px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.pf-av img,.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av{display:inline-block;width:34px;height:34px;border-radius:50%;overflow:hidden;vertical-align:middle;margin-right:8px;border:2px solid var(--line);background:var(--bg)}
 /* meus ganhos: saldo verde, estilo carteira */
 .gn{--up:#0ecb81;--up-soft:rgba(14,203,129,.12);background:linear-gradient(160deg,color-mix(in srgb,var(--up) 9%,var(--surface)),var(--surface) 60%);border-color:color-mix(in srgb,var(--up) 30%,var(--line))}
 [data-theme="light"] .gn{--up:#08905a;--up-soft:rgba(8,144,90,.1)}
@@ -1063,6 +1068,12 @@ label.check{min-height:40px;align-items:center}
   <section id="v-config" class="view" hidden>
     <div class="stack">
       <h2 style="font-size:28px">Configurações</h2>
+      <div class="card pf-foto" data-para="ent" hidden>
+        <div class="pf-av" aria-hidden="true"></div>
+        <div class="stack" style="gap:6px;min-width:0"><b data-ft></b><p class="hint" data-fh style="margin:0"></p>
+          <button class="btn ghost" type="button" data-fb style="align-self:flex-start;padding:8px 14px">Adicionar foto</button>
+          <input type="file" accept="image/*" hidden></div>
+      </div>
       <div class="card stack">
         <h2>Aparência</h2>
         <div class="seg" role="group" aria-label="Tema do app">
@@ -1314,6 +1325,12 @@ label.check{min-height:40px;align-items:center}
   <section id="v-perfilc" class="view" hidden>
     <div class="stack">
       <h2 style="font-size:28px">Perfil</h2>
+      <div class="card pf-foto" data-para="cli" hidden>
+        <div class="pf-av" aria-hidden="true"></div>
+        <div class="stack" style="gap:6px;min-width:0"><b data-ft></b><p class="hint" data-fh style="margin:0"></p>
+          <button class="btn ghost" type="button" data-fb style="align-self:flex-start;padding:8px 14px">Adicionar foto</button>
+          <input type="file" accept="image/*" hidden></div>
+      </div>
       <form id="fPerfilC" class="card stack">
         <label>Seu nome<input type="text" id="pc-nome" autocomplete="name"></label>
         <label>Telefone<input type="tel" id="pc-tel" autocomplete="tel"></label>
@@ -1368,6 +1385,7 @@ label.check{min-height:40px;align-items:center}
 <script src="lote.js"></script>
 <script src="enviar.js"></script>
 <script src="ganhos.js"></script>
+<script src="foto.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
