@@ -341,7 +341,7 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .rel-form .row{align-items:center}
 .end-g{display:flex;flex-direction:column;gap:8px}
 .loc{align-self:flex-start;padding:0;font-size:14px}
-.cad-h{display:flex;align-items:center;justify-content:space-between;gap:10px}.cad-h h2{margin:0}
+.cad-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}.cad-h h2{margin:0}.cad-ht{display:flex;flex-direction:column;gap:2px;min-width:0}#cad-res{font-size:14px;color:var(--muted)}.cad-seta{flex:none;color:var(--muted);transition:transform .2s}.cad-h[aria-expanded="true"] .cad-seta{transform:rotate(180deg)}.cad-h:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
 .cad-tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .cad-tot div{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .cad-tot b{font-size:26px;line-height:1}.cad-tot span{font-size:13px;color:var(--muted)}
@@ -351,6 +351,12 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .cad-tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}.cad-tags span{border-radius:999px;padding:2px 8px;border:1px solid var(--line)}
 .cad-tags .ok{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,var(--line))}.cad-tags .pend{color:var(--muted)}
 .cad-ac{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;font-size:14px}.cad-ac a{font-weight:600;color:var(--good)}.cad-ac .s{overflow-wrap:anywhere}
+.rg details{border-top:1px solid var(--line)}.rg details:last-of-type{border-bottom:1px solid var(--line)}
+.rg summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 0;font-weight:600;cursor:pointer}
+.rg summary::-webkit-details-marker{display:none}.rg summary::after{content:"+";margin-left:auto;font:600 20px var(--display);color:var(--muted)}
+.rg details[open] summary::after{content:"−"}.rg summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.rg details p{margin:0 0 12px;font-size:15px;line-height:1.5;color:var(--muted)}
+.rg-links{display:flex;flex-wrap:wrap;gap:4px 20px}
 .adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
 .adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
 textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
@@ -563,7 +569,7 @@ label.check{min-height:40px;align-items:center}
       </div>
     </div>
     <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
-    <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="privacidade.html">Privacidade</a></p>
+    <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
   </section>
 
   <section id="s-dados" class="auth" hidden>
@@ -1067,13 +1073,13 @@ label.check{min-height:40px;align-items:center}
       <button class="card maisbtn destaque" type="button" data-go="negocio"><b>Do corre ao negócio</b><span>Regra dos 10% e 50 lições de empreendedorismo</span></button>
       <button class="card maisbtn" type="button" data-go="hist"><b>Histórico e ajustes</b><span>Tudo que você anotou, meta da semana e planilha</span></button>
       <button class="card maisbtn" type="button" data-go="aprender"><b>Dinheiro do Corre</b><span>Reserva, MEI, investimentos e cripto</span></button>
-      <div class="card stack" id="cad-card" hidden><div class="cad-h"><h2>Cadastros</h2><button class="link" type="button" id="cad-atual">Atualizar</button></div>
-        <div class="cad-tot" id="cad-tot"></div>
+      <div class="card stack" id="cad-card" hidden><button type="button" class="cad-h" id="cad-abre" aria-expanded="false" aria-controls="cad-corpo"><span class="cad-ht"><h2>Cadastros</h2><span id="cad-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="stack" id="cad-corpo" hidden><div class="cad-tot" id="cad-tot"></div>
         <div class="chips" id="cad-chips"><button type="button" class="chip" data-cf="todos" aria-pressed="true">Todos</button><button type="button" class="chip" data-cf="moto" aria-pressed="false">Motoboys</button><button type="button" class="chip" data-cf="envio" aria-pressed="false">Lojas e envio</button></div>
         <input id="cad-busca" type="search" placeholder="Buscar nome, bairro ou WhatsApp" aria-label="Buscar cadastro" autocomplete="off">
         <div class="stack" id="cad-lista" style="gap:8px"></div>
         <button class="btn ghost" type="button" id="cad-mais" hidden>Ver mais</button>
-        <button class="btn ghost" type="button" id="cad-csv">Baixar planilha</button></div>
+        <button class="btn ghost" type="button" id="cad-csv">Baixar planilha</button><button class="link" type="button" id="cad-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxa de serviço (6%) dos pagamentos pelo app, por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
       <div class="card" id="adm-card" hidden><h2>Moderação</h2><p class="hint" style="margin:4px 0 10px">Contas bloqueadas por 3 relatos, esperando sua análise.</p><div class="stack" id="adm-lista"></div></div>
       <button class="card maisbtn" type="button" data-go="corpo"><b>Corpo</b><span>Whey nos picos, alimentação e cuidados</span></button>
@@ -1131,7 +1137,7 @@ label.check{min-height:40px;align-items:center}
         <button class="btn full" id="sair" type="button">Sair da conta</button>
         <button class="btn ghost full" id="cf-trocar" type="button">Entrar com outra conta</button>
       </div>
-      <div style="display:flex;justify-content:center;gap:20px"><a class="link" href="sobre.html">Sobre</a><a class="link" href="perguntas.html">Perguntas frequentes</a><a class="link" href="privacidade.html">Privacidade</a></div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0 20px"><a class="link" href="sobre.html">Sobre</a><a class="link" href="perguntas.html">Perguntas frequentes</a><a class="link" href="regras.html">Regras</a><a class="link" href="privacidade.html">Privacidade</a></div>
     </div>
   </section>
   <!-- NEGÓCIO -->
@@ -1355,7 +1361,16 @@ label.check{min-height:40px;align-items:center}
         <button class="btn full" type="submit">Salvar</button>
       </form>
       <p class="hint rel-cont" style="margin:0"></p>
-      <div class="card stack"><h2>Quer rodar também?</h2><p class="hint" style="margin:0">Vire entregador e tenha o Cadernex completo: controle de ganhos, corridas, faculdade e a Resenha.</p><button class="btn ghost full" id="pc-virar" type="button">Quero ser entregador também</button></div>
+      <div class="card stack rg"><h2>Regras e privacidade</h2><p class="hint" style="margin:0">O que vale para os seus envios, em resumo.</p>
+        <details><summary>Como funciona</summary><p>Você informa coleta, entrega e o que vai. O preço aparece antes de confirmar. Um entregador da região aceita, busca e leva, e você acompanha tudo pelo app e pelo chat. Até 10 pedidos abertos ao mesmo tempo (15 para lojas).</p></details>
+        <details><summary>O que não pode enviar</summary><p>Drogas, armas e munição, explosivos, gás e produtos inflamáveis, animais vivos, dinheiro em espécie, cartões e joias de valor, produtos roubados ou falsificados, remédios controlados (só pela própria farmácia) e bebida alcoólica para menores. O entregador pode recusar a coleta se a embalagem não for segura.</p></details>
+        <details><summary>Embalagem e tamanho</summary><p>Encomenda fechada e com o nome de quem recebe. Comida lacrada; se for frágil, avise nas observações. Na moto e na bike tem que caber na bag ou no baú (bike até 5 km). Volume grande ou mudança: peça um frete.</p></details>
+        <details><summary>Preço e pagamento</summary><p>Preço pela distância, a partir de R$ 8 (frete a partir de R$ 40). No Pix pelo app, de qualquer banco, soma-se uma taxa de serviço de 6% e a corrida vai inteira para o entregador. Em dinheiro, você paga direto ao entregador, sem taxa. O valor do produto não passa pelo Cadernex.</p></details>
+        <details><summary>Cancelamento</summary><p>Grátis enquanto a encomenda não foi coletada. Depois da coleta, combine com o entregador pelo chat. Pagou por Pix e cancelou antes da coleta? Escreva para o suporte pedindo o estorno.</p></details>
+        <details><summary>Segurança e relatos</summary><p>Todas as contas têm dados reais. Depois de cada corrida, os dois lados avaliam e podem relatar problemas. Com 3 relatos, a conta fica bloqueada para análise, com direito a defesa.</p></details>
+        <details><summary>Seus dados</summary><p>O entregador vê só seu primeiro nome. Endereço e telefone aparecem só para quem está na corrida, e o GPS só enquanto ela acontece. CPF e dados pessoais: só você e a moderação. Não vendemos dados.</p></details>
+        <div class="rg-links"><a class="link" href="regras.html">Regras completas</a><a class="link" href="privacidade.html">Política de privacidade</a></div>
+        <p class="hint" style="margin:0">Suporte: suporte@cadernex.com.br</p></div>
       <button class="btn ghost full" type="button" data-go="config">Configurações, tema e sair</button>
     </div>
   </section>

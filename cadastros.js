@@ -4,7 +4,8 @@ const el=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const VEI={moto:"Moto",bike:"Bike",picape_p:"Picape P",picape_m:"Picape M",caminhao:"Caminhão"};
 const DIA=864e5,PAG=30;
-let lista=[],filtro="todos",busca="",mostrar=PAG;
+let lista=[],filtro="todos",busca="",mostrar=PAG,aberto=false;try{aberto=localStorage.getItem("cx-cad-aberto")==="1"}catch(e){}
+function abre(){const b=el("cad-abre");if(!b)return;b.setAttribute("aria-expanded",aberto);el("cad-corpo").hidden=!aberto}
 const ehMoto=p=>p.tipo==="entregador";
 const rotulo=p=>ehMoto(p)?"Motoboy":p.loja?"Loja":"Envio";
 const data=d=>d?new Date(d).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}):"—";
@@ -19,6 +20,7 @@ function filtrados(){
 function pinta(){
   const card=el("cad-card");if(!card)return;
   const moto=lista.filter(ehMoto).length,env=lista.length-moto,novos=lista.filter(p=>Date.now()-new Date(p.criado_em)<7*DIA).length;
+  el("cad-res").textContent=`${moto} motoboy${moto==1?"":"s"} · ${env} envia${env==1?"":"m"}${novos?` · ${novos} novo${novos==1?"":"s"}`:""}`;abre();
   el("cad-tot").innerHTML=`<div><b class="num">${moto}</b><span>Motoboys</span></div><div><b class="num">${env}</b><span>Enviam</span></div><div><b class="num">${novos}</b><span>Novos na semana</span></div>`;
   el("cad-chips").querySelectorAll("[data-cf]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cf===filtro));
   const f=filtrados();
@@ -57,6 +59,7 @@ function planilha(){
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
 }
 document.addEventListener("click",e=>{
+  if(e.target.closest("#cad-abre")){aberto=!aberto;try{localStorage.setItem("cx-cad-aberto",aberto?"1":"0")}catch(x){}abre();return}
   const c=e.target.closest("[data-cf]");if(c&&c.closest("#cad-chips")){filtro=c.dataset.cf;mostrar=PAG;pinta();return}
   if(e.target.closest("#cad-mais")){mostrar+=PAG;pinta();return}
   if(e.target.closest("#cad-csv")){if(!lista.length){toast("Ainda não tem cadastro pra baixar");return}planilha();return}

@@ -236,7 +236,7 @@ function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend"
 // perfil do cliente
 function perfilRender(){if(document.activeElement?.closest?.("#fPerfilC"))return;$("pc-nome").value=perfil.nome||"";$("pc-tel").value=perfil.telefone||"";$("pc-end").value=perfil.end_padrao||""}
 $("fPerfilC").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({nome:$("pc-nome").value.trim(),telefone:$("pc-tel").value.trim()||null,end_padrao:$("pc-end").value.trim()||null}),"Perfil salvo")};
-$("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo pra confirmar";return}
+if($("pc-virar"))$("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo pra confirmar";return}
   safe(async()=>{await savePerfil({tipo:"entregador"});aplicaPapel(true)},"Pronto! Agora você também é entregador.")};
 
 
