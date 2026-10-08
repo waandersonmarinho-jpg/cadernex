@@ -495,12 +495,19 @@ label.check{min-height:40px;align-items:center}
 .pf-kmnota{margin:-6px 0 0;font-size:12px;color:var(--good)}
 .pf-cep{max-width:180px}
 
-/* meus ganhos */
-.gn-tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.gn-tot div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.gn-tot small{color:var(--muted);font-size:12px}.gn-tot b{font-size:clamp(14px,4.3vw,18px);letter-spacing:-.02em;color:var(--money,var(--good));white-space:nowrap}.gn-tot span{color:var(--muted);font-size:12px}
-.gn-pix{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
-.gn-pix .ok{color:var(--good);font-weight:600}
+/* meus ganhos: saldo verde, estilo carteira */
+.gn{--up:#0ecb81;--up-soft:rgba(14,203,129,.12);background:linear-gradient(160deg,color-mix(in srgb,var(--up) 9%,var(--surface)),var(--surface) 60%);border-color:color-mix(in srgb,var(--up) 30%,var(--line))}
+[data-theme="light"] .gn{--up:#08905a;--up-soft:rgba(8,144,90,.1)}
+.gn-top{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+.gn-olho{all:unset;cursor:pointer;display:grid;place-items:center;width:32px;height:32px;border-radius:8px;color:var(--muted)}.gn-olho:hover{color:var(--fg)}
+.gn-hoje{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.gn-hoje b{font-family:var(--display);font-size:46px;line-height:1;color:var(--up);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.gn-hoje span{color:var(--muted);font-size:14px}
+.gn-sub{display:flex;gap:8px;flex-wrap:wrap}
+.gn-sub span{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;background:var(--up-soft);color:var(--up);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.gn-sub span.neutro{background:var(--bg);color:var(--muted)}
+.gn-pix{border-top:1px solid var(--line);padding-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}
+.gn-pix .ok{color:var(--up);font-weight:600}.gn-pix .btn{white-space:nowrap;flex:none}.gn-pix>span{min-width:0}
 </style>
 </head>
 <body>
@@ -583,6 +590,12 @@ label.check{min-height:40px;align-items:center}
 
   <!-- RESUMO -->
   <section id="v-resumo" class="view" style="display:flex;flex-direction:column;gap:18px">
+    <div class="card stack gn" id="gn-card" hidden>
+      <div class="gn-top"><span>Ganhos de hoje</span><button type="button" class="gn-olho" id="gn-olho" aria-label="Esconder ou mostrar os valores"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="gn-hoje"><b class="num" id="gn-v">R$ 0,00</b><span id="gn-q"></span></div>
+      <div class="gn-sub" id="gn-mix"></div>
+      <div class="gn-pix" id="gn-pix"></div>
+    </div>
     <div class="card timer" id="timerCard">
       <div><div class="eyebrow" id="timerLbl">Fora de turno</div><div class="clock num" id="clock">00:00</div></div>
       <button class="btn" id="timerBtn" type="button">Começar turno</button>
@@ -1199,12 +1212,6 @@ label.check{min-height:40px;align-items:center}
           <p class="hint" style="margin:0">Quem pede vê seu primeiro nome, o veículo, a região e uma posição aproximada no mapa (uns 400 m), nunca o ponto exato. Saiu do disponível, some do mapa.</p>
         </form>
       </div>
-      <div class="card stack" id="gn-card" hidden>
-        <div><div class="eyebrow">Pelo Cadernex</div><h2 style="margin:2px 0 0">Meus ganhos</h2></div>
-        <div class="gn-tot" id="gn-tot"></div>
-        <p class="hint" id="gn-mix" style="margin:0"></p>
-        <div class="gn-pix" id="gn-pix"></div>
-      </div>
       <div class="card nota-card"><div id="co-nota"><b>Sua reputação</b></div><p class="hint rel-cont" style="margin:6px 0 0"></p></div>
       <div id="co-andam-w" hidden><h2 style="margin-bottom:8px">Em andamento</h2><div class="stack" id="co-andam"></div></div>
       <div><h2 style="margin-bottom:8px">Pedidos abertos</h2><div class="stack" id="co-abertas"></div></div>
@@ -1332,7 +1339,7 @@ label.check{min-height:40px;align-items:center}
   <button class="btn ghost full" type="button" id="ac-nao">Agora não</button>
 </div></div>
 <nav id="nav" hidden><div class="in">
-  <button class="tab so-ent" data-v="resumo" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Resumo</button>
+  <button class="tab so-ent" data-v="resumo" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Ganhos</button>
   <button class="tab so-ent" data-v="turno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Turno</button>
   <button class="tab so-ent" data-v="corridas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h3l2 6M5.5 17.5L9 10h6l3.5 7.5M9 10l-1.5-3H5"/></svg>Corridas</button>
   <button class="tab so-ent" data-v="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Faculdade</button>
