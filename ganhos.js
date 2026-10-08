@@ -1,7 +1,7 @@
 /* Cadernex — Meus ganhos (entregador): quanto recebeu pelo Cadernex e o Pix de saque (CPF do próprio entregador).
    O saque do saldo para qualquer banco liga quando a conta de pagamentos da empresa estiver pronta. */
 (function(){
-const DIA=864e5;
+const DIA=864e5,SAQUE_MIN=50; // saque mínimo combinado: R$ 50
 let pix=null; // {cpf, saque_pix}
 let vals=null,oculto=false;try{oculto=localStorage.getItem("cx-gn-oculto")==="1"}catch(e){}
 const esconde=v=>oculto?"R$ ••••":brl(v);
@@ -38,8 +38,8 @@ function pixRender(semColuna){
   if(semColuna||!pix||!pix.cpf){el.hidden=true;return} // sem o SQL ou sem CPF: não mostra
   el.hidden=false;
   el.innerHTML=pix.saque_pix
-    ?`<span class="ok">✓ Pix de saque: CPF ${mascara(pix.cpf)}</span><button class="link" type="button" id="gn-pix-off">Trocar</button>`
-    :`<span>Pix de saque · <small style="color:var(--muted)">em breve</small></span><button class="btn ghost" type="button" id="gn-pix-on" style="padding:8px 12px;font-size:14px">Usar meu CPF</button>`;
+    ?`<span><span class="ok">✓ Pix de saque: CPF ${mascara(pix.cpf)}</span><br><small style="color:var(--muted)">Saque a partir de ${brl(SAQUE_MIN)} · em breve</small></span><button class="link" type="button" id="gn-pix-off">Trocar</button>`
+    :`<span>Pix de saque · <small style="color:var(--muted)">a partir de ${brl(SAQUE_MIN)}, em breve</small></span><button class="btn ghost" type="button" id="gn-pix-on" style="padding:8px 12px;font-size:14px">Usar meu CPF</button>`;
 }
 document.addEventListener("click",e=>{
   const on=e.target.closest("#gn-pix-on"),off=e.target.closest("#gn-pix-off");if(!on&&!off)return;
