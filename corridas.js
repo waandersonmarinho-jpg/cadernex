@@ -206,8 +206,9 @@ function usarLoc(qual){if(!navigator.geolocation){toast("Seu celular não libero
     const inp=$(qual==="c"?"pf-cend":"pf-eend");if(!inp.value.trim())inp.value="Minha localização atual";sugerir()},
     ()=>{b.textContent="Minha localização";toast("Não deu pra pegar a localização. Escreva o endereço.")},{enableHighAccuracy:true,timeout:15000});}
 $("pf-cloc").onclick=()=>usarLoc("c");$("pf-eloc").onclick=()=>usarLoc("e");
-const BASE=8,POR_KM=0.55;
-const justo=k=>Math.max(BASE,Math.ceil((BASE+POR_KM*k)*2)/2); // arredonda pra cima de 50 em 50 centavos
+const BASE=8,PERTO_KM=3,POR_KM_LONGE=1.8;
+// até 3 km: R$ 8 fixo; cada km rodado acima de 3 km: + R$ 1,80. Arredonda pra cima de 50 em 50 centavos
+const justo=k=>{k=Math.max(0,k||0);const v=BASE+POR_KM_LONGE*Math.max(0,k-PERTO_KM);return Math.max(BASE,Math.ceil(v*2)/2)};
 function pfJusto(k){if(pfTipo!=="frete")return justo(k);return precoFrete(pfVei(),k,+picked($("pf-aj")),Math.max(0,Math.round(num($("pf-and").value)||0)))}
 function sugerir(){
   const auto=window.kmRota!=null?window.kmRota:(locs.c&&locs.e?km(locs.c.lat,locs.c.lng,locs.e.lat,locs.e.lng):null);
