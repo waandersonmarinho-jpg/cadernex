@@ -29,6 +29,7 @@ const hora=iso=>{const d=new Date(iso),h=new Date();const mesmo=d.toDateString()
 
 function chatRender(rolar){
   if(!$("v-chat"))return;
+  { const lim=Date.now()-864e5; msgs=msgs.filter(m=>new Date(m.created_at).getTime()>lim); } // a Resenha guarda só as últimas 24 horas
   $("ch-erro").hidden=chatOk;
   $("ch-salas").innerHTML=SALAS.map(([k,n])=>`<button type="button" class="chip" data-sala="${k}" aria-pressed="${k===sala}">${n}</button>`).join("");
   const vis=msgs.filter(m=>!silenciados.includes(m.user_id));
