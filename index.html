@@ -1323,7 +1323,7 @@ label.check{min-height:40px;align-items:center}
 
         <div class="pf-etapa" data-etapa="3" hidden>
           <div class="pf-resumo" id="pf-resumo"></div>
-          <label>Telefone (opcional)<input type="tel" id="pf-tel" placeholder="só quem aceitar vê"></label>
+          <label>Telefone (opcional)<input type="tel" id="pf-tel" inputmode="numeric" placeholder="(62) 99999-9999 · só quem aceitar vê"></label>
           <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
           <div class="pf-nav"><button class="btn ghost" type="button" data-pf-volta>Voltar</button><button class="btn" type="submit" id="pf-btn">Pedir entrega</button></div>
           <p class="hint" style="margin:0;font-size:12px;text-align:center">Você só paga depois que um entregador aceitar: pelo app (Pix) ou em dinheiro. Os endereços só aparecem pra quem aceitar.</p>
@@ -1355,9 +1355,9 @@ label.check{min-height:40px;align-items:center}
           <input type="file" accept="image/*" hidden></div>
       </div>
       <form id="fPerfilC" class="card stack">
-        <label>Seu nome<input type="text" id="pc-nome" autocomplete="name"></label>
-        <label>Telefone<input type="tel" id="pc-tel" autocomplete="tel"></label>
-        <label>Endereço que você mais usa<input type="text" id="pc-end" autocomplete="street-address" placeholder="vem preenchido no pedido"></label>
+        <label>Nome da loja ou seu nome<input type="text" id="pc-nome" autocomplete="organization" placeholder="Ex.: Farmácia Bela Vista" maxlength="60"></label>
+        <label>Telefone / WhatsApp<input type="tel" id="pc-tel" autocomplete="tel-national" inputmode="numeric" placeholder="(62) 99999-9999"></label>
+        <label>Endereço de coleta<input type="text" id="pc-end" autocomplete="street-address" placeholder="Ex.: Av. Bela Vista, 1253"><small class="hint" style="font-weight:400">Já vem preenchido quando você pede uma entrega.</small></label>
         <button class="btn full" type="submit">Salvar</button>
       </form>
       <p class="hint rel-cont" style="margin:0"></p>

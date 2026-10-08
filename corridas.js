@@ -231,11 +231,18 @@ $("fPedir").onsubmit=e=>{e.preventDefault();
     const r=await sb.from("corridas_det").insert(det);if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
     ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};window.kmRota=null;["pf-ccep","pf-ecep"].forEach(i=>$(i).value="");$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";if(window.pfCatReset)pfCatReset();
     corrAberta=data.id;if(window.pfEtapa)pfEtapa(1);await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
-function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=perfil.telefone;sugerir()}
+function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=foneFmt(perfil.telefone);sugerir()}
 
 // perfil do cliente
-function perfilRender(){if(document.activeElement?.closest?.("#fPerfilC"))return;$("pc-nome").value=perfil.nome||"";$("pc-tel").value=perfil.telefone||"";$("pc-end").value=perfil.end_padrao||""}
-$("fPerfilC").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({nome:$("pc-nome").value.trim(),telefone:$("pc-tel").value.trim()||null,end_padrao:$("pc-end").value.trim()||null}),"Perfil salvo")};
+// telefone sempre no formato (62) 99999-9999
+const foneFmt=v=>{let d=String(v||"").replace(/\D/g,"");if(d.length>11&&d.startsWith("55"))d=d.slice(2);d=d.slice(0,11);if(d.length<3)return d;
+  return d.length>10?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length>6?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:`(${d.slice(0,2)}) ${d.slice(2)}`};
+["pc-tel","pf-tel"].forEach(id=>$(id)?.addEventListener("input",e=>{e.target.value=foneFmt(e.target.value)}));
+function perfilRender(){if(document.activeElement?.closest?.("#fPerfilC"))return;$("pc-nome").value=perfil.nome||"";$("pc-tel").value=foneFmt(perfil.telefone);$("pc-end").value=perfil.end_padrao||""}
+$("fPerfilC").onsubmit=e=>{e.preventDefault();const nome=$("pc-nome").value.trim().replace(/\s+/g," "),tel=$("pc-tel").value.replace(/\D/g,"");
+  if(nome.length<2){toast("Coloque o nome da loja ou o seu nome");$("pc-nome").focus();return}
+  if(tel&&tel.length<10){toast("Telefone incompleto: coloque o DDD e o número");$("pc-tel").focus();return}
+  safe(()=>savePerfil({nome,telefone:tel?foneFmt(tel):null,end_padrao:$("pc-end").value.trim()||null}),"Perfil salvo")};
 if($("pc-virar"))$("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo pra confirmar";return}
   safe(async()=>{await savePerfil({tipo:"entregador"});aplicaPapel(true)},"Pronto! Agora você também é entregador.")};
 
