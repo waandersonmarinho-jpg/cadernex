@@ -494,6 +494,13 @@ label.check{min-height:40px;align-items:center}
 
 .pf-kmnota{margin:-6px 0 0;font-size:12px;color:var(--good)}
 .pf-cep{max-width:180px}
+
+/* meus ganhos */
+.gn-tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gn-tot div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.gn-tot small{color:var(--muted);font-size:12px}.gn-tot b{font-size:clamp(14px,4.3vw,18px);letter-spacing:-.02em;color:var(--money,var(--good));white-space:nowrap}.gn-tot span{color:var(--muted);font-size:12px}
+.gn-pix{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.gn-pix .ok{color:var(--good);font-weight:600}
 </style>
 </head>
 <body>
@@ -1192,6 +1199,12 @@ label.check{min-height:40px;align-items:center}
           <p class="hint" style="margin:0">Quem pede vê seu primeiro nome, o veículo, a região e uma posição aproximada no mapa (uns 400 m), nunca o ponto exato. Saiu do disponível, some do mapa.</p>
         </form>
       </div>
+      <div class="card stack" id="gn-card" hidden>
+        <div><div class="eyebrow">Pelo Cadernex</div><h2 style="margin:2px 0 0">Meus ganhos</h2></div>
+        <div class="gn-tot" id="gn-tot"></div>
+        <p class="hint" id="gn-mix" style="margin:0"></p>
+        <div class="gn-pix" id="gn-pix"></div>
+      </div>
       <div class="card nota-card"><div id="co-nota"><b>Sua reputação</b></div><p class="hint rel-cont" style="margin:6px 0 0"></p></div>
       <div id="co-andam-w" hidden><h2 style="margin-bottom:8px">Em andamento</h2><div class="stack" id="co-andam"></div></div>
       <div><h2 style="margin-bottom:8px">Pedidos abertos</h2><div class="stack" id="co-abertas"></div></div>
@@ -1272,7 +1285,7 @@ label.check{min-height:40px;align-items:center}
           <label>Telefone (opcional)<input type="tel" id="pf-tel" placeholder="só quem aceitar vê"></label>
           <label>Observação (opcional)<input type="text" id="pf-obs" maxlength="200" placeholder="ex.: interfone 12, deixar na portaria"></label>
           <div class="pf-nav"><button class="btn ghost" type="button" data-pf-volta>Voltar</button><button class="btn" type="submit" id="pf-btn">Pedir entrega</button></div>
-          <p class="hint" style="margin:0;font-size:12px;text-align:center">Pague pelo app (Pix) ou em dinheiro. Os endereços só aparecem pra quem aceitar.</p>
+          <p class="hint" style="margin:0;font-size:12px;text-align:center">Você só paga depois que um entregador aceitar: pelo app (Pix) ou em dinheiro. Os endereços só aparecem pra quem aceitar.</p>
         </div>
       </form>
       <button type="button" class="link so-entrega" id="lt-abrir" style="align-self:center">Vai enviar pra vários endereços? Pedir várias de uma vez</button>
@@ -1347,6 +1360,7 @@ label.check{min-height:40px;align-items:center}
 <script src="pedir.js"></script>
 <script src="lote.js"></script>
 <script src="enviar.js"></script>
+<script src="ganhos.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
