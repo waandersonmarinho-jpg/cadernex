@@ -357,6 +357,8 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .rg details[open] summary::after{content:"−"}.rg summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .rg details p{margin:0 0 12px;font-size:15px;line-height:1.5;color:var(--muted)}
 .rg-links{display:flex;flex-wrap:wrap;gap:4px 20px}
+#sd-res.sd-alerta{color:var(--bad);font-weight:600}.sd-msg{font-size:14px;font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+.sd-bk{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
 .adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
 textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
@@ -1080,6 +1082,13 @@ label.check{min-height:40px;align-items:center}
         <div class="stack" id="cad-lista" style="gap:8px"></div>
         <button class="btn ghost" type="button" id="cad-mais" hidden>Ver mais</button>
         <button class="btn ghost" type="button" id="cad-csv">Baixar planilha</button><button class="link" type="button" id="cad-atual" style="align-self:center">Atualizar lista</button></div></div>
+      <div class="card stack" id="sd-card" hidden><button type="button" class="cad-h" id="sd-abre" aria-expanded="false" aria-controls="sd-corpo"><span class="cad-ht"><h2>Saúde do app</h2><span id="sd-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="stack" id="sd-corpo" hidden>
+        <div class="sd-bk"><b>Backup dos dados</b><p class="hint" style="margin:0">Baixa uma cópia de cadastros, corridas e pagamentos. Tem CPF e dados pessoais: guarde no seu Google Drive e não mande para ninguém. Faça uma vez por semana.</p><button class="btn ghost full" type="button" id="sd-backup">Baixar backup</button></div>
+        <b>Erros nos celulares</b>
+        <div class="stack" id="sd-lista" style="gap:8px"></div>
+        <button class="btn ghost" type="button" id="sd-limpar" hidden>Limpar lista de erros</button>
+        <button class="link" type="button" id="sd-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxa de serviço (6%) dos pagamentos pelo app, por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
       <div class="card" id="adm-card" hidden><h2>Moderação</h2><p class="hint" style="margin:4px 0 10px">Contas bloqueadas por 3 relatos, esperando sua análise.</p><div class="stack" id="adm-lista"></div></div>
       <button class="card maisbtn" type="button" data-go="corpo"><b>Corpo</b><span>Whey nos picos, alimentação e cuidados</span></button>
@@ -1401,6 +1410,7 @@ label.check{min-height:40px;align-items:center}
 <div class="toast" id="toast" hidden></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="monitor.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script src="agenda.js"></script>
@@ -1419,6 +1429,7 @@ label.check{min-height:40px;align-items:center}
 <script src="ganhos.js"></script>
 <script src="foto.js"></script>
 <script src="cadastros.js"></script>
+<script src="saude.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
