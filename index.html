@@ -359,6 +359,7 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .rg-links{display:flex;flex-wrap:wrap;gap:4px 20px}
 #sd-res.sd-alerta{color:var(--bad);font-weight:600}.sd-msg{font-size:14px;font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
 .sd-bk{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+#lj-res{font-size:14px;color:var(--muted)}.lj-doc{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:2px}.lj-doc .ok{color:var(--good);font-weight:600}
 .adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
 .adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
 textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
@@ -1374,6 +1375,17 @@ label.check{min-height:40px;align-items:center}
         <label>Endereço de coleta<input type="text" id="pc-end" autocomplete="street-address" placeholder="Ex.: Av. Bela Vista, 1253"><small class="hint" style="font-weight:400">Já vem preenchido quando você pede uma entrega.</small></label>
         <button class="btn full" type="submit">Salvar</button>
       </form>
+      <div class="card stack" id="lj-card"><button type="button" class="cad-h" id="lj-abre" aria-expanded="false" aria-controls="lj-corpo"><span class="cad-ht"><h2>Informações da loja</h2><span id="lj-res">Para lojas, farmácias e restaurantes</span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <form class="stack" id="lj-corpo" hidden>
+          <p class="hint" style="margin:0">Com o nome da loja preenchido, ele aparece para o entregador nas corridas e você pode ter até 15 pedidos abertos. Se você envia como pessoa, deixe em branco.</p>
+          <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" autocomplete="organization" placeholder="Ex.: Drogavit"></label>
+          <label>Ramo<select id="lj-ramo"><option value="">Escolha</option><option>Farmácia</option><option>Restaurante</option><option>Lanchonete</option><option>Mercado</option><option>Loja</option><option>Outro</option></select></label>
+          <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" maxlength="40" placeholder="Ex.: Setor Noroeste"></label>
+          <label>WhatsApp da loja<input type="tel" id="lj-whats" inputmode="numeric" placeholder="(62) 3333-3333"></label></div>
+          <label>Horário de funcionamento<input type="text" id="lj-hora" maxlength="60" placeholder="Ex.: Seg a sáb, 8h às 22h"></label>
+          <div class="lj-doc" id="lj-doc" hidden></div>
+          <button class="btn full" type="submit">Salvar informações da loja</button>
+        </form></div>
       <p class="hint rel-cont" style="margin:0"></p>
       <div class="card stack rg"><h2>Regras e privacidade</h2><p class="hint" style="margin:0">O que vale para os seus envios, em resumo.</p>
         <details><summary>Como funciona</summary><p>Você informa coleta, entrega e o que vai. O preço aparece antes de confirmar. Um entregador da região aceita, busca e leva, e você acompanha tudo pelo app e pelo chat. Até 10 pedidos abertos ao mesmo tempo (15 para lojas).</p></details>
@@ -1435,6 +1447,7 @@ label.check{min-height:40px;align-items:center}
 <script src="foto.js"></script>
 <script src="cadastros.js"></script>
 <script src="saude.js"></script>
+<script src="lojainfo.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
