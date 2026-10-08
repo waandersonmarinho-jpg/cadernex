@@ -579,13 +579,18 @@ label.check{min-height:40px;align-items:center}
       <h2 style="margin-bottom:4px">Complete seu cadastro</h2>
       <p class="hint" style="margin:0 0 12px">Pedido uma vez só. Serve pra segurança de quem pede e de quem entrega nas corridas.</p>
       <form id="fDados" class="stack">
-        <label>Nome completo<input type="text" id="dd-nome" autocomplete="name" maxlength="120" required></label>
+        <div class="seg" id="dd-doc" role="group" aria-label="Tipo de cadastro" hidden><button type="button" data-doc="cpf" aria-pressed="true">Pessoa (CPF)</button><button type="button" data-doc="cnpj" aria-pressed="false">Empresa (CNPJ)</button></div>
+        <div class="stack" id="dd-emp" hidden>
+          <label>Nome da empresa<input type="text" id="dd-emp-nome" autocomplete="organization" maxlength="80" placeholder="Ex.: Drogaria Bela Vista"></label>
+          <label>CNPJ<input type="text" id="dd-cnpj" inputmode="text" autocapitalize="characters" placeholder="00.000.000/0000-00" maxlength="18"></label>
+        </div>
+        <label><span id="dd-nome-lbl">Nome completo</span><input type="text" id="dd-nome" autocomplete="name" maxlength="120" required></label>
         <label>Celular com DDD<input type="tel" id="dd-cel" autocomplete="tel" inputmode="numeric" placeholder="(62) 99999-9999" required></label>
-        <div class="grid2">
+        <div class="grid2" id="dd-pf">
           <label>Data de nascimento<input type="date" id="dd-nasc" autocomplete="bday" required></label>
           <label>CPF<input type="text" id="dd-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required></label>
         </div>
-        <label>Nacionalidade<select id="dd-nac"><option>Brasileira</option><option>Venezuelana</option><option>Haitiana</option><option>Boliviana</option><option>Paraguaia</option><option>Colombiana</option><option>Outra</option></select></label>
+        <label id="dd-nac-w">Nacionalidade<select id="dd-nac"><option>Brasileira</option><option>Venezuelana</option><option>Haitiana</option><option>Boliviana</option><option>Paraguaia</option><option>Colombiana</option><option>Outra</option></select></label>
         <div id="dd-vei-w" class="stack" hidden style="gap:8px">
           <div class="eyebrow">Seu veículo de trabalho</div>
           <div class="chips" id="dd-vei"></div>
@@ -604,7 +609,7 @@ label.check{min-height:40px;align-items:center}
         <p class="msg" id="dd-msg" role="status"></p>
         <button class="btn full" id="dd-btn" type="submit">Salvar e continuar</button>
       </form>
-      <p class="hint" style="margin:10px 0 0;font-size:12px">Seu CPF e sua data de nascimento ficam guardados com segurança. Nenhum outro usuário vê esses dados. Quem pede ou entrega vê só o seu primeiro nome.</p>
+      <p class="hint" style="margin:10px 0 0;font-size:12px">Seus documentos (CPF ou CNPJ) e sua data de nascimento ficam guardados com segurança. Nenhum outro usuário vê esses dados. Quem pede ou entrega vê só o seu primeiro nome.</p>
     </div>
     <button class="link" type="button" id="dd-depois" style="align-self:center">Fazer depois (sem corridas por enquanto)</button>
   </section>
