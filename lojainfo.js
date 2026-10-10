@@ -13,7 +13,7 @@ function resumo(){
 function preencher(){
   if(document.activeElement?.closest?.("#lj-corpo"))return;
   el("lj-nome").value=perfil.loja_nome||"";el("lj-ramo").value=perfil.loja_ramo||"";el("lj-bairro").value=perfil.loja_bairro||"";
-  el("lj-whats").value=fone(perfil.loja_whats);el("lj-hora").value=perfil.loja_horario||"";resumo();abre();
+  el("lj-whats").value=fone(perfil.loja_whats);el("lj-hora").value=perfil.loja_horario||"";el("lj-insta").value=perfil.loja_insta?"@"+perfil.loja_insta:"";el("lj-face").value=perfil.loja_face||"";el("lj-site").value=perfil.loja_site||"";resumo();abre();
 }
 async function documento(){
   const d=el("lj-doc");if(!sb||!uid){d.hidden=true;return}
@@ -23,6 +23,10 @@ async function documento(){
   d.innerHTML=x.cnpj?`<span class="ok">✓ CNPJ ${esc(cnpjFmt(x.cnpj))}</span><span>${esc(x.empresa_nome||"")}</span><small class="hint" style="margin:0">Responsável: ${esc(x.nome_completo||"")}. O CNPJ não muda pelo app.</small>`
     :`<span>Cadastro feito com CPF (pessoa).</span><small class="hint" style="margin:0">Para trocar para CNPJ, escreva para suporte@cadernex.com.br.</small>`;
 }
+// Instagram: guarda só o usuário (aceita @nome ou o link inteiro)
+const insta=v=>{v=String(v||"").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i,"").replace(/^@/,"").split(/[/?#\s]/)[0];return /^[A-Za-z0-9._]{1,30}$/.test(v)?v.toLowerCase():""};
+const link=v=>{v=String(v||"").trim();if(!v)return"";if(!/^https?:\/\//i.test(v))v="https://"+v;try{const u=new URL(v);return /\./.test(u.hostname)?u.href.replace(/\/$/,""):""}catch(e){return""}};
+const face=v=>{v=String(v||"").trim();if(!v)return"";return /facebook\.com|fb\.com/i.test(v)?link(v):v.slice(0,80)};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 el("lj-whats").addEventListener("input",e=>{e.target.value=fone(e.target.value)});
 el("lj-abre").addEventListener("click",()=>{aberto=!aberto;try{localStorage.setItem("cx-lj-aberto",aberto?"1":"0")}catch(x){}abre();if(aberto)documento()});
@@ -30,9 +34,14 @@ el("lj-corpo").addEventListener("submit",e=>{e.preventDefault();
   const nome=el("lj-nome").value.trim().replace(/\s+/g," "),w=dig(el("lj-whats").value);
   if(nome&&nome.length<2){toast("Nome da loja muito curto");return}
   if(w&&w.length<10){toast("WhatsApp incompleto: coloque o DDD e o número");el("lj-whats").focus();return}
+  const ig=insta(el("lj-insta").value),st=link(el("lj-site").value),fb=face(el("lj-face").value);
+  if(el("lj-insta").value.trim()&&!ig){toast("Instagram inválido: coloque só o @ da loja");el("lj-insta").focus();return}
+  if(el("lj-site").value.trim()&&!st){toast("Site inválido: confira o endereço");el("lj-site").focus();return}
   const patch={loja:!!nome,loja_nome:nome||null,loja_ramo:el("lj-ramo").value||null,loja_bairro:el("lj-bairro").value.trim()||null,
     loja_whats:w||null,loja_horario:el("lj-hora").value.trim()||null};
-  safe(async()=>{await savePerfil(patch);resumo()},nome?"Informações da loja salvas":"Pronto: você envia como pessoa");
+  // redes só entram se o banco já tem os campos (social.sql) ou se a pessoa preencheu
+  [["loja_insta",ig],["loja_face",fb],["loja_site",st]].forEach(([k,v])=>{if(k in perfil||v)patch[k]=v||null});
+  safe(async()=>{await savePerfil(patch);document.activeElement?.blur?.();preencher()},nome?"Informações da loja salvas":"Pronto: você envia como pessoa");
 });
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="perfilc"){preencher();if(aberto)documento()}}}
 const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();if(el("lj-card"))preencher()};
