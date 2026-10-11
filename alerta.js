@@ -27,12 +27,13 @@ document.addEventListener("submit",e=>{if(e.target.id==="fDisp"){liberarSom();if
 
 /* ---------- cartão grande de corrida nova ---------- */
 function fechar(){pararSom();clearInterval(timer);timer=null;atual=null;$("ac-dlg").hidden=true}
-const vistos=new Set();
+const vistos=new Set(),ult={}; // ult: quando tocou e com que valor (pra tocar de novo se ficar parada ou o valor subir)
+const REPETE=3*60000,PARAR=60*60000;
 window.alertaCorrida=function(c){
-  if(vistos.has(c.id))return;vistos.add(c.id);
+  if(vistos.has(c.id))return;vistos.add(c.id);ult[c.id]={t:Date.now(),v:Number(c.valor)};
   if(atual&&atual.id!==c.id){toast(`Mais uma corrida: ${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}`);return}
   atual=c;const fr=c.tipo==="frete",km=c.distancia_km?`${String(Number(c.distancia_km)).replace(".",",")} km`:"";
-  $("ac-tit").textContent=fr?"Frete novo":"Corrida nova";
+  $("ac-tit").textContent=c._re==="subiu"?"O valor subiu!":c._re==="ainda"?"Ainda sem entregador":fr?"Frete novo":"Corrida nova";
   $("ac-val").textContent=brl(Number(c.valor));
   $("ac-rota").textContent=`${c.coleta_bairro} → ${c.entrega_bairro}`;
   $("ac-info").textContent=[c.item,km,c.veiculo&&c.veiculo!=="qualquer"?veiNome(c.veiculo):""].filter(Boolean).join(" · ");
@@ -66,7 +67,12 @@ function confere(){
   if(typeof abertas==="undefined")return;
   abertas.forEach(c=>{if(!serve(c)){return}
     const recente=Date.now()-new Date(c.created_at).getTime()<3*60000; // na 1ª conferência, só avisa os pedidos de até 3 min
-    if(primeira&&!recente){vistos.add(c.id);return}
+    if(primeira&&!recente){vistos.add(c.id);ult[c.id]={t:Date.now(),v:Number(c.valor)};return}
+    if(vistos.has(c.id)&&ult[c.id]&&(!atual||atual.id!==c.id)){ // já tocou: toca de novo se o valor subiu ou se segue parada há 3 min
+      const u=ult[c.id],idade=Date.now()-new Date(c.created_at).getTime();
+      const re=Number(c.valor)>u.v?"subiu":(Date.now()-u.t>=REPETE&&idade<PARAR)?"ainda":null;
+      if(re){vistos.delete(c.id);alertaCorrida({...c,_re:re})}
+      return}
     alertaCorrida(c)});
   primeira=false;
 }

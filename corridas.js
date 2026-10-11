@@ -89,6 +89,8 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   else if(papel==="ent"&&c.status==="aberta")h+=`<p class="hint" style="margin:0">O endereço completo aparece depois que você aceitar.</p>`;
   if(ativo&&c.entregador_id)h+=`<div class="gps" data-gps="${c.id}" data-papel="${papel}"></div>`;
   // antes de alguém aceitar: o cliente já sabe como vai pagar
+  if(papel==="cli"&&c.status==="aberta"){const min=Math.floor((Date.now()-new Date(c.created_at))/60000);
+    if(min>=10&&!(c.agendado_para&&new Date(c.agendado_para)-Date.now()>36e5))h+=`<div class="mp-box parado"><b>⏳ Procurando entregador há ${min} min</b><p class="hint" style="margin:0">Os entregadores já foram avisados de novo. Pedido parado costuma ser valor baixo para a distância. Você pode aumentar o valor ou continuar esperando.</p><div class="parado-ac"><button class="btn ghost" type="button" data-mais="${c.id}" data-v="2">+ R$ 2</button><button class="btn ghost" type="button" data-mais="${c.id}" data-v="5">+ R$ 5</button></div></div>`}
   if(papel==="cli"&&c.status==="aberta")h+=`<div class="mp-box pg-info"><b>💳 Como pagar</b><p class="hint" style="margin:0">Você só paga depois que um entregador aceitar: <b>pelo app no Pix</b> (${brl(Number(c.valor))} + taxa de serviço) ou <b>em dinheiro</b> na entrega (${brl(Number(c.valor))}). Aparece aqui qual dá pra usar.</p></div>`;
   if(c.entregador_id&&(ativo||(c.status==="entregue"&&Date.now()-new Date(c.entregue_em||c.created_at)<3*864e5)))h+=`<div class="mpbox" data-mp="${c.id}" data-papel="${papel}"></div><div class="pixbox" data-pix="${c.id}" data-papel="${papel}"></div>`;
   // ações
@@ -289,3 +291,10 @@ window.aceitarCorrida=async function(id){
     corrAberta=id;if(typeof go==="function")go("corridas");await corrLoad();toast("Corrida aceita! Veja o endereço de coleta.");return true;
   }catch(e){console.error(e);toast("Não deu para aceitar. Confira a internet e tente de novo.");return false}
 };
+
+// quem pediu aumenta o valor de um pedido parado (o banco toca de novo para os entregadores)
+document.addEventListener("click",e=>{const b=e.target.closest("[data-mais]");if(!b)return;
+  const c=minhas.find(x=>x.id===b.dataset.mais)||{};const novo=Math.round((Number(c.valor)+Number(b.dataset.v))*100)/100;
+  if(!(novo>0))return;
+  if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent=`Confirmar ${brl(novo)}`;return}
+  b.disabled=true;safe(async()=>{const{error}=await sb.rpc("aumentar_valor",{cid:b.dataset.mais,novo});if(error)throw error;await corrLoad()},`Valor aumentado para ${brl(novo)}. Os entregadores foram avisados.`).finally(()=>{b.disabled=false})});

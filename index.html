@@ -360,6 +360,7 @@ a.btn{text-align:center;text-decoration:none;display:block}
 #sd-res.sd-alerta{color:var(--bad);font-weight:600}.sd-msg{font-size:14px;font-family:ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
 .sd-bk{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
 #lj-res{font-size:14px;color:var(--muted)}.lj-doc{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:2px}.lj-doc .ok{color:var(--good);font-weight:600}
+.parado{border-color:var(--accent)!important}.parado-ac{display:flex;gap:8px}.parado-ac .btn{flex:1;padding:10px}
 .adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
 .adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
 textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
@@ -1091,6 +1092,7 @@ label.check{min-height:40px;align-items:center}
         <button class="btn ghost" type="button" id="cad-csv">Baixar planilha</button><button class="link" type="button" id="cad-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card stack" id="sd-card" hidden><button type="button" class="cad-h" id="sd-abre" aria-expanded="false" aria-controls="sd-corpo"><span class="cad-ht"><h2>Saúde do app</h2><span id="sd-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="sd-corpo" hidden>
+        <div class="stack" id="sd-parados-w" hidden style="gap:8px"><b>Pedidos parados (10 min ou mais sem entregador)</b><div class="stack" id="sd-parados" style="gap:8px"></div></div>
         <div class="sd-bk"><b>Backup dos dados</b><p class="hint" style="margin:0">Baixa uma cópia de cadastros, corridas e pagamentos. Tem CPF e dados pessoais: guarde no seu Google Drive e não mande para ninguém. Faça uma vez por semana.</p><button class="btn ghost full" type="button" id="sd-backup">Baixar backup</button></div>
         <b>Erros nos celulares</b>
         <div class="stack" id="sd-lista" style="gap:8px"></div>

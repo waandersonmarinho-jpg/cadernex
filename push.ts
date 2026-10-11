@@ -113,7 +113,11 @@ Deno.serve(async (req) => {
         alvo = [quem];
         msg = { titulo: tit, corpo, url: "./", tag: (quem === c.loja_id ? "enc-" : "compra-") + c.id };
       }
-    } else if (op === "INSERT" && c?.status === "aberta") {
+    } else if (op === "PARADO" && c?.status === "aberta") {
+      // 10 minutos sem entregador: avisa quem pediu
+      alvo = [c.cliente_id];
+      msg = { titulo: "Seu pedido ainda está sem entregador", corpo: `${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}. Toque para aumentar o valor ou continue esperando.`, url: "./", tag: "pedido-" + c.id };
+    } else if ((op === "INSERT" || op === "RELEMBRAR") && c?.status === "aberta") {
       const desde = new Date(Date.now() - FRESCO_MS).toISOString();
       const { data: ds } = await admin.from("disponiveis").select("user_id,veiculo,atualizado_em").gte("atualizado_em", desde);
       alvo = (ds || []).filter((d) =>
@@ -123,7 +127,7 @@ Deno.serve(async (req) => {
       ).map((d) => d.user_id);
       const km = c.distancia_km ? ` · ${String(c.distancia_km).replace(".", ",")} km` : "";
       msg = {
-        titulo: `${c.tipo === "frete" ? "Frete" : "Corrida"} nova · ${brl(Number(c.valor))}`,
+        titulo: op === "RELEMBRAR" ? `Ainda sem entregador · ${brl(Number(c.valor))}` : `${c.tipo === "frete" ? "Frete" : "Corrida"} nova · ${brl(Number(c.valor))}`,
         corpo: `${c.coleta_bairro} → ${c.entrega_bairro}${km}`,
         url: "./", tag: "corrida-" + c.id,
       };
