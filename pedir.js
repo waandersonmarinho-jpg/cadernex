@@ -35,7 +35,7 @@ function resumo(){
     <div class="r-lin"><span>Veículo</span><b>${esc(veiNome(pfVei()))}${aj?` · ${aj} ajudante${aj>1?"s":""}`:""}${an?` · ${an} andar${an>1?"es":""}`:""}</b></div>
     ${k?`<div class="r-lin"><span>Distância</span><b>${String(k).replace(".",",")} km</b></div>`:""}
     ${q?`<div class="r-lin"><span>Quando</span><b>${q.toLocaleString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</b></div>`:""}
-    <div class="r-tot"><div><span>${fr?"Frete":"Entrega"}</span><br><b class="num">${brl(v)}</b></div><span style="text-align:right">Pelo app (Pix): ${brl(totalApp(v))}<br>Em dinheiro: ${brl(v)}</span></div>`;
+    <div class="r-tot"><div><span>${fr?"Frete":"Entrega"}</span><br><b class="num">${brl(v)}</b></div></div>`;
   el.querySelector('[data-r="c"]').textContent=`${val("pf-cend")} · ${val("pf-cb")}`;
   el.querySelector('[data-r="e"]').textContent=`${val("pf-eend")} · ${val("pf-eb")}`;
   el.querySelector('[data-r="i"]').textContent=window.pfItem?pfItem():val("pf-item");
