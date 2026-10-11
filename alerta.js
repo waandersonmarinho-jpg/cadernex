@@ -47,10 +47,9 @@ window.alertaCorrida=function(c){
 $("ac-nao").onclick=fechar;
 $("ac-dlg").addEventListener("click",e=>{if(e.target.id==="ac-dlg")fechar()});
 $("ac-ok").onclick=()=>{const b=$("ac-ok"),id=b.dataset.id;b.disabled=true;b.textContent="Aceitando…";pararSom();
-  safe(async()=>{const{error}=await sb.rpc("aceitar_corrida",{cid:id});if(error)throw error;fechar();corrAberta=id;go("corridas");await corrLoad()},"Corrida aceita! Veja o endereço de coleta.")
-    .finally(()=>{if(atual){b.disabled=false;b.textContent=`Aceitar por ${brl(Number(atual.valor))}`}})};
+  aceitarCorrida(id).then(ok=>{if(ok)fechar()}).finally(()=>{if(atual){b.disabled=false;b.textContent=`Aceitar por ${brl(Number(atual.valor))}`}})};
 // se outra pessoa aceitou primeiro, o cartão some
-window.alertaSumir=function(id){if(atual&&atual.id===id){fechar();toast("Outro entregador aceitou essa corrida.")}};
+window.alertaSumir=function(id,quieto){if(atual&&atual.id===id){fechar();if(!quieto)toast("Outro entregador aceitou essa corrida.")}};
 
 /* ---------- cliente: aviso quando o pedido muda ---------- */
 // outras partes do app usam o mesmo som e a mesma notificação

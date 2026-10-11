@@ -160,7 +160,7 @@ function onCorrClick(e){
   const sm=e.target.closest("summary[data-mais]");if(sm){const id=sm.dataset.mais;setTimeout(()=>{const d=sm.parentElement;if(d.open)maisAbertos.add(id);else maisAbertos.delete(id)},0);return}
   if(e.target.closest("[data-longos]")){verLongos=!verLongos;corrRender();return}
   const t=e.target.closest("[data-toggle]");if(t){corrAberta=corrAberta===t.dataset.toggle?"__nenhuma":t.dataset.toggle;corrRender();return}
-  const a=e.target.closest("[data-aceitar]");if(a){a.disabled=true;safe(async()=>{const{error}=await sb.rpc("aceitar_corrida",{cid:a.dataset.aceitar});if(error)throw error;corrAberta=a.dataset.aceitar;await corrLoad()},"Corrida aceita! Veja o endereço de coleta.").finally(()=>a.disabled=false);return}
+  const a=e.target.closest("[data-aceitar]");if(a){a.disabled=true;aceitarCorrida(a.dataset.aceitar).finally(()=>a.disabled=false);return}
   const x=e.target.closest("[data-acao]");if(x){const acao=x.dataset.acao;
     if(["cancelar","devolver"].includes(acao)&&x.dataset.ok!=="1"){x.dataset.ok="1";x.textContent=acao==="cancelar"?"Toque de novo pra cancelar":"Toque de novo pra devolver";return}
     safe(async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});if(error)throw error;await corrLoad()},{coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolver:"Corrida devolvida",cancelar:"Pedido cancelado"}[acao]);return}
@@ -276,3 +276,16 @@ $("adm-lista").addEventListener("click",e=>{const b=e.target.closest("[data-desb
   safe(async()=>{const{error}=await sb.rpc("desbloquear_conta",{uid:b.dataset.desb});if(error)throw error;await admLoad()},"Conta desbloqueada")});
 const _agL5=window.agendaLoad;window.agendaLoad=async()=>{await _agL5();admLoad()};
 if(uid)admLoad();
+
+// Aceitar: o banco garante que só UM entregador pega cada corrida (a troca de "aberta" para "aceita" é atômica).
+// Se dois tocam juntos, quem chegou depois recebe um aviso claro, e a corrida some da lista dele.
+window.aceitarCorrida=async function(id){
+  try{
+    const{error}=await sb.rpc("aceitar_corrida",{cid:id});
+    if(error){const m=String(error.message||"");
+      if(/já foi pega|cancelada/i.test(m)){toast("Outro entregador aceitou primeiro. Fica pra próxima! 🏍️");if(typeof alertaSumir==="function")alertaSumir(id,true);await corrLoad();return false}
+      if(/Termine|veículo|bloqueada|cadastro|entregador/i.test(m)){toast(m);return false}
+      throw error}
+    corrAberta=id;if(typeof go==="function")go("corridas");await corrLoad();toast("Corrida aceita! Veja o endereço de coleta.");return true;
+  }catch(e){console.error(e);toast("Não deu para aceitar. Confira a internet e tente de novo.");return false}
+};
