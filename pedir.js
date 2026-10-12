@@ -65,30 +65,63 @@ async function buscaCep(q){
 });
 // cidade de referência: a do CEP, ou a do outro ponto
 const cidadeDe=q=>{const i=cepInfo[q]||cepInfo[q==="c"?"e":"c"];return i?`${i.localidade} - ${i.uf}`:""};
+// tira acento e caixa pra comparar nomes (bairro, cidade)
+const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+const nomi=async q=>{const r=await comPrazo(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=br&q=${encodeURIComponent(q)}`);return await r.json()};
+const espera=()=>new Promise(r=>setTimeout(r,1100)); // o OpenStreetMap pede no máximo 1 busca por segundo
+// caixa da cidade (do CEP): a busca só aceita pontos dentro dela
+const caixas={};
+async function caixaCidade(q){
+  const i=cepInfo[q]||cepInfo[q==="c"?"e":"c"];if(!i)return null;const k=norm(i.localidade+" "+i.uf);
+  if(caixas[k]!==undefined)return caixas[k];
+  try{const d=await nomi(`${i.localidade}, ${i.uf}, Brasil`);const c=(d||[]).find(x=>x.boundingbox);
+    caixas[k]=c?{s:+c.boundingbox[0],n:+c.boundingbox[1],w:+c.boundingbox[2],e:+c.boundingbox[3],cid:i.localidade}:null}catch(e){caixas[k]=null}
+  await espera();return caixas[k];
+}
 async function geocodifica(q){
   if(locs[q])return locs[q];
   const end=val(q==="c"?"pf-cend":"pf-eend"),bai=val(q==="c"?"pf-cb":"pf-eb"),cid=cidadeDe(q);
   if(!cid||/minha localiza/i.test(end))return null;
-  const tenta=async texto=>{const r=await comPrazo(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(texto)}`);const d=await r.json();return d&&d[0]?{lat:+(+d[0].lat).toFixed(6),lng:+(+d[0].lon).toFixed(6)}:null};
-  let p=await tenta(`${end}, ${bai}, ${cid}`);
-  if(!p){await new Promise(r=>setTimeout(r,1100));p=await tenta(`${end}, ${cid}`)}
-  if(!p&&cepInfo[q]){await new Promise(r=>setTimeout(r,1100));p=await tenta(`${bai}, ${cid}`)}
+  const cx=await caixaCidade(q);
+  // escolhe o melhor resultado: dentro da cidade e, se der, no bairro certo
+  const melhor=lista=>{let top=null,pt=-1;
+    for(const x of lista||[]){const la=+x.lat,lo=+x.lon,ad=x.address||{};
+      if(cx&&(la<cx.s||la>cx.n||lo<cx.w||lo>cx.e))continue; // fora da cidade: descarta
+      const lugar=norm([ad.suburb,ad.neighbourhood,ad.city_district,ad.quarter,ad.residential].join(" "));
+      let p=1;if(bai&&lugar&&(lugar.includes(norm(bai))||norm(bai).includes(lugar)))p+=2;
+      if(/house|building|amenity|shop|place|highway/.test(x.class||""))p+=0.5;
+      if(p>pt){pt=p;top={lat:+la.toFixed(6),lng:+lo.toFixed(6),bairroOk:p>=3}}}
+    return top};
+  // "Bueno Burger - Praça T25": tenta também só a parte do endereço
+  const partes=end.split(/\s[-–]\s/).map(s=>s.trim()).filter(s=>s.length>2);
+  const tentativas=[`${end}, ${bai}, ${cid}`,...(partes.length>1?partes.slice(1).map(p=>`${p}, ${bai}, ${cid}`):[]),`${end}, ${cid}`];
+  let p=null;
+  for(const [i,t] of tentativas.entries()){if(i)await espera();let r=null;try{r=melhor(await nomi(t))}catch(e){}
+    if(r&&(!p||(r.bairroOk&&!p.bairroOk)))p=r;if(p&&p.bairroOk)break}
+  if(!p&&bai){await espera();try{p=melhor(await nomi(`${bai}, ${cid}`));if(p)p.soBairro=true}catch(e){}}
   if(p){locs[q]=p;geoAuto[q]=true}
   return p;
 }
 async function rotaKm(a,b){
+  const reta=km(a.lat,a.lng,b.lat,b.lng)/1.3; // linha reta de verdade
   try{const r=await comPrazo(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`,8000);const d=await r.json();
-    if(d.routes&&d.routes[0])return Math.max(0.5,Math.round(d.routes[0].distance/100)/10)}catch(e){}
-  return km(a.lat,a.lng,b.lat,b.lng); // sem rota: linha reta ×1.3
+    if(d.routes&&d.routes[0]){const k=Math.max(0.5,Math.round(d.routes[0].distance/100)/10);
+      // rota mais de 2,2× a linha reta quase sempre é desvio errado do mapa: usa a linha reta × 1,4
+      if(reta>0.3&&k>reta*2.2)return Math.max(0.5,Math.round(reta*1.4*10)/10);
+      return k}}catch(e){}
+  return Math.max(0.5,Math.round(reta*1.35*10)/10); // sem rota: linha reta × 1,35
 }
 async function calculaDistancia(){
   if(window.kmRota!=null)return;
   const nota=$("pf-kmnota");
-  try{const a=await geocodifica("c");if(a&&!geoAuto.c){}else await new Promise(r=>setTimeout(r,1100));
+  try{const a=await geocodifica("c");await espera();
     const b=await geocodifica("e");
     if(!a||!b){nota.hidden=false;nota.style.color="var(--muted)";nota.textContent=cidadeDe("c")?"Não achei um dos endereços no mapa. Coloque a distância em km.":"Use o CEP ou \"Minha localização\" que o app calcula a distância.";return}
     const k=await rotaKm(a,b);window.kmRota=k;$("pf-km").value=String(k).replace(".",",");sugerir();
-    nota.hidden=false;nota.style.color="";nota.textContent=`Distância calculada pelo app: ${String(k).replace(".",",")} km pelo caminho das ruas. Pode ajustar se precisar.`;
+    const mapa=`https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=driving`;
+    const aprox=a.soBairro||b.soBairro;
+    nota.hidden=false;nota.style.color=aprox?"var(--muted)":"";
+    nota.innerHTML=`${aprox?"Distância aproximada (achei só o bairro)":"Distância calculada pelo app"}: ${String(k).replace(".",",")} km. <a href="${mapa}" target="_blank" rel="noopener">Conferir no mapa</a> · se estiver diferente, corrija o número.`;
   }catch(e){nota.hidden=false;nota.style.color="var(--muted)";nota.textContent="Não deu pra calcular agora. Coloque a distância em km."}
 }
 // km digitado à mão vale mais que o calculado
