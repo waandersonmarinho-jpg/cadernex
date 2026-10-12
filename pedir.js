@@ -78,10 +78,32 @@ async function caixaCidade(q){
     caixas[k]=c?{s:+c.boundingbox[0],n:+c.boundingbox[1],w:+c.boundingbox[2],e:+c.boundingbox[3],cid:i.localidade}:null}catch(e){caixas[k]=null}
   await espera();return caixas[k];
 }
+// ponto do CEP (cada CEP de Goiânia é um trecho de rua): é a referência mais confiável
+const cepPontos={};
+async function cepPonto(q){
+  const cep=so($(q==="c"?"pf-ccep":"pf-ecep").value);if(cep.length!==8)return null;
+  if(cepPontos[cep]!==undefined)return cepPontos[cep];
+  let p=null;
+  try{const d=await (await comPrazo(`https://cep.awesomeapi.com.br/json/${cep}`)).json();
+    if(d&&d.lat&&d.lng&&Math.abs(+d.lat)>0.1)p={lat:+(+d.lat).toFixed(6),lng:+(+d.lng).toFixed(6)}}catch(e){}
+  if(!p){try{const d=await (await comPrazo(`https://brasilapi.com.br/api/cep/v2/${cep}`)).json();const c=d&&d.location&&d.location.coordinates;
+    if(c&&c.latitude&&c.longitude)p={lat:+(+c.latitude).toFixed(6),lng:+(+c.longitude).toFixed(6)}}catch(e){}}
+  cepPontos[cep]=p;return p;
+}
+const distReta=(a,b)=>km(a.lat,a.lng,b.lat,b.lng)/1.3;
 async function geocodifica(q){
   if(locs[q])return locs[q];
   const end=val(q==="c"?"pf-cend":"pf-eend"),bai=val(q==="c"?"pf-cb":"pf-eb"),cid=cidadeDe(q);
   if(!cid||/minha localiza/i.test(end))return null;
+  const pc=await cepPonto(q);
+  const p=await geoNome(q,end,bai,cid);
+  // o nome da rua achou um ponto longe do CEP (mais de 1 km)? confia no CEP
+  let r=p;
+  if(pc&&(!p||distReta(p,pc)>1||p.soBairro))r={...pc,peloCep:true};
+  if(r){locs[q]=r;geoAuto[q]=true}
+  return r;
+}
+async function geoNome(q,end,bai,cid){
   const cx=await caixaCidade(q);
   // escolhe o melhor resultado: dentro da cidade e, se der, no bairro certo
   const melhor=lista=>{let top=null,pt=-1;
@@ -99,15 +121,14 @@ async function geocodifica(q){
   for(const [i,t] of tentativas.entries()){if(i)await espera();let r=null;try{r=melhor(await nomi(t))}catch(e){}
     if(r&&(!p||(r.bairroOk&&!p.bairroOk)))p=r;if(p&&p.bairroOk)break}
   if(!p&&bai){await espera();try{p=melhor(await nomi(`${bai}, ${cid}`));if(p)p.soBairro=true}catch(e){}}
-  if(p){locs[q]=p;geoAuto[q]=true}
   return p;
 }
 async function rotaKm(a,b){
   const reta=km(a.lat,a.lng,b.lat,b.lng)/1.3; // linha reta de verdade
   try{const r=await comPrazo(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`,8000);const d=await r.json();
     if(d.routes&&d.routes[0]){const k=Math.max(0.5,Math.round(d.routes[0].distance/100)/10);
-      // rota mais de 2,2× a linha reta quase sempre é desvio errado do mapa: usa a linha reta × 1,4
-      if(reta>0.3&&k>reta*2.2)return Math.max(0.5,Math.round(reta*1.4*10)/10);
+      // rota mais de 1,9× a linha reta quase sempre é desvio errado do mapa: usa a linha reta × 1,4
+      if(reta>0.3&&k>reta*1.9)return Math.max(0.5,Math.round(reta*1.4*10)/10);
       return k}}catch(e){}
   return Math.max(0.5,Math.round(reta*1.35*10)/10); // sem rota: linha reta × 1,35
 }
@@ -119,7 +140,7 @@ async function calculaDistancia(){
     if(!a||!b){nota.hidden=false;nota.style.color="var(--muted)";nota.textContent=cidadeDe("c")?"Não achei um dos endereços no mapa. Coloque a distância em km.":"Use o CEP ou \"Minha localização\" que o app calcula a distância.";return}
     const k=await rotaKm(a,b);window.kmRota=k;$("pf-km").value=String(k).replace(".",",");sugerir();
     const mapa=`https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=driving`;
-    const aprox=a.soBairro||b.soBairro;
+    const aprox=(a.soBairro&&!a.peloCep)||(b.soBairro&&!b.peloCep);
     nota.hidden=false;nota.style.color=aprox?"var(--muted)":"";
     nota.innerHTML=`${aprox?"Distância aproximada (achei só o bairro)":"Distância calculada pelo app"}: ${String(k).replace(".",",")} km. <a href="${mapa}" target="_blank" rel="noopener">Conferir no mapa</a> · se estiver diferente, corrija o número.`;
   }catch(e){nota.hidden=false;nota.style.color="var(--muted)";nota.textContent="Não deu pra calcular agora. Coloque a distância em km."}
