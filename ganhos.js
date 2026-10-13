@@ -20,7 +20,7 @@ async function carregar(){
   if(!sb||!uid||perfil.tipo!=="entregador"){w.hidden=true;return}
   const desde=new Date(Date.now()-30*DIA).toISOString();
   const [c,p,d]=await Promise.all([
-    sb.from("corridas").select("id,valor,entregue_em").eq("entregador_id",uid).eq("status","entregue").gte("entregue_em",desde),
+    sb.from("corridas").select("*").eq("entregador_id",uid).eq("status","entregue").gte("entregue_em",desde),
     sb.from("pagamentos").select("corrida_id,status").eq("entregador_id",uid).eq("status","pago"),
     sb.from("dados_pessoais").select("cpf,saque_pix").eq("user_id",uid).maybeSingle()
   ]);
@@ -28,7 +28,7 @@ async function carregar(){
   w.hidden=false;
   const pagas=new Set((p.error?[]:p.data||[]).map(x=>x.corrida_id));
   const lista=c.data||[],agora=Date.now(),hoje=new Date();hoje.setHours(0,0,0,0);
-  const soma=f=>{const l=lista.filter(f);return{v:l.reduce((s,x)=>s+n(x.valor),0),q:l.length}};
+  const soma=f=>{const l=lista.filter(f);return{v:l.reduce((s,x)=>s+n(x.valor)+(x.retorno_em?n(x.retorno_valor):0),0),q:l.length}};
   const h=soma(x=>new Date(x.entregue_em)>=hoje),sem=soma(x=>agora-new Date(x.entregue_em)<7*DIA),mes=soma(()=>true);
   vals={h,sem,mes};pinta();
   pix=d.error?null:d.data;pixRender(!!d.error);

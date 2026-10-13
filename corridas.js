@@ -24,8 +24,30 @@ const veiCod=nome=>Object.keys(VEIC).find(k=>VEIC[k].n===nome)||"bike";
 const precoFrete=(v,k,aj,an)=>{const x=VEIC[v]||VEIC.picape_p; // "qualquer com carroceria" usa a tabela da picape pequena
  return Math.ceil((x.base+x.km*(k||0)+(aj||0)*AJUDANTE+(an||0)*ANDAR)*2)/2};
 const quandoTxt=iso=>{const d=new Date(iso),h=new Date(),am=new Date(h);am.setDate(h.getDate()+1);const dia=d.toDateString()===h.toDateString()?"hoje":d.toDateString()===am.toDateString()?"amanhã":d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"});return dia+" às "+hm(d)};
-let maisAbertos=new Set(),relatos=[],relForm=null,abertas=[],minhas=[],disp=[],dets={},cmsgs={},corrOk=true,corrCanal=null,corrAberta=null,medias={},corrT=null;
+let cods={},maisAbertos=new Set(),relatos=[],relForm=null,abertas=[],minhas=[],disp=[],dets={},cmsgs={},corrOk=true,corrCanal=null,corrAberta=null,medias={},corrT=null;
 const ST={aberta:"Procurando entregador",aceita:"Entregador a caminho da coleta",coletada:"A caminho da entrega",entregue:"Entregue",cancelada:"Cancelada"};
+// cliente ausente na entrega: espera 10 min, depois pode voltar com a encomenda (volta sem custo extra)
+const ESPERA_MIN=10;
+const stTxt=c=>c.devolvida_em?"Devolvida na coleta":c.status==="coletada"&&c.retorno_em?"Voltando para a coleta":c.status==="coletada"&&c.ausente_em?"Ninguém atendeu na entrega":ST[c.status];
+const totalCorr=c=>Number(c.valor)+(c.retorno_em?Number(c.retorno_valor||0):0);
+function ausenteBox(c,papel){
+  if(c.status!=="coletada"&&!c.devolvida_em)return"";
+  if(c.devolvida_em)return`<div class="mp-box aus"><b>↩️ Devolvida no local de coleta às ${hmOf(c.devolvida_em)}</b><p class="hint" style="margin:0">Ninguém recebeu em ${ESPERA_MIN} minutos. A volta não tem custo extra: ${papel==="cli"?"você paga":"quem pediu paga"} só a corrida, ${brl(totalCorr(c))}.</p></div>`;
+  if(c.retorno_em)return`<div class="mp-box aus"><b>↩️ Voltando com a encomenda para a coleta</b><p class="hint" style="margin:0">${papel==="cli"?`Ninguém recebeu em ${ESPERA_MIN} minutos. O entregador está levando a encomenda de volta, sem custo extra.`:`Leve a encomenda de volta para o local de coleta e toque em "Devolvi". A corrida continua valendo ${brl(totalCorr(c))}.`}</p></div>`;
+  if(!c.ausente_em)return"";
+  const min=Math.floor((Date.now()-new Date(c.ausente_em))/60000),falta=Math.max(0,ESPERA_MIN-min);
+  return papel==="cli"
+    ?`<div class="mp-box aus"><b>⚠️ O entregador chegou e ninguém atendeu</b><p class="hint" style="margin:0">Ele está no local há ${min} min. <b>Ligue para quem vai receber</b> ou combine pelo chat. ${falta?`Daqui a ${falta} min`:"Agora"} ele pode voltar e devolver a encomenda no local de coleta.</p></div>`
+    :`<div class="mp-box aus"><b>⏱ Esperando no local: ${Math.min(min,ESPERA_MIN)} de ${ESPERA_MIN} min</b><p class="hint" style="margin:0">Quem pediu já foi avisado. Tente ligar para o contato da entrega. ${falta?`Se ninguém aparecer, você pode voltar a partir das ${hm(new Date(new Date(c.ausente_em).getTime()+ESPERA_MIN*6e4))}.`:`Já deu ${ESPERA_MIN} minutos: você pode voltar com a encomenda.`}</p></div>`;
+}
+
+// código de coleta e de entrega
+const zap=t=>{let d=String(t||"").replace(/\D/g,"");if(d.length===10||d.length===11)d="55"+d;return d.length>=12?d:""};
+function codBox(c){const k=cods[c.id];if(!k||!["aberta","aceita","coletada"].includes(c.status))return"";
+  const d=dets[c.id],z=zap(d&&d.contato),txt=`Olá! Sua entrega está a caminho pelo Cadernex. Quando o entregador chegar, informe a ele o código de entrega: ${k.entrega}. Passe o código só depois de receber a encomenda.`;
+  return`<div class="mp-box cod"><b>🔐 Códigos desta entrega</b><div class="cod-g"><div><span class="eyebrow">Coleta</span><b class="cod-n">${k.coleta}</b><small>Fale para o entregador só quando entregar a encomenda a ele${c.retorno_em?" (e quando ele devolver)":""}</small></div><div><span class="eyebrow">Entrega</span><b class="cod-n">${k.entrega}</b><small>Quem recebe fala para o entregador na entrega</small></div></div><a class="btn ghost full" href="https://wa.me/${z}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Mandar código de entrega no WhatsApp${z?"":" (escolher contato)"}</a><p class="hint" style="margin:0">Sem o código certo, o entregador não consegue marcar a coleta nem a entrega.</p></div>`}
+const codForm=(c,acao,rot,dica)=>`<form class="cod-form" data-codform="${acao}" data-id="${c.id}"><label>${acao==="entregue"?"Código de entrega":"Código de coleta"}<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" autocomplete="one-time-code" aria-describedby="cd-${acao}-${c.id}"></label><button class="btn full" type="submit">${rot}</button><p class="hint" id="cd-${acao}-${c.id}" style="margin:0">${dica}</p></form>`;
+
 const ANOT_KEY="cadernex_corridas_anotadas";
 let anotadas=(()=>{try{return JSON.parse(localStorage.getItem(ANOT_KEY))||[]}catch(e){return[]}})();
 const fresco=d=>Date.now()-new Date(d.atualizado_em)<4*3600e3;
@@ -51,6 +73,9 @@ async function corrLoad(){
   const ri=await sb.from("infracoes").select("id,corrida_id,motivo,alvo_id,autor_id,arquivada");relatos=ri.error?[]:ri.data;
   const ids=minhas.filter(c=>["aceita","coletada","entregue"].includes(c.status)||c.cliente_id===uid).map(c=>c.id);
   if(ids.length){const r=await sb.from("corridas_det").select("*").in("corrida_id",ids);if(!r.error)r.data.forEach(x=>dets[x.corrida_id]=x)}
+  // códigos de coleta e entrega: só quem pediu enxerga
+  const meusIds=minhas.filter(c=>c.cliente_id===uid&&["aberta","aceita","coletada"].includes(c.status)).map(c=>c.id);
+  if(meusIds.length){const r=await sb.from("corrida_codigos").select("corrida_id,coleta,entrega").in("corrida_id",meusIds);if(!r.error)r.data.forEach(x=>cods[x.corrida_id]=x)}
   for(const c of minhas)if(c.entregador_id&&c.cliente_id===uid&&!medias[c.entregador_id]){const r=await sb.rpc("media_entregador",{uid:c.entregador_id});if(!r.error)medias[c.entregador_id]=r.data}
   corrRender();corrSub();
 }
@@ -73,7 +98,7 @@ async function abrirChat(id){if(cmsgs[id])return;const r=await sb.from("corrida_
 /* ---------- cartão de corrida ---------- */
 function cartao(c,papel){ // papel: "ent" | "cli"
   const d=dets[c.id],ativo=["aceita","coletada"].includes(c.status),aberto=corrAberta===c.id||(ativo&&corrAberta==null);
-  const pill=`<span class="pill st-${c.status}">${c.tipo==="frete"?ST[c.status].replace("Entregador","Freteiro").replace("entregador","freteiro"):ST[c.status]}</span>`;
+  const pill=`<span class="pill st-${c.devolvida_em?"devolvida":c.status}">${c.tipo==="frete"?stTxt(c).replace("Entregador","Freteiro").replace("entregador","freteiro"):stTxt(c)}</span>`;
   let h=`<div class="corr${aberto?" open":""}" data-corr="${c.id}"><div class="corr-h" data-toggle="${c.id}"><div class="l"><div class="t">${esc(c.coleta_bairro)} → ${esc(c.entrega_bairro)}</div><div class="s">${esc(c.item)}${c.distancia_km?` · ~${String(c.distancia_km).replace(".",",")} km`:""} · ${ha(c.created_at)}</div></div><div class="corr-v num">${brl(Number(c.valor))}</div></div>`;
   const fr=c.tipo==="frete",jj=c.distancia_km?(fr?precoFrete(c.veiculo,Number(c.distancia_km),c.ajudantes,c.andares):justo(Number(c.distancia_km))):null,selo=jj==null?"":Number(c.valor)>=jj?`<span class="pill justo">Valor justo</span>`:`<span class="pill abaixo">Abaixo do justo (${brl(jj)})</span>`;
   h+=`<div class="corr-meta">${fr?`<span class="pill frete">Frete</span>`:""}${pill}${selo}${c.veiculo!=="qualquer"?`<span class="pill">${icVei(c.veiculo)}${veiNome(c.veiculo)}</span>`:""}${c.agendado_para?`<span class="pill agenda">${IC.cal}${quandoTxt(c.agendado_para)}</span>`:""}${fr&&c.ajudantes?`<span class="pill">${c.ajudantes} ajudante${c.ajudantes>1?"s":""}</span>`:""}${fr&&c.andares?`<span class="pill">${c.andares} andar${c.andares>1?"es":""} de escada</span>`:""}</div>`;
@@ -87,6 +112,8 @@ function cartao(c,papel){ // papel: "ent" | "cli"
     if(d.contato)h+=`<p class="corr-pessoa">Contato: <a href="tel:${esc(d.contato.replace(/[^\d+]/g,""))}">${esc(d.contato)}</a></p>`;
     if(d.obs)h+=`<p class="hint" style="margin:0">Obs.: ${esc(d.obs)}</p>`;}
   else if(papel==="ent"&&c.status==="aberta")h+=`<p class="hint" style="margin:0">O endereço completo aparece depois que você aceitar.</p>`;
+  if(papel==="cli")h+=codBox(c);
+  h+=ausenteBox(c,papel);
   if(ativo&&c.entregador_id)h+=`<div class="gps" data-gps="${c.id}" data-papel="${papel}"></div>`;
   // antes de alguém aceitar: o cliente já sabe como vai pagar
   if(papel==="cli"&&c.status==="aberta"){const min=Math.floor((Date.now()-new Date(c.created_at))/60000);
@@ -97,9 +124,14 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   let ac="",mais="";
   if(papel==="ent"){
     if(c.status==="aberta")ac=`<button class="btn full" data-aceitar="${c.id}">Aceitar por ${brl(Number(c.valor))}</button>`;
-    if(c.status==="aceita"){ac=`<button class="btn full" data-acao="coletada" data-id="${c.id}">Peguei a encomenda</button>`;mais+=`<button class="link" data-acao="devolver" data-id="${c.id}">Não vou conseguir (devolver)</button>`}
-    if(c.status==="coletada")ac=`<button class="btn full" data-acao="entregue" data-id="${c.id}">Entreguei</button>`;
-    if(c.status==="entregue"&&!anotadas.includes(c.id))ac=`<button class="btn ghost full" data-anotar="${c.id}">Anotar ${brl(Number(c.valor))} no meu Cadernex</button>`;
+    if(c.status==="aceita"){ac=codForm(c,"coletada","Peguei a encomenda","Peça o código de coleta para quem te entregou a encomenda.");mais+=`<button class="link" data-acao="devolver" data-id="${c.id}">Não vou conseguir (devolver)</button>`}
+    if(c.status==="coletada"){
+      if(c.retorno_em)ac=codForm(c,"devolvida","Devolvi no local de coleta","Peça o código de coleta para quem recebeu a encomenda de volta.");
+      else{ac=codForm(c,"entregue","Entreguei","Peça o código de entrega para quem recebeu. Sem ele, a entrega não é confirmada.");
+        if(!c.ausente_em)ac+=`<button class="btn ghost full" data-acao="ausente" data-id="${c.id}">Cheguei e ninguém atendeu</button>`;
+        else if(Date.now()-new Date(c.ausente_em)>=ESPERA_MIN*6e4)ac+=`<button class="btn ghost full" data-acao="retornar" data-id="${c.id}">Voltar com a encomenda para a coleta</button>`;}
+    }
+    if(c.status==="entregue"&&!anotadas.includes(c.id))ac=`<button class="btn ghost full" data-anotar="${c.id}">Anotar ${brl(totalCorr(c))} no meu Cadernex</button>`;
   }else{
     if(c.status==="aberta")ac=`<button class="link" data-acao="cancelar" data-id="${c.id}" style="color:var(--bad)">Cancelar pedido</button>`;
     if(c.status==="aceita")mais+=`<button class="link" data-acao="cancelar" data-id="${c.id}" style="color:var(--bad)">Cancelar pedido</button>`;
@@ -127,6 +159,12 @@ function preencheTextos(){Object.values(cmsgs).flat().forEach(m=>{document.query
 /* ---------- telas ---------- */
 function corrRender(){
   if(!$("v-corridas"))return;
+  const dig={};document.querySelectorAll("[data-codform] input").forEach(i=>{if(i.value)dig[i.closest("[data-codform]").dataset.id+i.closest("[data-codform]").dataset.codform]=i.value});
+  const foco=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("[data-codform]");const fk=foco?foco.dataset.id+foco.dataset.codform:null;
+  corrRender0();
+  document.querySelectorAll("[data-codform]").forEach(f=>{const k=f.dataset.id+f.dataset.codform,i=f.querySelector("input");if(dig[k])i.value=dig[k];if(k===fk)i.focus()});
+}
+function corrRender0(){
   document.querySelectorAll(".co-erro").forEach(e=>e.hidden=corrOk);
   // BLOQUEIO
   const contra=relatos.filter(r=>r.alvo_id===uid&&!r.arquivada);
@@ -149,7 +187,7 @@ function corrRender(){
   $("co-feitas-w").hidden=!feitas.length;$("co-feitas").innerHTML=feitas.map(c=>cartao(c,"ent")).join("");
   // CLIENTE
   const on=disp.filter(d=>fresco(d)&&(pfTipo==="frete"?FRETE_VEIC.includes(d.veiculo):!FRETE_VEIC.includes(d.veiculo))),porV=Object.keys(VEIC).map(k=>[k,on.filter(d=>d.veiculo===k).length]).filter(x=>x[1]);
-  const qm=pfTipo==="frete"?"freteiro":"entregador";$("pd-disp").innerHTML=on.length?`<b>${on.length} ${qm}${on.length>1?(qm==="freteiro"?"s":"es"):""} disponível${on.length>1?"is":""} agora</b><span>${porV.map(([k,n])=>n+" "+veiNome(k).toLowerCase()).join(" · ")}</span>${[...new Set(on.map(d=>d.regiao).filter(Boolean))].slice(0,6).map(r=>`<span class="pill">${esc(r)}</span>`).join("")}`:`<b>Nenhum ${pfTipo==="frete"?"freteiro":"entregador"} disponível agora</b><span>Você pode pedir mesmo assim. O pedido fica aberto até alguém aceitar.</span>`;
+  const qm=pfTipo==="frete"?"freteiro":"entregador";$("pd-disp").innerHTML=on.length?`<b>${on.length} ${qm}${on.length>1?(qm==="freteiro"?"s":"es"):""} ${on.length>1?"disponíveis":"disponível"} agora</b><span>${porV.map(([k,n])=>n+" "+veiNome(k).toLowerCase()).join(" · ")}</span>${[...new Set(on.map(d=>d.regiao).filter(Boolean))].slice(0,6).map(r=>`<span class="pill">${esc(r)}</span>`).join("")}`:`<b>Nenhum ${pfTipo==="frete"?"freteiro":"entregador"} disponível agora</b><span>Você pode pedir mesmo assim. O pedido fica aberto até alguém aceitar.</span>`;
   const meus=minhas.filter(c=>c.cliente_id===uid);
   $("pd-lista").innerHTML=meus.length?meus.map(c=>cartao(c,"cli")).join(""):`<p class="empty">Você ainda não fez pedidos. Toque em <b>Pedir</b> pra fazer o primeiro.</p>`;
   const ativos=meus.filter(c=>["aberta","aceita","coletada"].includes(c.status)).length;
@@ -165,7 +203,13 @@ function onCorrClick(e){
   const a=e.target.closest("[data-aceitar]");if(a){a.disabled=true;aceitarCorrida(a.dataset.aceitar).finally(()=>a.disabled=false);return}
   const x=e.target.closest("[data-acao]");if(x){const acao=x.dataset.acao;
     if(["cancelar","devolver"].includes(acao)&&x.dataset.ok!=="1"){x.dataset.ok="1";x.textContent=acao==="cancelar"?"Toque de novo pra cancelar":"Toque de novo pra devolver";return}
-    safe(async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});if(error)throw error;await corrLoad()},{coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolver:"Corrida devolvida",cancelar:"Pedido cancelado"}[acao]);return}
+    if(["ausente","retornar"].includes(acao)){
+      if(x.dataset.ok!=="1"){x.dataset.ok="1";x.textContent={ausente:"Toque de novo: avisar que ninguém atendeu",retornar:"Toque de novo: voltar com a encomenda"}[acao];return}
+      x.disabled=true;
+      (async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});
+        if(error){x.disabled=false;toast(/P0001|Espere|Primeiro|Você já/.test(error.message||"")?error.message.replace(/^.*?: /,""):"Não salvou. Confira a internet e tente de novo.");return}
+        toast({ausente:"Quem pediu foi avisado. Espere até 10 minutos.",retornar:"Pode voltar. Quem pediu foi avisado.",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);await corrLoad()})();return}
+    safe(async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});if(error)throw error;await corrLoad()},{coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolver:"Corrida devolvida",cancelar:"Pedido cancelado",ausente:"Quem pediu foi avisado. Espere até 10 minutos.",retornar:"Pode voltar. Quem pediu foi avisado.",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);return}
   const n=e.target.closest("[data-nota]");if(n){safe(async()=>{const{error}=await sb.rpc("avaliar_corrida",{cid:n.dataset.id,n:+n.dataset.nota});if(error)throw error;await corrLoad()},"Obrigado pela avaliação!");return}
   const rf=e.target.closest("[data-relform]");if(rf){relForm=rf.dataset.relform;corrRender();return}
   if(e.target.closest("[data-relcancel]")){relForm=null;corrRender();return}
@@ -173,12 +217,13 @@ function onCorrClick(e){
   const ch=e.target.closest("[data-chat]");if(ch){abrirChat(ch.dataset.chat);return}
   const an=e.target.closest("[data-anotar]");if(an){const c=minhas.find(z=>z.id===an.dataset.anotar);if(!c)return;
     const ini=new Date(c.aceita_em||c.created_at),fim=new Date(c.entregue_em||Date.now());
-    const o={data:ymd(fim),inicio:hm(ini),fim:hm(fim),minutos:Math.max(1,Math.round((fim-ini)/60000)),app:"Cadernex",ganho:Number(c.valor),gorjeta:0,km:Number(c.distancia_km)||0,entregas:1};
+    const o={data:ymd(fim),inicio:hm(ini),fim:hm(fim),minutos:Math.max(1,Math.round((fim-ini)/60000)),app:"Cadernex",ganho:totalCorr(c),gorjeta:0,km:Number(c.distancia_km)||0,entregas:1};
     safe(async()=>{const{data,error}=await sb.from("turnos").insert(o).select().single();if(error)throw error;turnos.unshift({...data,ganho:N(data.ganho),gorjeta:0,km:N(data.km)});anotadas.push(c.id);try{localStorage.setItem(ANOT_KEY,JSON.stringify(anotadas))}catch(e){}render();corrRender()},"Ganho anotado no Resumo");return}
 }
 function onCorrSubmit(e){
   const rs=e.target.closest("[data-relsend]");if(rs){e.preventDefault();const mot=rs.querySelector('[aria-pressed="true"]')?.dataset.mot;const det=rs.querySelector("input").value.trim()||null;
     safe(async()=>{const{error}=await sb.from("infracoes").insert({corrida_id:rs.dataset.relsend,alvo_id:uid,motivo:mot,detalhe:det});if(error)throw error;relForm=null;await corrLoad()},"Relato enviado");return}
+  const cf=e.target.closest("[data-codform]");if(cf){e.preventDefault();codEnviar(cf);return}
   const f=e.target.closest("[data-ccform]");if(!f)return;e.preventDefault();const inp=f.querySelector("input"),txt=inp.value.trim();if(!txt)return;const id=f.dataset.ccform;
   safe(async()=>{const{data,error}=await sb.from("corrida_msgs").insert({corrida_id:id,texto:txt}).select().single();if(error)throw error;inp.value="";(cmsgs[id]=cmsgs[id]||[]).push(data);corrRender()})}
 ["co-andam","co-abertas","co-feitas","pd-lista"].forEach(id=>{$(id).addEventListener("click",onCorrClick);$(id).addEventListener("submit",onCorrSubmit)});
@@ -298,3 +343,16 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-mais]");if
   if(!(novo>0))return;
   if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent=`Confirmar ${brl(novo)}`;return}
   b.disabled=true;safe(async()=>{const{error}=await sb.rpc("aumentar_valor",{cid:b.dataset.mais,novo});if(error)throw error;await corrLoad()},`Valor aumentado para ${brl(novo)}. Os entregadores foram avisados.`).finally(()=>{b.disabled=false})});
+// atualiza o tempo de espera na tela enquanto alguém está esperando o cliente
+setInterval(()=>{if(!document.hidden&&typeof minhas!=="undefined"&&minhas.some(c=>c.status==="coletada"&&c.ausente_em&&!c.retorno_em))corrRender()},30000);
+async function codEnviar(f){
+  const acao=f.dataset.codform,cid=f.dataset.id,inp=f.querySelector("input"),b=f.querySelector("button"),codigo=inp.value.replace(/\D/g,"");
+  if(codigo.length!==4){toast("Digite o código de 4 números");inp.focus();return}
+  b.disabled=true;
+  let{data,error}=await sb.rpc("mudar_corrida",{cid,acao,codigo});
+  if(error&&(error.code==="PGRST202"||/codigo/.test(error.message||"")))({data,error}=await sb.rpc("mudar_corrida",{cid,acao})); // banco ainda sem códigos
+  b.disabled=false;
+  if(error){toast(/Muitos|Espere|Você já|não é possível/.test(error.message||"")?error.message:"Não salvou. Confira a internet e tente de novo.");return}
+  if(!data||!data.id){inp.value="";inp.focus();toast("Código errado. Confira o código com a pessoa. Depois de 5 erros, trava por 10 minutos.");return}
+  toast({coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);await corrLoad();
+}

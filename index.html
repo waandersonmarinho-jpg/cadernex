@@ -303,6 +303,8 @@ body.cli #timerCard,body.cli #hojeCard{display:none}
 #pf-tipo button{font-size:13px}
 .mpbox:empty{display:none}
 .mp-box{display:flex;flex-direction:column;gap:10px;background:var(--bg);border-radius:10px;padding:12px;box-shadow:inset 0 0 0 1px var(--accent)}
+.cod-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cod-g>div{display:flex;flex-direction:column;gap:2px;background:var(--card,transparent);border-radius:8px;padding:10px;box-shadow:inset 0 0 0 1px var(--line,rgba(127,127,127,.25))}.cod-n{font-size:30px;letter-spacing:6px;font-variant-numeric:tabular-nums;line-height:1.1}.cod-g small{font-size:12px;opacity:.75;line-height:1.3}
+.cod-form{display:flex;flex-direction:column;gap:8px;width:100%}.cod-form input{font-size:24px;letter-spacing:8px;text-align:center;font-variant-numeric:tabular-nums}
 .mp-linhas{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}.mp-linhas span{color:var(--muted)}.mp-linhas b{font-size:16px}.mp-linhas b.num{color:var(--money)}
 .mp-pago{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good);font-weight:600;border-radius:10px;padding:10px 12px}
 .pixbox{display:flex;flex-direction:column;gap:6px}
@@ -1387,11 +1389,12 @@ label.check{min-height:40px;align-items:center}
           <label>Facebook<input type="text" id="lj-face" maxlength="120" autocapitalize="none" autocomplete="off" spellcheck="false"></label>
           <label>Site ou cardápio online<input type="text" inputmode="url" id="lj-site" maxlength="120" autocapitalize="none" autocomplete="url" spellcheck="false"></label>
           <div class="lj-doc" id="lj-doc" hidden></div>
+          <p class="hint" style="margin:0">Quer formalizar a parceria? <a href="contrato-lojista.pdf" target="_blank" rel="noopener">Baixe o contrato para lojistas (PDF)</a>: sem mensalidade, sem fidelidade, você só paga quando tem entrega.</p>
           <button class="btn full" type="submit">Salvar informações da loja</button>
         </form></div>
       <p class="hint rel-cont" style="margin:0"></p>
       <div class="card stack rg"><h2>Regras e privacidade</h2><p class="hint" style="margin:0">Como funciona, preço, cancelamento, o que não pode enviar e seus dados.</p>
-        <div class="rg-links"><a class="link" href="regras.html">Regras completas</a><a class="link" href="privacidade.html">Política de privacidade</a></div>
+        <div class="rg-links"><a class="link" href="regras.html">Regras completas</a><a class="link" href="privacidade.html">Política de privacidade</a><a class="link" href="contrato-lojista.pdf" target="_blank" rel="noopener">Contrato para lojistas (PDF)</a></div>
         <p class="hint" style="margin:0">Suporte: suporte@cadernex.com.br</p></div>
       <button class="btn ghost full" type="button" data-go="config">Configurações, tema e sair</button>
     </div>

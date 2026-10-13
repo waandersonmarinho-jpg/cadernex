@@ -131,6 +131,16 @@ Deno.serve(async (req) => {
         corpo: `${c.coleta_bairro} → ${c.entrega_bairro}${km}`,
         url: "./", tag: "corrida-" + c.id,
       };
+    } else if (op === "AUSENTE" && c?.status === "coletada") {
+      // entregador chegou e ninguém atendeu: quem pediu precisa falar com quem vai receber
+      alvo = [c.cliente_id];
+      msg = { titulo: "Ninguém atendeu na entrega", corpo: `O entregador chegou em ${c.entrega_bairro} e espera até 10 minutos. Ligue para quem vai receber.`, url: "./", tag: "pedido-" + c.id };
+    } else if (op === "RETORNO" && c?.status === "coletada") {
+      alvo = [c.cliente_id];
+      msg = { titulo: "Encomenda voltando para a coleta", corpo: `Ninguém recebeu em 10 minutos. O entregador está levando de volta para o local de coleta, sem custo extra.`, url: "./", tag: "pedido-" + c.id };
+    } else if (op === "UPDATE" && c?.status === "entregue" && c?.devolvida_em) {
+      alvo = [c.cliente_id];
+      msg = { titulo: "Encomenda devolvida", corpo: `O entregador devolveu a encomenda no local de coleta. Você paga só a corrida: ${brl(Number(c.valor))}.`, url: "./", tag: "pedido-" + c.id };
     } else if (op === "UPDATE" && ST[c?.status]) {
       alvo = [c.cliente_id];
       msg = { titulo: "Seu pedido no Cadernex", corpo: ST[c.status], url: "./", tag: "pedido-" + c.id };
