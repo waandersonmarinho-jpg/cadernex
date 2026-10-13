@@ -341,7 +341,7 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .rel-form .row{align-items:center}
 .end-g{display:flex;flex-direction:column;gap:8px}
 .loc{align-self:flex-start;padding:0;font-size:14px}
-.cad-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}.cad-h h2{margin:0}.cad-ht{display:flex;flex-direction:column;gap:2px;min-width:0}#cad-res{font-size:14px;color:var(--muted)}.cad-seta{flex:none;color:var(--muted);transition:transform .2s}.cad-h[aria-expanded="true"] .cad-seta{transform:rotate(180deg)}.cad-h:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
+.cad-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}.cad-h h2{margin:0}.cad-ht{display:flex;flex-direction:column;gap:2px;min-width:0}#cad-res,#on-res{font-size:14px;color:var(--muted)}.cad-seta{flex:none;color:var(--muted);transition:transform .2s}.cad-h[aria-expanded="true"] .cad-seta{transform:rotate(180deg)}.cad-h:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:8px}
 .cad-tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .cad-tot div{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .cad-tot b{font-size:26px;line-height:1}.cad-tot span{font-size:13px;color:var(--muted)}
@@ -1083,6 +1083,8 @@ label.check{min-height:40px;align-items:center}
       <button class="card maisbtn" type="button" data-go="hist"><b>Histórico e ajustes</b><span>Tudo que você anotou, meta da semana e planilha</span></button>
       <button class="card maisbtn" type="button" data-go="aprender"><b>Dinheiro do Corre</b><span>Reserva, MEI, investimentos e cripto</span></button>
       <a class="card maisbtn so-ent" href="autonomo.html" style="text-decoration:none"><b>Você é autônomo</b><span>Seus direitos, liberdade de horário, INSS e MEI</span></a>
+      <div class="card stack" id="on-card" hidden><button type="button" class="cad-h" id="on-abre" aria-expanded="false" aria-controls="on-corpo"><span class="cad-ht"><h2>Online agora</h2><span id="on-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="stack" id="on-corpo" hidden><div class="stack" id="on-lista" style="gap:8px"></div><button class="link" type="button" id="on-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card stack" id="cad-card" hidden><button type="button" class="cad-h" id="cad-abre" aria-expanded="false" aria-controls="cad-corpo"><span class="cad-ht"><h2>Cadastros</h2><span id="cad-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="cad-corpo" hidden><div class="cad-tot" id="cad-tot"></div>
         <div class="chips" id="cad-chips"><button type="button" class="chip" data-cf="todos" aria-pressed="true">Todos</button><button type="button" class="chip" data-cf="moto" aria-pressed="false">Motoboys</button><button type="button" class="chip" data-cf="envio" aria-pressed="false">Lojas e envio</button></div>
@@ -1447,6 +1449,7 @@ label.check{min-height:40px;align-items:center}
 <script src="cadastros.js"></script>
 <script src="saude.js"></script>
 <script src="lojainfo.js"></script>
+<script src="online.js"></script>
 <script src="ajustes.js"></script>
 <script src="instalar.js"></script>
 <script src="alerta.js"></script>
