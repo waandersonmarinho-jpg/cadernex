@@ -45,7 +45,7 @@ async function carregar(){
   if(!sb||!uid||!perfil.admin){card.hidden=true;return}
   card.hidden=false;
   const r=await sb.rpc("cadastros_admin");
-  if(r.error){el("cad-lista").innerHTML=`<p class="hint">Rode o cadastros.sql no Supabase.</p>`;return}
+  if(r.error){el("cad-lista").innerHTML=`<p class="hint">Não deu pra carregar a lista agora.</p>`;return}
   lista=r.data||[];pinta();
 }
 function planilha(){

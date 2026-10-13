@@ -315,7 +315,7 @@ document.querySelectorAll(".bloq form").forEach(f=>f.onsubmit=e=>{e.preventDefau
 
 // moderador: contas bloqueadas para análise
 async function admLoad(){if(!perfil.admin){$("adm-card").hidden=true;return}$("adm-card").hidden=false;
-  const r=await sb.rpc("contas_bloqueadas");if(r.error){$("adm-lista").innerHTML=`<p class="hint">Rode o corridas.sql no Supabase.</p>`;return}
+  const r=await sb.rpc("contas_bloqueadas");if(r.error){$("adm-lista").innerHTML=`<p class="hint">Não deu pra carregar a lista agora.</p>`;return}
   $("adm-lista").innerHTML=r.data.length?r.data.map(p=>`<div class="adm-it"><div class="t"></div><div class="s"></div><div class="s mot"></div><div class="def"></div><button class="btn ghost" data-desb="${p.user_id}">Desbloquear e zerar relatos</button></div>`).join(""):`<p class="empty">Nenhuma conta bloqueada.</p>`;
   const its=$("adm-lista").querySelectorAll(".adm-it");r.data.forEach((p,i)=>{its[i].querySelector(".t").textContent=(p.nome||"(sem nome)")+" · "+(p.tipo==="cliente"?"Cliente":"Entregador");its[i].querySelector(".s").textContent=p.email;
     its[i].querySelector(".mot").textContent="Relatos: "+(p.motivos||[]).map(m=>{const[k,...d]=m.split(": ");return(MOT[k]||k)+(d.length?" ("+d.join(": ")+")":"")}).join(" · ");its[i].querySelector(".def").textContent=p.defesa?"Defesa: "+p.defesa:"Ainda sem defesa."})}

@@ -34,7 +34,7 @@ document.addEventListener("change",async e=>{
   try{const blob=await comprimir(file);
     const{error}=await sb.storage.from(BK).upload(`${uid}/foto.jpg`,blob,{upsert:true,contentType:"image/jpeg"});if(error)throw error;
     minha=URL.createObjectURL(blob);cache[uid]={url:minha,ate:Date.now()+3e6};cardRender();toast("Foto salva ✓")}
-  catch(err){toast(/bucket|not found|policy|row-level/i.test(String(err&&err.message))?"Falta atualizar o banco (foto.sql).":"Não deu pra enviar a foto. Confira a internet.")}
+  catch(err){toast(/bucket|not found|policy|row-level/i.test(String(err&&err.message))?"Não deu pra enviar a foto agora. Tente de novo mais tarde.":"Não deu pra enviar a foto. Confira a internet.")}
 });
 /* fotos nos cartões das corridas */
 async function urlDe(id){

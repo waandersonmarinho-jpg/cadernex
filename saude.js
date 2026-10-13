@@ -32,7 +32,7 @@ async function carregar(){
   card.hidden=false;
   const pr=await sb.rpc("parados_admin");parados=pr.error?[]:(pr.data||[]);
   const r=await sb.rpc("erros_admin");
-  if(r.error){el("sd-res").textContent="Rode o monitor.sql no Supabase";abre();return}
+  if(r.error){el("sd-res").textContent="Não deu pra carregar agora";abre();return}
   lista=r.data||[];pinta();
 }
 async function backup(b){

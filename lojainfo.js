@@ -39,7 +39,7 @@ el("lj-corpo").addEventListener("submit",e=>{e.preventDefault();
   if(el("lj-site").value.trim()&&!st){toast("Site inválido: confira o endereço");el("lj-site").focus();return}
   const patch={loja:!!nome,loja_nome:nome||null,loja_ramo:el("lj-ramo").value||null,loja_bairro:el("lj-bairro").value.trim()||null,
     loja_whats:w||null,loja_horario:el("lj-hora").value.trim()||null};
-  // redes só entram se o banco já tem os campos (social.sql) ou se a pessoa preencheu
+  // redes só entram se já existem ou se a pessoa preencheu
   [["loja_insta",ig],["loja_face",fb],["loja_site",st]].forEach(([k,v])=>{if(k in perfil||v)patch[k]=v||null});
   safe(async()=>{await savePerfil(patch);document.activeElement?.blur?.();preencher()},nome?"Informações da loja salvas":"Pronto: você envia como pessoa");
 });

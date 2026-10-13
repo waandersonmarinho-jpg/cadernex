@@ -24,8 +24,8 @@ async function ativar(silencioso){
     const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
     if(!sub){
       etapa="chave";let d=null;
-      for(let i=0;i<2&&!(d&&d.pub);i++){try{const r=await fetch(FN+"?chave=1",{cache:"no-store"});d=await r.json()}catch(x){if(i)throw x;await new Promise(o=>setTimeout(o,1200))}}
-      if(!d||!d.pub)throw new Error("servidor sem chave");
+      for(let i=0;i<2&&!(d&&d.pub);i++){try{const r=await fetch(FN+"?chave=1",{cache:"no-store"});const t=await r.text();try{d=JSON.parse(t)}catch(y){d={status:r.status,resposta:t.slice(0,120)}}}catch(x){if(i)throw x;await new Promise(o=>setTimeout(o,1200))}}
+      if(!d||!d.pub)throw new Error("servidor sem chave: "+JSON.stringify(d).slice(0,160));
       etapa="inscrever";
       try{sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(d.pub)})}
       catch(x){ // registro antigo travado neste celular: limpa e tenta de novo

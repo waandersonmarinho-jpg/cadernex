@@ -25,7 +25,7 @@ async function carregar(){
   if(!sb||!uid||!perfil.admin){card.hidden=true;return}
   card.hidden=false;
   const r=await sb.rpc("online_admin");
-  if(r.error){el("on-res").textContent="Rode o online.sql no Supabase";abre();return}
+  if(r.error){el("on-res").textContent="Não deu pra carregar agora";abre();return}
   lista=r.data||[];pinta();
 }
 document.addEventListener("click",e=>{

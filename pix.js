@@ -15,7 +15,7 @@ function cfgRender(){
   card.hidden=perfil.tipo==="cliente";if(card.hidden)return;
   const st=$("cf-pix-st"),bt=$("cf-pix-btn");
   if(!meu){st.innerHTML="Pra receber por Pix, complete primeiro seu cadastro com CPF.";bt.textContent="Completar cadastro";bt.dataset.acao="cad";return}
-  if(meu.erro||meu.pix_ativo===undefined){st.textContent="Falta atualizar o banco. Rode o arquivo pix.sql no Supabase.";bt.hidden=true;return}
+  if(meu.erro||meu.pix_ativo===undefined){st.textContent="O Pix de saque está indisponível no momento.";bt.hidden=true;return}
   bt.hidden=false;
   if(meu.pix_ativo){st.innerHTML=`<b class="pix-on">Pix ativo</b> · chave CPF ${mascara(meu.cpf)}<br>O cliente de cada corrida que você aceitar vê essa chave pra te pagar.`;bt.textContent="Desativar Pix";bt.dataset.acao="off";bt.className="btn ghost full"}
   else{st.innerHTML=`Chave: seu CPF ${mascara(meu.cpf)}, o mesmo do seu cadastro. Só dá pra usar o CPF do titular da conta.`;bt.textContent="Ativar Pix com meu CPF";bt.dataset.acao="on";bt.className="btn full"}

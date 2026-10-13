@@ -133,8 +133,10 @@ function novoMapa(el,ll,z){const map=L.map(el,{zoomControl:false}).setView(ll,z)
 function dispLigar(){
   if(dWatch!=null||dNegado||!navigator.geolocation)return;
   dWatch=navigator.geolocation.watchPosition(async p=>{
-    dEu={lat:p.coords.latitude,lng:p.coords.longitude,prec:Math.round(p.coords.accuracy||0)};pintarDisp();
-    const la=arred(dEu.lat),ln=arred(dEu.lng);
+    if(dWatch==null)return; // o GPS já foi desligado: ignora a última posição que chegou atrasada
+    const eu={lat:p.coords.latitude,lng:p.coords.longitude,prec:Math.round(p.coords.accuracy||0)};dEu=eu;pintarDisp();
+    if(dWatch==null||!uid)return;
+    const la=arred(eu.lat),ln=arred(eu.lng);
     if(dEnviado&&dEnviado.lat===la&&dEnviado.lng===ln)return; // só manda quando muda de quadra (~400 m)
     dEnviado={lat:la,lng:ln};await sb.from("disponiveis").update({lat:la,lng:ln}).eq("user_id",uid);
   },e=>{if(e.code===1){dNegado=true;dispDesligar();pintarDisp()}},{enableHighAccuracy:true,maximumAge:10000,timeout:30000});

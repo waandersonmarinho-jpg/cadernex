@@ -34,7 +34,7 @@ async function enviar(vei,file){
     const{error}=await sb.storage.from(BK).upload(`${uid}/${vei}.jpg`,blob,{upsert:true,contentType:"image/jpeg"});
     if(error)throw error;
     tenho[vei]=true;thumbs[vei]=URL.createObjectURL(blob);dispRender();toast(`Foto ${fotoDe(vei)} salva ✓`);return true}
-  catch(e){toast(/bucket|not found|policy|row-level/i.test(String(e.message))?"Falta atualizar o banco (frete.sql).":"Não deu pra enviar a foto. Confira a internet.");return false}
+  catch(e){toast(/bucket|not found|policy|row-level/i.test(String(e.message))?"Não deu pra enviar a foto agora. Tente de novo mais tarde.":"Não deu pra enviar a foto. Confira a internet.");return false}
 }
 // placa, CNH e RNTRC dos veículos de frete (pref = "dp" no Ficar disponível, "dd" no cadastro)
 function lerPlaca(pref){return{placa:normPlaca($(pref+"-placa").value),cnh:$(pref+"-cnh").value,rntrc:$(pref+"-rntrc").value.replace(/\D/g,"")||null}}

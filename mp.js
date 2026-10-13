@@ -41,7 +41,7 @@ async function statusLoad(){
 function cfgRender(){
   const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente";window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
   const st=$("cf-mp-st"),b=$("cf-mp-btn"),d=$("cf-mp-off");
-  if(conectado===null){st.textContent="Falta ligar o pagamento pelo app no banco (mp.sql).";b.hidden=true;d.hidden=true;return}
+  if(conectado===null){st.textContent="O pagamento pelo app está indisponível no momento.";b.hidden=true;d.hidden=true;return}
   b.hidden=!!conectado;d.hidden=!conectado;
   st.innerHTML=conectado?`<b class="pix-on">Conectado ✓</b> Quando o cliente paga pelo app, o valor da corrida cai inteiro na sua conta Mercado Pago.`
     :`Conecte sua conta Mercado Pago pra receber pelo app. O cliente paga por Pix e o dinheiro cai direto na sua conta. Você recebe o valor inteiro da corrida.`;
