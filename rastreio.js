@@ -171,7 +171,7 @@ function pintarDisp(){
     if(on.length===1)dMapCli.setView([on[0].lat,on[0].lng],14);else dMapCli.fitBounds(on.map(d=>[d.lat,d.lng]),{padding:[30,30],maxZoom:15})}
   $("pd-dtxt").textContent=`${on.length} ${pfTipo==="frete"?"freteiro"+(on.length>1?"s":""):"entregador"+(on.length>1?"es":"")} no mapa agora. A posição é aproximada (uns 400 m) pra proteger quem trabalha.`;
 }
-if(typeof go==="function"){const g1=go;go=function(v){g1(v);if(v==="pedir"||v==="corridas")setTimeout(pintarDisp,30)}}
+if(typeof go==="function"){const g1=go;go=function(v){g1(v);if(v==="pedir"||v==="corridas"||v==="resumo")setTimeout(pintarDisp,30)}}
 
 window.cxMapa={leaflet,novoMapa,pino,metros,kmTxt};
 const _render=corrRender;corrRender=function(){_render();pintar();pintarDisp()};

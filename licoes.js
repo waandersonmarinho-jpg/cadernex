@@ -22,7 +22,7 @@ const TRILHAS=[
  ["Receba do jeito certo","Pix com QR Code na conta do trabalho facilita o controle e passa confiança pro cliente.","Crie uma chave Pix aleatória pra receber dos clientes."],
  ["Seguro: faça a conta","Seguro da moto e seguro de vida custam dinheiro, mas uma perda sem seguro pode custar anos de trabalho.","Peça duas cotações de seguro e compare com o valor da sua moto."],
  ["Declaração em dia","MEI tem que entregar a declaração anual (DASN-SIMEI) até 31 de maio, mesmo sem faturar muito.","Coloque um lembrete no celular pra maio."]]},
-{t:"Ideias de negócio",s:"O que dá pra montar com o que você já conhece da rua",l:[
+{t:"Ideias de negócio",oculta:true,s:"O que dá pra montar com o que você já conhece da rua",l:[
  ["Entregador do bairro","Comércio pequeno paga taxa alta pros aplicativos. Você pode oferecer entrega direta por um preço justo, sem intermediário.","Visite 3 comércios perto de casa e ofereça entrega própria."],
  ["Rota fixa mensal","Farmácia, padaria e restaurante precisam de entrega todo dia. Um contrato mensal dá renda garantida.","Monte uma proposta simples: horários, área e valor por mês."],
  ["Documentos e malotes","Escritórios, contadores e cartórios precisam levar papel de um lado pro outro, e pagam bem por pontualidade.","Liste 5 escritórios na sua região e ofereça o serviço."],

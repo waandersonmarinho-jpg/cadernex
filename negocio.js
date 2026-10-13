@@ -18,11 +18,14 @@ function negocioRender(){
   const f=new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"short"});
   $("ng-hist").innerHTML=cofre.slice(0,6).map(c=>{const[y,mm,d]=c.data.split("-").map(Number);return`<div class="item"><div class="l"><div class="t">Guardado</div><div class="s">${f.format(new Date(y,mm-1,d))}</div></div><div class="v num pos">+${brl(c.valor)}</div><button class="del" data-cf="${c.id}" aria-label="Apagar">✕</button></div>`}).join("");
   // lições
-  const lidas=new Set(perfil.licoes||[]),apoio=!!perfil.apoiador;let n=0,html="";
-  $("ng-prog").textContent=`${lidas.size} de 50 lições feitas`;$("ng-progbar").style.width=(lidas.size/50*100)+"%";
-  TRILHAS.forEach((tr,ti)=>{const trava=!tr.livre&&!apoio;const feitas=tr.l.filter((_,i)=>lidas.has(ti*10+i+1)).length;
-    html+=`<details class="mod trilha"${ti===0?" open":""}><summary><span class="step">${ti+1}</span><span class="mt">${esc(tr.t)}<small>${trava?"Para Apoiadores":feitas+" de 10 feitas"} · ${esc(tr.s)}</small></span></summary><div class="mb">`;
-    if(trava)html+=`<div class="lock"><b>Trilha para Apoiadores</b><p>Apoie o Cadernex pra liberar as 40 lições das trilhas 2 a 5. O seu apoio paga o servidor e as novidades do app.</p><ul class="lock-l">${tr.l.map(x=>`<li>${esc(x[0])}</li>`).join("")}</ul></div>`;
+  const lidas=new Set(perfil.licoes||[]),apoio=!!perfil.apoiador;let n=0,html="",passo=0;
+  // trilhas ocultas saem da tela, mas os números das lições continuam os mesmos (o progresso salvo não muda)
+  const vis=TRILHAS.map((tr,ti)=>({tr,ti})).filter(x=>!x.tr.oculta),totLic=vis.reduce((s,x)=>s+x.tr.l.length,0);
+  const feitasVis=vis.reduce((s,{tr,ti})=>s+tr.l.filter((_,i)=>lidas.has(ti*10+i+1)).length,0);
+  $("ng-prog").textContent=`${feitasVis} de ${totLic} lições feitas`;$("ng-progbar").style.width=(totLic?feitasVis/totLic*100:0)+"%";
+  TRILHAS.forEach((tr,ti)=>{if(tr.oculta)return;passo++;const trava=!tr.livre&&!apoio;const feitas=tr.l.filter((_,i)=>lidas.has(ti*10+i+1)).length;
+    html+=`<details class="mod trilha"${ti===0?" open":""}><summary><span class="step">${passo}</span><span class="mt">${esc(tr.t)}<small>${trava?"Para Apoiadores":feitas+" de 10 feitas"} · ${esc(tr.s)}</small></span></summary><div class="mb">`;
+    if(trava)html+=`<div class="lock"><b>Trilha para Apoiadores</b><p>Apoie o Cadernex pra liberar as outras lições. O seu apoio paga o servidor e as novidades do app.</p><ul class="lock-l">${tr.l.map(x=>`<li>${esc(x[0])}</li>`).join("")}</ul></div>`;
     else html+=tr.l.map((x,i)=>{const id=ti*10+i+1,ok=lidas.has(id);return`<div class="lic${ok?" ok":""}"><div class="lic-h"><span class="lic-n num">${id}</span><b>${esc(x[0])}</b></div><p>${esc(x[1])}</p><p class="faca"><span>Faça hoje:</span> ${esc(x[2])}</p><button type="button" class="btn ${ok?"ghost":""} lic-b" data-lic="${id}">${ok?"Feita ✓":"Marcar como feita"}</button></div>`}).join("");
     html+=`</div></details>`});
   $("ng-trilhas").innerHTML=html;

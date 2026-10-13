@@ -197,11 +197,11 @@ $("fTurno").onsubmit=e=>{e.preventDefault();const ganho=num($("t-ganho").value),
   const fechando=$("turnoTitle").dataset.fechando==="1";
   safe(async()=>{const {data,error}=await sb.from("turnos").insert(o).select().single();if(error)throw error;
     turnos.unshift({...data,ganho:N(data.ganho),gorjeta:N(data.gorjeta),km:N(data.km)});
-    if(fechando)await savePerfil({turno_inicio:null});resetTurno();render();go("resumo")},"Turno salvo")};
+    if(fechando)await savePerfil({turno_inicio:null});resetTurno();render();go("turno")},"Turno salvo")};
 
 $("fGasto").onsubmit=e=>{e.preventDefault();const v=num($("g-valor").value);if(v<=0){toast("Coloque o valor");return}
   safe(async()=>{const {data,error}=await sb.from("despesas").insert({data:$("g-data").value,categoria:picked($("g-cats")),valor:v,nota:$("g-nota").value.trim()}).select().single();if(error)throw error;
-    gastos.unshift({...data,valor:N(data.valor)});$("g-valor").value="";$("g-nota").value="";render();go("resumo")},"Despesa salva")};
+    gastos.unshift({...data,valor:N(data.valor)});$("g-valor").value="";$("g-nota").value="";render();go("turno")},"Despesa salva")};
 
 $("fCfg").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({meta:num($("c-meta").value),nome:$("c-nome").value.trim()}),"Ajustes salvos")};
 
