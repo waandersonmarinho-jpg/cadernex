@@ -66,7 +66,7 @@ function pinta(){
   if(!painel.promotor){w.innerHTML=`
     <div class="card stack pm-intro">
       <h2>Ganhe cadastrando lojas</h2>
-      <p style="margin:0">Apresente o Cadernex pra farmácias, restaurantes e lojas do seu bairro. Cada loja que se cadastrar com o seu código te rende <b>${pct(0.02)} de tudo que o Cadernex recebe dela durante 24 meses</b>: nas entregas que ela pede e nas vendas pelo app.</p>
+      <p style="margin:0">Apresente o Cadernex pra farmácias, restaurantes e lojas do seu bairro. Cada loja que se cadastrar com o seu código te rende <b>${pct(0.02)} de tudo que o Cadernex recebe dela durante 24 meses</b>, em cada entrega que ela pede e paga pelo app.</p>
       <ul class="pm-passos"><li>Você recebe um link e um código só seus.</li><li>A loja cria a conta pelo link ou coloca o código em “Informações da loja”.</li><li>Cada loja rende comissão por <b>24 meses</b> a partir do cadastro.</li><li>Toda semana você pode sacar o saldo, que cai por Pix na sua chave.</li></ul>
       <p class="hint" style="margin:0">Exemplo: se o Cadernex recebe R$ 500 em taxas das suas lojas no mês, você ganha R$ 10. Quanto mais lojas, mais soma.</p>
     </div>

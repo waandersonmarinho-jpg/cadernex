@@ -73,7 +73,8 @@ function pintar(){
   document.querySelectorAll(".mpbox[data-mp]").forEach(el=>{
     const c=minhas.find(x=>x.id===el.dataset.mp);if(!c)return;const p=pags[c.id];
     if(el.dataset.papel==="ent"){
-      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(Number(p.valor))} na sua conta Mercado Pago</div>`
+      const liq=Number(p&&p.valor)-Number(p&&p.comissao||0);
+      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} na sua conta Mercado Pago${Number(p.comissao)>0?` (${brl(Number(p.valor))} − 6% do Cadernex)`:""}</div>`
         :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o pagamento pelo app. Aguardando o Pix cair…</p>`
         :conectado===false?`<div class="mp-box"><b>Conecte seu Mercado Pago pra receber pelo app</b><p class="hint" style="margin:0">Sem isso, o cliente só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Conectar Mercado Pago</button></div>`:"";
       return}
@@ -82,7 +83,7 @@ function pintar(){
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
     el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxa de serviço (Cadernex 10% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
-      <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último pagamento não passou. Tente de novo. ":""}Abre o Mercado Pago, você paga no Pix e volta pro Cadernex. O entregador recebe o valor inteiro da corrida.</p></div>`;
+      <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último pagamento não passou. Tente de novo. ":""}Abre o Mercado Pago, você paga no Pix e volta pro Cadernex. O valor da corrida cai direto na conta do entregador.</p></div>`;
   });
 }
 document.addEventListener("click",async e=>{
