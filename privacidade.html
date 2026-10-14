@@ -29,7 +29,7 @@ a{color:var(--fg)}
 <main>
 <a class="voltar" href="./">← Voltar ao Cadernex</a>
 <h1>Política de Privacidade</h1>
-<p class="muted">Última atualização: 8 de outubro de 2026 (cadastro com CNPJ)</p>
+<p class="muted">Última atualização: 14 de outubro de 2026 (programa de promotores e taxas)</p>
 
 <p>O Cadernex é um app para entregadores organizarem ganhos, gastos e estudos, e para conectar quem precisa de uma entrega com entregadores da região. Este texto explica, de forma simples, quais dados guardamos, por que e quais são os seus direitos, conforme a Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>
 
@@ -44,21 +44,37 @@ a{color:var(--fg)}
   <li><b>Corridas:</b> bairros e endereços de coleta e entrega, o que vai ser levado, valor, status, avaliações e mensagens da corrida. Se você tocar em "usar minha localização", guardamos o ponto daquele momento.</li>
   <li><b>GPS da corrida (entregador):</b> só se o entregador tocar em "Ligar GPS pro cliente". Enquanto a corrida está em andamento, guardamos apenas o último ponto dele, que só o cliente daquela corrida vê. Quando a corrida é entregue, cancelada ou devolvida, o ponto é apagado. Não guardamos o trajeto.</li>
   <li><b>Foto e placa do veículo (entregador e freteiro):</b> no cadastro, o entregador manda uma foto do veículo (bike, moto, picape ou caminhão). No frete, também a placa, a categoria da CNH e, se tiver, o RNTRC. A placa aparece só pro cliente da corrida aceita. Ela fica numa área privada: só o próprio entregador, o moderador e o cliente de uma corrida dele veem, pra reconhecer o entregador na coleta.</li>
-  <li><b>Pagamento pelo app (Mercado Pago):</b> se o entregador conectar a conta Mercado Pago dele, o cliente pode pagar a corrida por Pix dentro do app. O pagamento é processado pelo Mercado Pago, que repassa o valor da corrida ao entregador e uma taxa de serviço de 6% ao Cadernex, paga pelo cliente. Guardamos só o status do pagamento e o código de acesso que o Mercado Pago entrega quando o entregador conecta a conta, numa área que nenhum usuário acessa. Nunca vemos senhas nem dados de cartão.</li>
+  <li><b>Pagamento pelo app (Mercado Pago):</b> se o entregador conectar a conta Mercado Pago dele, o cliente pode pagar a corrida por Pix dentro do app. O pagamento é processado pelo Mercado Pago, que repassa o valor da corrida ao entregador e a taxa do Cadernex ao Cadernex: 10% de taxa de serviço, paga por quem pede, e, a partir de 21/10/2026, 6% de comissão, descontada do valor que o entregador recebe. Guardamos só o status do pagamento e o código de acesso que o Mercado Pago entrega quando o entregador conecta a conta, numa área que nenhum usuário acessa. Nunca vemos senhas nem dados de cartão.</li>
   <li><b>CEP e distância:</b> quando você digita um CEP ou pede o cálculo da distância, o CEP e o endereço são consultados nos serviços públicos ViaCEP e OpenStreetMap só para achar a rua e calcular o caminho. Nenhum nome, telefone ou CPF vai junto.</li>
   <li><b>Foto do perfil (opcional):</b> o entregador pode colocar uma foto do rosto, e quem envia, a foto do estabelecimento ou a própria. A foto fica numa área privada: só o dono, o moderador e quem participa de uma corrida com essa pessoa veem.</li>
   <li><b>Notificações:</b> se você ativar as notificações, guardamos o endereço técnico que o navegador do seu celular cria para receber avisos, ligado à sua conta. O aviso em si vai sem dados: o celular busca o texto (corrida nova ou andamento do pedido) direto no Cadernex. Ao sair da conta, esse endereço é apagado. Você pode desligar a qualquer momento nas configurações do celular.</li>
   <li><b>Faculdades perto de você:</b> se você tocar em "Mostrar faculdades perto de mim", mandamos um ponto arredondado (uns 1 km) ao serviço público do OpenStreetMap pra buscar as faculdades. Esse ponto não é guardado no Cadernex.</li>
   <li><b>Mapa de disponíveis (entregador):</b> enquanto você está "disponível", os clientes veem no mapa uma posição <b>aproximada</b> (arredondada em uns 400 m), nunca o ponto exato. Quando você fica indisponível, sai do mapa.</li>
   <li><b>Comunidade:</b> mensagens que você envia na Resenha e relatos de problema em corridas.</li>
+  <li><b>Lojas:</b> nome da loja, ramo, endereço, CEP, cidade, ponto no mapa, WhatsApp, horário, CNPJ (se tiver), nome e e-mail do responsável. O endereço de coleta e o nome da loja aparecem para o entregador da corrida.</li>
+</ul>
+
+<h2 id="promotores">Programa de promotores</h2>
+<p>Promotores são pessoas que indicam e cadastram lojas no Cadernex por conta própria, como autônomos, e ganham uma comissão. As regras estão no <a href="termo-promotor.html">Termo do Promotor Autônomo</a>.</p>
+<ul>
+  <li><b>Dados do promotor:</b> nome completo, CPF, data de nascimento, WhatsApp, cidade, estado e chave Pix, além da data, hora e versão em que ele aceitou o termo. Servem para identificar o promotor, impedir cadastro duplicado (o CPF não pode se repetir), fazer os pagamentos e cumprir obrigações legais e fiscais.</li>
+  <li><b>Quem vê:</b> só o próprio promotor e o moderador do Cadernex. No app, o promotor vê o próprio CPF mascarado. As lojas veem só o primeiro nome do promotor que as cadastrou.</li>
+  <li><b>O que o promotor vê das lojas:</b> só o nome, o bairro, o prazo da comissão e quanto cada loja rendeu. Nunca os clientes, os endereços de entrega, os pedidos ou os dados pessoais dos clientes das lojas.</li>
+  <li><b>Loja cadastrada por promotor:</b> o promotor preenche os dados da loja junto com o responsável e declara que ele autorizou. A loja recebe um convite no WhatsApp e só passa a usar o Cadernex se aceitar, criando a própria conta. Enquanto não aceita, os dados ficam guardados só para o convite e só o promotor que cadastrou e o moderador veem. Se a loja não ativar em 60 dias, o cadastro é apagado sozinho. O responsável pode pedir a exclusão antes disso pelo e-mail do suporte.</li>
+  <li><b>Localização da loja:</b> se o promotor estiver na loja e tocar em “usar minha localização”, guardamos aquele ponto como endereço da loja. Se não, buscamos o ponto pelo endereço no OpenStreetMap, sem mandar nome, telefone ou CNPJ.</li>
+  <li><b>Pagamentos ao promotor:</b> cada saque fica registrado com valor, data e chave Pix usada.</li>
+  <li><b>Saída do programa:</b> o promotor pode sair pelo app. Apagamos Pix, WhatsApp, nascimento, cidade e o código dele. Nome, CPF e o histórico de pagamentos ficam guardados pelo prazo que a lei fiscal exige e depois são apagados.</li>
+  <li><b>Cópia dos dados:</b> o promotor pode baixar no app uma cópia dos seus dados, das suas lojas e dos seus saques.</li>
 </ul>
 
 <h2>Por que usamos esses dados</h2>
 <ul>
   <li>Para o app funcionar: salvar suas anotações e mostrar seus números.</li>
   <li>Para a segurança das corridas: saber que cada conta é de uma pessoa real e maior de idade, impedir que alguém bloqueado crie outra conta e permitir a análise de relatos de problema.</li>
-  <li>Para cumprir a lei, por exemplo a idade mínima de 21 anos para entregas de moto (Lei 12.009/2009).</li>
+  <li>Para cumprir a lei, por exemplo a idade mínima de 21 anos para entregas de moto (Lei 12.009/2009) e as obrigações fiscais sobre os pagamentos aos promotores.</li>
+  <li>Para pagar os promotores e calcular a comissão de cada loja.</li>
 </ul>
+<p>As bases legais da LGPD que usamos são: a execução do contrato com você (art. 7º, V), o cumprimento de obrigações legais (art. 7º, II), a prevenção a fraudes e a segurança (art. 11, II, g, e art. 7º, IX, legítimo interesse) e, quando pedimos, o seu consentimento (art. 7º, I), como no GPS e nas notificações.</p>
 
 <h2>Quem vê o quê</h2>
 <ul>
@@ -70,10 +86,16 @@ a{color:var(--fg)}
 <p><b>Não vendemos seus dados</b> e não os passamos para empresas de propaganda. Os dados ficam guardados em servidores seguros de empresas que contratamos para hospedar o app e o banco de dados. Também podemos ter que compartilhar dados se uma autoridade exigir por lei.</p>
 
 <h2>Por quanto tempo</h2>
-<p>Enquanto sua conta existir. Se você pedir para excluir sua conta, apagamos seus dados, exceto o que a lei obrigar a guardar por mais tempo.</p>
+<ul>
+  <li><b>Conta e anotações:</b> enquanto sua conta existir.</li>
+  <li><b>GPS da corrida:</b> só enquanto a corrida está em andamento.</li>
+  <li><b>Cadastro de loja feito por promotor e não ativado:</b> até 60 dias.</li>
+  <li><b>Pagamentos (corridas pagas pelo app e saques dos promotores):</b> pelo prazo que a lei fiscal exige.</li>
+</ul>
+<p>Se você pedir para excluir sua conta, apagamos seus dados, exceto o que a lei obrigar a guardar por mais tempo.</p>
 
 <h2>Seus direitos</h2>
-<p>Você pode, a qualquer momento, pedir para: saber quais dados temos sobre você, corrigir dados errados, receber uma cópia dos seus dados ou excluir sua conta. Suas anotações financeiras você já pode baixar no app, em Histórico, "Baixar planilha". Para o resto, escreva para o e-mail acima.</p>
+<p>Você pode, a qualquer momento, pedir para: saber quais dados temos sobre você, corrigir dados errados, receber uma cópia dos seus dados ou excluir sua conta. Suas anotações financeiras você já pode baixar no app, em Histórico, "Baixar planilha". Promotores baixam seus dados na área de promotor, em "Privacidade". Para o resto, escreva para o e-mail acima. Respondemos em até 15 dias.</p>
 
 <h2>Segurança</h2>
 <p>Cada conta só acessa os próprios dados, e os dados sensíveis ficam numa área separada e trancada. Mesmo assim, nenhum sistema é 100% à prova de falhas. Se acontecer algum problema de segurança que afete você, vamos avisar.</p>

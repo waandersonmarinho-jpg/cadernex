@@ -24,7 +24,10 @@ const ERROS={codigo:"Esse código de promotor não existe. Confira as letras.",p
   loja_existe:"Essa loja já usa o Cadernex (mesmo WhatsApp ou CNPJ).",outro_promotor:"Outro promotor já cadastrou essa loja.",repetida:"Você já cadastrou essa loja.",
   falta_nome:"Coloque o nome da loja.",falta_responsavel:"Coloque o nome do responsável.",falta_rua:"Coloque a rua.",falta_numero:"Coloque o número.",falta_bairro:"Coloque o bairro.",falta_cidade:"Coloque a cidade.",falta_uf:"Coloque o estado (UF).",
   whats:"WhatsApp com DDD, ex.: (62) 99999-9999.",cep:"CEP com 8 números.",cnpj:"CNPJ inválido.",nao_apaga:"Essa loja já foi ativada.",
-  convite_usado:"Esse convite já foi usado por outra conta.",convite:"Convite não encontrado. Peça um novo ao promotor."};
+  convite_usado:"Esse convite já foi usado por outra conta.",
+  dados_nome:"Coloque seu nome completo (nome e sobrenome).",dados_cpf_usado:"Esse CPF já está cadastrado em outra conta de promotor.",dados_cpf:"CPF com 11 números.",
+  dados_idade:"Para ser promotor é preciso ter 18 anos ou mais.",dados_whats:"WhatsApp com DDD, ex.: (62) 99999-9999.",dados_cidade:"Coloque sua cidade.",dados_uf:"Escolha seu estado.",
+  dados_termos:"Para continuar, aceite o Termo do Promotor Autônomo.",dados_faltam:"Complete seus dados de promotor.",saldo_sacar:"Antes de sair, saque o seu saldo.",convite:"Convite não encontrado. Peça um novo ao promotor."};
 const erroDe=e=>{const m=String(e?.message||"");for(const k in ERROS)if(m.includes(k))return ERROS[k];return"Não deu certo agora. Confira a internet e tente de novo."};
 
 /* ---------- loja: vínculo com o promotor ---------- */
@@ -50,10 +53,11 @@ const _sp=savePerfil;savePerfil=async function(patch){await _sp(patch);
   if(ehLoja()&&!perfil.indicado_por){const c=el("lj-promo")?.value||guardado();if(c)await vincular(c,!!el("lj-promo")?.value)}};
 
 /* ---------- tela do promotor ---------- */
-let painel=null,carregando=false,pendentes=[],cadAberto=false,recemConvite=null;
+let painel=null,carregando=false,meusDados=null,pendentes=[],cadAberto=false,recemConvite=null;
 async function carregar(){
   if(!sb||!uid||carregando)return;carregando=true;
   try{const r=await sb.rpc("promotor_painel");painel=r.error?{erro:true}:r.data;
+    const dd=await sb.rpc("promotor_meus_dados");meusDados=dd.error?null:dd.data;
     if(painel?.promotor){const q=await sb.from("promotor_lojas").select("id,nome,responsavel,whats,bairro,convite,criado_em").eq("status","pendente").order("criado_em",{ascending:false});pendentes=q.error?[]:q.data||[]}
   }finally{carregando=false}
   pinta();
@@ -70,15 +74,12 @@ function pinta(){
       <ul class="pm-passos"><li>Você recebe um link e um código só seus.</li><li>A loja cria a conta pelo link ou coloca o código em “Informações da loja”.</li><li>Cada loja rende comissão por <b>24 meses</b> a partir do cadastro.</li><li>Toda semana você pode sacar o saldo, que cai por Pix na sua chave.</li></ul>
       <p class="hint" style="margin:0">Exemplo: se o Cadernex recebe R$ 500 em taxas das suas lojas no mês, você ganha R$ 10. Quanto mais lojas, mais soma.</p>
     </div>
-    <form class="card stack" id="pm-entrar">
-      <label>Sua chave Pix (pra receber)<input type="text" id="pm-pix" maxlength="120" autocomplete="off" spellcheck="false" placeholder="CPF, celular, e-mail ou chave aleatória"></label>
-      <button class="btn full" type="submit">Quero ser promotor</button>
-      <p class="hint" style="margin:0">Não pode cadastrar a própria loja. Comissão só sobre o que é pago pelo app; devoluções não contam.</p>
-    </form>`;return}
+    ${dadosForm(meusDados,true)}`;return}
   const p=painel,disp=Number(p.disponivel)||0,pend=(p.saques||[]).find(x=>x.status==="pedido"),link=linkDe(p.codigo);
   const msg=`Oi! Sua loja já faz entregas pelo Cadernex? Motoboys e bikes da região, pagamento por Pix, sem mensalidade. Cadastre aqui: ${link} (ou use o código ${p.codigo})`;
   const prox=p.proximo?new Date(p.proximo):null,podeSemana=prox&&prox<=new Date(),min=Number(p.minimo)||5;
-  const saque=pend?`<div class="pm-aviso"><b>Saque de ${brl(Number(pend.valor))} pedido em ${data(pend.pedido)}</b><span>O Pix vai para ${esc(pend.pix)}. Avisamos aqui quando cair.</span></div>`
+  const semDados=meusDados&&!meusDados.completo;
+  const saque=semDados?`<button class="btn full" type="button" data-pmdados>Complete seus dados para sacar</button>`:pend?`<div class="pm-aviso"><b>Saque de ${brl(Number(pend.valor))} pedido em ${data(pend.pedido)}</b><span>O Pix vai para ${esc(pend.pix)}. Avisamos aqui quando cair.</span></div>`
     :!podeSemana?`<button class="btn full" type="button" disabled>Próximo saque em ${data(prox)}</button>`
     :disp<min?`<button class="btn full" type="button" disabled>Saque a partir de ${brl(min)}</button>`
     :`<button class="btn full" type="button" data-pmsaca>Sacar ${brl(disp)} no Pix</button>`;
@@ -117,17 +118,44 @@ function pinta(){
         <p class="hint" style="margin:0">Total recebido: ${brl(Number(p.pago))}</p>`
         :`<p class="hint" style="margin:0">Nenhum saque ainda.</p>`}
     </div>
-    <form class="card stack" id="pm-entrar">
-      <label>Trocar chave Pix<input type="text" id="pm-pix" maxlength="120" autocomplete="off" spellcheck="false" value="${esc(p.pix)}"></label>
-      <button class="btn ghost full" type="submit">Salvar chave Pix</button>
-    </form>`;
+    ${dadosForm(meusDados,false)}
+    <div class="card stack" id="pm-priv">
+      <h2>Privacidade</h2>
+      <p class="hint" style="margin:0">Seu CPF, nascimento e chave Pix só você e o moderador do Cadernex veem. As lojas veem só o seu primeiro nome. Você vê das suas lojas só o nome, o bairro e quanto rendeu, nunca os clientes delas.</p>
+      <div class="rg-links"><a class="link" href="termo-promotor.html" target="_blank" rel="noopener">Termo do Promotor Autônomo</a><a class="link" href="privacidade.html#promotores" target="_blank" rel="noopener">Política de privacidade</a></div>
+      <button class="btn ghost full" type="button" data-pmexporta>Baixar uma cópia dos meus dados</button>
+      <button class="link" type="button" data-pmsair style="align-self:center;color:var(--bad)">Sair do programa de promotor</button>
+    </div>`;
 }
+document.addEventListener("input",e=>{const t=e.target;if(t.id==="pd-cpf")t.value=cpfFmt(t.value);if(t.id==="pd-whats")t.value=telFmt(t.value)});
 document.addEventListener("submit",e=>{if(e.target.id!=="pm-entrar")return;e.preventDefault();
-  const pix=el("pm-pix").value.trim();if(pix.length<5){toast("Coloque sua chave Pix");el("pm-pix").focus();return}
-  const novo=!painel?.promotor,b=e.target.querySelector("button");b.disabled=true;
-  sb.rpc("promotor_entrar",{pix}).then(async r=>{b.disabled=false;if(r.error){toast(erroDe(r.error));return}
-    perfil.promotor=true;await carregar();toast(novo?"Pronto! Agora é só divulgar seu link.":"Chave Pix salva")})});
+  const v=id=>(el(id)?.value||"").trim(),foco=id=>{el(id)?.focus()};
+  const pix=v("pm-pix"),nome=v("pd-nome").replace(/\s+/g," "),cpf=dgt(v("pd-cpf")),nasc=v("pd-nasc"),whats=dgt(v("pd-whats")),cidade=v("pd-cid"),uf=v("pd-uf");
+  const tem=!!meusDados?.completo;
+  if(nome.length<5||!nome.includes(" ")){toast("Coloque seu nome completo (nome e sobrenome)");return foco("pd-nome")}
+  if(!tem&&cpf.length!==11){toast("CPF com 11 números");return foco("pd-cpf")}
+  const n=nasc?new Date(nasc+"T12:00"):null,lim=new Date();lim.setFullYear(lim.getFullYear()-18);
+  if(!n||isNaN(n)){toast("Coloque sua data de nascimento");return foco("pd-nasc")}
+  if(n>lim){toast("Para ser promotor é preciso ter 18 anos ou mais");return foco("pd-nasc")}
+  if(whats.length<10){toast("WhatsApp com DDD");return foco("pd-whats")}
+  if(cidade.length<2){toast("Coloque sua cidade");return foco("pd-cid")}
+  if(!uf){toast("Escolha seu estado");return foco("pd-uf")}
+  if(pix.length<5){toast("Coloque sua chave Pix");return foco("pm-pix")}
+  if(el("pd-termo")&&!el("pd-termo").checked){toast("Para continuar, aceite o Termo do Promotor Autônomo");return}
+  const dados={nome,cpf:tem?"":cpf,nasc,whats,cidade,uf,termos:el("pd-termo")?.checked?"1":""};
+  const novo=!painel?.promotor,b=e.target.querySelector("button[type=submit]");b.disabled=true;
+  sb.rpc("promotor_entrar",{pix,dados}).then(async r=>{b.disabled=false;if(r.error){toast(erroDe(r.error));return}
+    perfil.promotor=true;await carregar();toast(novo?"Pronto! Agora é só divulgar seu link.":"Dados salvos")})});
 document.addEventListener("click",e=>{
+  if(e.target.closest("[data-pmdados]")){el("pm-entrar")?.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>el("pd-nome")?.focus(),400);return}
+  if(e.target.closest("[data-pmexporta]")){
+    const copia={gerado_em:new Date().toISOString(),meus_dados:meusDados,codigo:painel?.codigo,chave_pix:painel?.pix,lojas:painel?.lojas,saques:painel?.saques,lojas_esperando_ativar:pendentes};
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(copia,null,2)],{type:"application/json"}));
+    a.download=`meus-dados-promotor-cadernex-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return}
+  const sai=e.target.closest("[data-pmsair]");if(sai){
+    if(sai.dataset.ok!=="1"){sai.dataset.ok="1";sai.textContent="Toque de novo: apaga seu Pix, WhatsApp e código, e suas lojas deixam de render comissão";return}
+    sai.disabled=true;sb.rpc("promotor_sair").then(async r=>{sai.disabled=false;if(r.error){toast(erroDe(r.error));return}
+      perfil.promotor=false;await carregar();toast("Você saiu do programa de promotor")});return}
   const sq=e.target.closest("[data-pmsaca]");
   if(sq){if(sq.dataset.ok!=="1"){sq.dataset.ok="1";sq.textContent=`Confirmar saque de ${brl(Number(painel.disponivel))}?`;return}
     sq.disabled=true;sb.rpc("promotor_sacar").then(async r=>{if(r.error){sq.disabled=false;toast(erroDe(r.error));await carregar();return}
@@ -135,6 +163,28 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-pmcopia]")&&painel?.codigo){const l=linkDe(painel.codigo);
     (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado"),()=>{window.prompt("Copie o link:",l)})}
 });
+
+/* ---------- dados do promotor ---------- */
+const UFS_P="AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
+const dgt=v=>String(v||"").replace(/\D/g,"");
+const telFmt=t=>{t=dgt(t).slice(0,11);return t.length>10?t.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3"):t.length>6?t.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3"):t.length>2?t.replace(/(\d{2})(\d+)/,"($1) $2"):t};
+const cpfFmt=c=>{c=dgt(c).slice(0,11);return c.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})\.(\d{3})(\d)/,"$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/,".$1-$2")};
+function cpfOk(c){c=dgt(c);if(c.length!==11||/^(\d)\1{10}$/.test(c))return false;
+  const dv=n=>{let s=0;for(let i=0;i<n;i++)s+=+c[i]*(n+1-i);const r=s*10%11;return r===10?0:r};return dv(9)===+c[9]&&dv(10)===+c[10]}
+function dadosForm(d,novo){d=d||{};const tem=!!d.completo,pix=painel?.pix||"";
+  return `<form class="card stack" id="pm-entrar">
+  <h2>${novo?"Seus dados de promotor":"Seus dados"}</h2>
+  ${!novo&&!tem?`<p class="pm-aviso" style="margin:0"><b>Falta completar seus dados</b><span>Sem nome completo e CPF não dá pra fazer o Pix dos seus ganhos.</span></p>`:""}
+  <label>Nome completo<input id="pd-nome" maxlength="80" autocomplete="name" value="${esc(d.nome||"")}"></label>
+  <div class="grid2"><label>CPF${tem?`<input value="${esc(d.cpf)}" disabled>`:`<input id="pd-cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00">`}</label>
+  <label>Nascimento<input id="pd-nasc" type="date" value="${esc(d.nasc||"")}"></label></div>
+  <label>WhatsApp<input id="pd-whats" type="tel" inputmode="numeric" autocomplete="tel-national" value="${esc(telFmt(d.whats||""))}" placeholder="(62) 99999-9999"></label>
+  <div class="pm-cid"><label>Cidade<input id="pd-cid" maxlength="60" value="${esc(d.cidade||"")}"></label><label>UF<select id="pd-uf"><option value=""></option>${UFS_P.map(u=>`<option${d.uf===u?" selected":""}>${u}</option>`).join("")}</select></label></div>
+  <label>Chave Pix (pra receber)<input id="pm-pix" maxlength="120" autocomplete="off" spellcheck="false" value="${esc(pix)}" placeholder="CPF, celular, e-mail ou chave aleatória"></label>
+  ${d.termos?`<p class="hint" style="margin:0">Termo do Promotor Autônomo aceito em ${data(d.termos)}.</p>`:`<label class="pm-aceite"><input type="checkbox" id="pd-termo"> <span>Li e aceito o <a href="termo-promotor.html" target="_blank" rel="noopener">Termo do Promotor Autônomo</a> e a <a href="privacidade.html#promotores" target="_blank" rel="noopener">Política de privacidade</a>. Sou maior de 18 anos e atuo por conta própria, sem vínculo de emprego.</span></label>`}
+  <button class="btn ${novo?"":"ghost "}full" type="submit">${novo?"Quero ser promotor":"Salvar meus dados"}</button>
+  ${tem?`<p class="hint" style="margin:0">O CPF não muda pelo app. Para corrigir, escreva para suporte@cadernex.com.br.</p>`:""}
+</form>`}
 
 /* ---------- promotor cadastra a loja ---------- */
 const RAMOS=["Farmácia","Restaurante","Lanchonete","Pizzaria","Açaí e sorveteria","Mercado","Padaria","Loja de roupas","Pet shop","Loja","Outro"];
@@ -286,12 +336,13 @@ function admPinta(){
   el("pma-res").textContent=S.length?`${S.length} saque${S.length==1?"":"s"} pra pagar · ${brl(tot)}`:P.length?`${P.length} promotor${P.length==1?"":"es"} · ${lojas} loja${lojas==1?"":"s"}`:"Ninguém ainda";
   const zap=w=>{w=String(w||"").replace(/\D/g,"");return w?` · <a href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp</a>`:""};
   el("pma-lista").innerHTML=`<b>Saques pra pagar</b>`+(S.length?S.map(x=>`<div class="adm-it"><div class="cad-l1"><span class="t">${esc(x.nome||"(sem nome)")}</span><b class="num">${brl(Number(x.valor))}</b></div>
-      <div class="s">Pedido em ${data(x.pedido)} · código ${esc(x.codigo)}${zap(x.whats)}</div>
+      <div class="s">Pedido em ${data(x.pedido)} · código ${esc(x.codigo)}${x.cpf?` · CPF ${esc(cpfFmt(x.cpf))}`:" · <b>sem CPF</b>"}${zap(x.whats)}</div>
       <div class="pma-pg"><span class="pm-link">Pix: ${esc(x.pix)}</span><button class="link" type="button" data-pmapix="${esc(x.pix)}">Copiar chave</button></div>
       <div class="grid2"><button class="btn" type="button" data-pmapg="${x.id}" data-v="${x.valor}">Já fiz o Pix</button><button class="btn ghost" type="button" data-pmarec="${x.id}">Recusar</button></div></div>`).join("")
       :`<p class="hint" style="margin:0">Nenhum saque esperando.</p>`)
     +`<b>Promotores</b>`+(P.length?P.map(x=>`<div class="adm-it"><div class="cad-l1"><span class="t">${esc(x.nome||"(sem nome)")}</span><span class="cad-tp">${esc(x.codigo)}</span></div>
       <div class="s">${x.lojas} loja${x.lojas==1?"":"s"} · ganhou ${brl(Number(x.ganho))} · pago ${brl(Number(x.pago))} · saldo ${brl(Number(x.disponivel))}</div>
+      <div class="s">${x.cpf?`CPF ${esc(cpfFmt(x.cpf))}`:"<b>Sem CPF</b>"}${x.cidade?` · ${esc(x.cidade)}/${esc(x.uf||"")}`:""}${x.termos?` · termo aceito em ${data(x.termos)}`:" · termo não aceito"}</div>
       <div class="s">Pix: ${esc(x.pix||"—")}${zap(x.whats)}</div></div>`).join("")
       :`<p class="empty">Quando alguém virar promotor, aparece aqui.</p>`);
 }
