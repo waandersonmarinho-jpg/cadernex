@@ -62,7 +62,7 @@ tr:last-child td{border-bottom:0}
 <meta property="og:url" content="https://cadernex.com.br/promotores.html">
 <meta property="og:image" content="https://cadernex.com.br/icon-512.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"Quanto o promotor do Cadernex ganha?","acceptedAnswer":{"@type":"Answer","text":"2% de tudo que o Cadernex recebe de cada loja que você cadastrou, em cada entrega que ela pede e paga pelo app, durante 24 meses a partir do cadastro da loja."}},
+{"@type":"Question","name":"Quanto o promotor do Cadernex ganha?","acceptedAnswer":{"@type":"Answer","text":"2% de tudo que o Cadernex recebe de cada loja que você cadastrou, em cada entrega que ela pede e paga pelo app, a partir da segunda entrega, durante 24 meses a partir do cadastro da loja."}},
 {"@type":"Question","name":"Como o promotor recebe?","acceptedAnswer":{"@type":"Answer","text":"Pelo Pix, na chave cadastrada no app. Dá para pedir o saque uma vez por semana, a partir de R$ 5."}},
 {"@type":"Question","name":"Precisa pagar para ser promotor?","acceptedAnswer":{"@type":"Answer","text":"Não. O cadastro é grátis: crie a conta no Cadernex escolhendo a opção Promover."}}]}</script>
 <body>
@@ -77,7 +77,7 @@ tr:last-child td{border-bottom:0}
 <li><b>Crie sua conta como promotor</b><span>No cadastro do Cadernex, escolha “Promover” e coloque a sua chave Pix.</span></li>
 <li><b>Receba seu link e seu código</b><span>Eles são só seus. Mande pelo WhatsApp ou mostre na loja.</span></li>
 <li><b>A loja se cadastra</b><span>Pelo seu link, ou colocando o seu código em “Informações da loja”.</span></li>
-<li><b>Você ganha enquanto ela usa o app</b><span>2% de tudo que o Cadernex recebe dela em cada entrega paga pelo app, por 24 meses.</span></li>
+<li><b>Você ganha enquanto ela usa o app</b><span>2% de tudo que o Cadernex recebe dela em cada entrega paga pelo app, por 24 meses. A 1ª entrega de cada loja é da fidelidade com o Cadernex: você ganha a partir da 2ª.</span></li>
 <li><b>Saque toda semana</b><span>Peça o saque no app e o valor cai no seu Pix. Saque a partir de R$ 5.</span></li>
 </ol>
 
@@ -88,7 +88,7 @@ tr:last-child td{border-bottom:0}
 <label>Entregas pagas pelo app, por loja, por dia<span class="lin"><input type="range" id="c-ent" min="1" max="40" value="5"><output id="o-ent">5</output></span></label>
 <label>Valor médio da entrega<span class="lin"><input type="range" id="c-val" min="8" max="30" value="10"><output id="o-val">R$ 10</output></span></label>
 <div class="res"><div><b id="r-mes">R$ 0</b><span>por mês</span></div><div><b id="r-tot">R$ 0</b><span>em 24 meses</span></div></div>
-<p class="muted" style="margin:0">Estimativa com 30 dias por mês, contando só as entregas. O valor real depende de quanto cada loja usa o app.</p>
+<p class="muted" style="margin:0">Estimativa com 30 dias por mês, contando só as entregas. A 1ª entrega de cada loja é da fidelidade com o Cadernex e não entra. O valor real depende de quanto cada loja usa o app.</p>
 </div>
 
 <h2>Quem pode ser promotor</h2>
@@ -133,6 +133,7 @@ Cadastro grátis: https://cadernex.com.br/promotores.html</p><div class="bts"><b
 <div class="card"><b>Só pagamentos pelo app</b><p>Contam as entregas pagas por Pix no Cadernex. Pagamentos em dinheiro, devoluções e pagamentos recusados não contam.</p></div>
 <div class="card"><b>Uma loja, um promotor</b><p>Cada loja fica ligada a um promotor só, e você não pode cadastrar a sua própria loja.</p></div>
 <div class="card"><b>24 meses por loja</b><p>O prazo começa no dia em que a loja se cadastra com o seu código.</p></div>
+<div class="card"><b>1ª entrega é fidelidade</b><p>A primeira entrega paga pelo app de cada loja é da fidelidade com o Cadernex e não gera comissão. Da 2ª em diante, todas contam.</p></div>
 </div>
 
 <h2>Contrato</h2>
@@ -149,7 +150,7 @@ const $=id=>document.getElementById(id),brl=v=>v.toLocaleString("pt-BR",{style:"
 function calc(){const l=+$("c-lojas").value,e=+$("c-ent").value,v=+$("c-val").value;
   $("o-lojas").textContent=l;$("o-ent").textContent=e;$("o-val").textContent="R$ "+v;
   // taxa do Cadernex por entrega paga pelo app: 10% do cliente + 6% do entregador
-  const mes=l*e*30*v*0.16*0.02;$("r-mes").textContent=brl(mes);$("r-tot").textContent=brl(mes*24)}
+  const mes=l*e*30*v*0.16*0.02;$("r-mes").textContent=brl(mes);$("r-tot").textContent=brl(Math.max(0,mes*24-l*v*0.16*0.02))}
 ["c-lojas","c-ent","c-val"].forEach(id=>$(id).addEventListener("input",calc));calc();
 document.querySelectorAll(".msg").forEach(m=>{const t=m.querySelector("[data-m]").textContent;
   m.querySelector("[data-zap]").href="https://wa.me/?text="+encodeURIComponent(t);

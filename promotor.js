@@ -71,7 +71,7 @@ function pinta(){
     <div class="card stack pm-intro">
       <h2>Ganhe cadastrando lojas</h2>
       <p style="margin:0">Apresente o Cadernex pra farmácias, restaurantes e lojas do seu bairro. Cada loja que se cadastrar com o seu código te rende <b>${pct(0.02)} de tudo que o Cadernex recebe dela durante 24 meses</b>, em cada entrega que ela pede e paga pelo app.</p>
-      <ul class="pm-passos"><li>Você recebe um link e um código só seus.</li><li>A loja cria a conta pelo link ou coloca o código em “Informações da loja”.</li><li>Cada loja rende comissão por <b>24 meses</b> a partir do cadastro.</li><li>Toda semana você pode sacar o saldo, que cai por Pix na sua chave.</li></ul>
+      <ul class="pm-passos"><li>Você recebe um link e um código só seus.</li><li>A loja cria a conta pelo link ou coloca o código em “Informações da loja”.</li><li>Cada loja rende comissão por <b>24 meses</b> a partir do cadastro. A 1ª entrega de cada loja é da fidelidade com o Cadernex: você ganha a partir da 2ª.</li><li>Toda semana você pode sacar o saldo, que cai por Pix na sua chave.</li></ul>
       <p class="hint" style="margin:0">Exemplo: se o Cadernex recebe R$ 500 em taxas das suas lojas no mês, você ganha R$ 10. Quanto mais lojas, mais soma.</p>
     </div>
     ${dadosForm(meusDados,true)}`;return}
@@ -88,7 +88,7 @@ function pinta(){
       <span class="eyebrow">Disponível pra sacar</span><b class="big num">${brl(disp)}</b>
       <div class="pm-tot"><div><b class="num">${brl(Number(p.mes))}</b><span>Este mês</span></div><div><b class="num">${brl(Number(p.ganho))}</b><span>Total ganho</span></div><div><b class="num">${p.lojas.length}</b><span>Loja${p.lojas.length==1?"":"s"}</span></div></div>
       ${saque}
-      <p class="hint" style="margin:0">Você ganha ${pct(p.taxa)} da taxa do Cadernex sobre o que cada loja paga pelo app, por ${p.meses||24} meses desde o cadastro dela. Um saque por semana, a partir de ${brl(min)}, na chave Pix <b>${esc(p.pix)}</b>.</p>
+      <p class="hint" style="margin:0">Você ganha ${pct(p.taxa)} da taxa do Cadernex sobre o que cada loja paga pelo app, a partir da 2ª entrega (a 1ª é da fidelidade com o Cadernex), por ${p.meses||24} meses desde o cadastro dela. Um saque por semana, a partir de ${brl(min)}, na chave Pix <b>${esc(p.pix)}</b>.</p>
     </div>
     ${recemConvite?conviteHTML(recemConvite,true):""}
     <div class="card stack pm-nova">
@@ -109,7 +109,7 @@ function pinta(){
     <div class="card stack">
       <h2>Suas lojas</h2>
       ${p.lojas.length?`<div class="stack" style="gap:8px">${p.lojas.map(l=>`<div class="adm-it"><div class="cad-l1"><span class="t">${esc(l.nome||"(sem nome)")}</span><b class="num">${brl(Number(l.comissao))}</b></div>
-        <div class="s">${[esc(l.bairro),new Date(l.ate)>new Date()?`Comissão até ${data(l.ate)}`:`Prazo encerrado em ${data(l.ate)}`,l.mov?`${l.mov} pagamento${l.mov==1?"":"s"} pelo app`:"Ainda sem pagamento pelo app"].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>`
+        <div class="s">${[esc(l.bairro),new Date(l.ate)>new Date()?`Comissão até ${data(l.ate)}`:`Prazo encerrado em ${data(l.ate)}`,l.mov?`${l.mov} entrega${l.mov==1?"":"s"} com comissão`:"Comissão começa na 2ª entrega paga pelo app"].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>`
         :`<p class="hint" style="margin:0">Nenhuma loja ainda. Mande seu link pra primeira loja hoje.</p>`}
     </div>
     <div class="card stack">
