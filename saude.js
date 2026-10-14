@@ -33,7 +33,28 @@ async function carregar(){
   const pr=await sb.rpc("parados_admin");parados=pr.error?[]:(pr.data||[]);
   const r=await sb.rpc("erros_admin");
   if(r.error){el("sd-res").textContent="Não deu pra carregar agora";abre();return}
-  lista=r.data||[];pinta();
+  lista=r.data||[];pinta();autoLista();
+}
+// backups automáticos (backup.sql)
+const kb=n=>n>1048576?(n/1048576).toFixed(1).replace(".",",")+" MB":Math.max(1,Math.round(n/1024))+" KB";
+async function autoLista(){
+  const w=el("sd-auto");if(!w)return;
+  const r=await sb.rpc("backups_lista");
+  if(r.error){w.innerHTML=`<p class="hint sd-alerta" style="margin:0">Backup automático ainda não ligado.</p>`;return}
+  const l=r.data||[];
+  if(!l.length){w.innerHTML=`<p class="hint" style="margin:0">O primeiro backup automático sai hoje às 3h.</p>`;return}
+  const horas=(Date.now()-new Date(l[0].criado))/36e5;
+  w.innerHTML=`<p class="hint${horas>30?" sd-alerta":""}" style="margin:0">${horas>30?"⚠️ O último backup automático tem mais de 1 dia. ":"✓ "}Último: ${quando(l[0].criado)} · ${l.length} guardado${l.length>1?"s":""}</p>`
+    +l.map(x=>`<button class="btn ghost" type="button" data-bkid="${x.id}">Baixar de ${quando(x.criado)} (${kb(x.tamanho||0)})</button>`).join("");
+}
+function baixarJson(d,nome){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:"application/json"}));
+  a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)}
+async function backupAuto(b){
+  b.disabled=true;const t=b.textContent;b.textContent="Baixando…";
+  try{const r=await sb.rpc("backup_baixar",{bid:Number(b.dataset.bkid)});if(r.error||!r.data)throw r.error||new Error("vazio");
+    baixarJson(r.data,`backup-cadernex-${String(r.data.gerado_em||"").slice(0,10)||"auto"}.json`);toast("Backup baixado. Guarde no seu Google Drive.")}
+  catch(e){console.error(e);toast("Não deu para baixar agora. Tente de novo.")}
+  b.disabled=false;b.textContent=t;
 }
 async function backup(b){
   b.disabled=true;const t=b.textContent;b.textContent="Gerando backup…";
@@ -49,6 +70,7 @@ async function backup(b){
 document.addEventListener("click",e=>{
   if(e.target.closest("#sd-abre")){aberto=!aberto;try{localStorage.setItem("cx-sd-aberto",aberto?"1":"0")}catch(x){}abre();return}
   if(e.target.closest("#sd-atual")){carregar().then(()=>toast("Lista atualizada"));return}
+  const ba=e.target.closest("[data-bkid]");if(ba){backupAuto(ba);return}
   const b=e.target.closest("#sd-backup");if(b){backup(b);return}
   const l=e.target.closest("#sd-limpar");if(l){if(l.dataset.ok!=="1"){l.dataset.ok="1";l.textContent="Toque de novo pra apagar a lista";return}
     l.dataset.ok="";l.textContent="Limpar lista de erros";
