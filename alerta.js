@@ -77,7 +77,9 @@ function confere(){
   primeira=false;
 }
 if(typeof corrLoad==="function"){const cl=corrLoad;corrLoad=async function(){const r=await cl.apply(this,arguments);try{confere()}catch(e){}return r}}
-setInterval(()=>{if(uid&&perfil.tipo==="entregador"&&typeof meuDisp==="function"&&meuDisp())corrLoad()},20000);
+// motoboy disponível: confere as corridas abertas a cada 30 s (só a lista aberta, leve), caso o tempo real perca algum aviso
+if(typeof window.corrLeve==="function"){const cv=window.corrLeve;window.corrLeve=async function(){await cv();try{confere()}catch(e){}}}
+setInterval(()=>{if(uid&&perfil.tipo==="entregador"&&typeof meuDisp==="function"&&meuDisp()&&window.corrLeve)corrLeve()},30000);
 
 /* ---------- testar o som ---------- */
 document.addEventListener("click",e=>{if(!e.target.closest("#ac-teste"))return;liberarSom();

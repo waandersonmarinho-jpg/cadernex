@@ -67,7 +67,7 @@ async function corrLoad(){
   const [a,m,d]=await Promise.all([
     sb.from("corridas").select("*").eq("status","aberta").order("created_at",{ascending:false}).limit(50),
     sb.from("corridas").select("*").or(`cliente_id.eq.${uid},entregador_id.eq.${uid}`).order("created_at",{ascending:false}).limit(40),
-    sb.from("disponiveis").select("*")]);
+    sb.from("disponiveis").select("*").gte("atualizado_em",new Date(Date.now()-4*3600e3).toISOString())]);
   if(a.error||m.error||d.error){
     // sem internet: mostra as corridas que estavam salvas no celular (com endereço das que estão em andamento)
     const c=window.cxOff?await cxOff.get("corr:"+uid):null;
@@ -88,6 +88,27 @@ async function corrLoad(){
   corrRender();corrSub();
 }
 function corrRecarregar(){clearTimeout(corrT);corrT=setTimeout(corrLoad,600)}
+/* Escala: uma mudança numa corrida não faz mais todo mundo recarregar tudo.
+   A tela aplica só o que mudou; recarrega por completo apenas quando a corrida é minha. */
+let rT=null;const redesenha=()=>{clearTimeout(rT);rT=setTimeout(corrRender,150)};
+function corrAplicar(p){
+  const c=p.new&&p.new.id?p.new:null,id=c?c.id:p.old&&p.old.id;if(!id)return;
+  const minha=c&&(c.cliente_id===uid||c.entregador_id===uid)||minhas.some(x=>x.id===id);
+  abertas=abertas.filter(x=>x.id!==id);
+  if(c&&c.status==="aberta")abertas.unshift(c);
+  if(minha){corrRecarregar();return} // corrida minha: busca endereço, códigos etc.
+  redesenha();
+}
+// lista de quem está disponível: a cada 60 s (antes era a cada movimento de cada motoboy)
+async function dispLoad(){if(!sb||!uid||document.hidden)return;
+  const r=await sb.from("disponiveis").select("*").gte("atualizado_em",new Date(Date.now()-4*3600e3).toISOString());if(!r.error){disp=r.data;redesenha()}}
+setInterval(dispLoad,60000);
+// conferência leve das corridas abertas (para o alerta não perder nenhuma): só a lista aberta
+window.corrLeve=async function(){if(!sb||!uid||document.hidden)return;
+  const r=await sb.from("corridas").select("*").eq("status","aberta").order("created_at",{ascending:false}).limit(50);
+  if(!r.error){abertas=r.data;redesenha()}};
+// garantia: recarga completa a cada 2 minutos com o app aberto
+setInterval(()=>{if(uid&&!document.hidden)corrLoad()},120000);
 function corrSub(){
   if(corrCanal||!sb.channel)return;
   corrCanal=sb.channel("corridas")
@@ -96,9 +117,8 @@ function corrSub(){
         if(window.alertaCorrida)alertaCorrida(c);else{toast(`Corrida nova: ${c.coleta_bairro} → ${c.entrega_bairro} · ${brl(Number(c.valor))}`);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}}
       if(c&&p.eventType==="UPDATE"&&c.status!=="aberta"&&c.entregador_id!==uid&&window.alertaSumir)alertaSumir(c.id);
       if(c&&c.cliente_id===uid&&p.eventType==="UPDATE"&&p.old&&c.status!==p.old.status&&c.status!=="aberta"){toast("Seu pedido: "+ST[c.status]);if(window.alertaPedido)alertaPedido(c,ST[c.status])}
-      corrRecarregar()})
+      corrAplicar(p)})
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"corrida_msgs"},p=>{const m=p.new;if(!cmsgs[m.corrida_id])return;if(cmsgs[m.corrida_id].some(x=>x.id===m.id))return;cmsgs[m.corrida_id].push(m);corrRender();if(m.user_id!==uid)toast("Mensagem nova na corrida")})
-    .on("postgres_changes",{event:"*",schema:"public",table:"disponiveis"},corrRecarregar)
     .subscribe();
 }
 async function abrirChat(id){if(cmsgs[id])return;const r=await sb.from("corrida_msgs").select("*").eq("corrida_id",id).order("created_at");cmsgs[id]=r.error?[]:r.data;corrRender()}
