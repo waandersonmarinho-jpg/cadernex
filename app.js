@@ -31,7 +31,7 @@ async function boot(){
   if(session&&session.user)enter(session.user);else show("auth");
 }
 async function enter(user){
-  uid=user.id;show("app");go("resumo");$("sync").textContent="Carregando…";
+  uid=user.id;document.body.classList.toggle("promo",!!user.user_metadata?.promotor);show("app");go("resumo");$("sync").textContent="Carregando…";
   // mostra na hora o que estava salvo no celular, enquanto busca o novo
   if(window.cxOff){const c=await cxOff.get("base:"+uid);if(c&&uid===user.id){turnos=c.turnos||[];gastos=c.gastos||[];perfil={...perfil,...(c.perfil||{})};await cxOff.juntarFila();render();$("sync").textContent="Atualizando…"}}
   await loadAll();
@@ -91,7 +91,7 @@ $("fAuth").onsubmit=async e=>{e.preventDefault();const email=$("a-email").value.
   }catch(err){const m=String(err.message||"");
     $("a-msg").textContent=m.includes("Invalid login")?"E-mail ou senha errados.":m.includes("already registered")?"Esse e-mail já tem conta. Toque em \"Já tenho conta\".":m.includes("confirm")?"Confirme seu e-mail antes de entrar.":/rate limit|too many/i.test(m)?"Muitos cadastros agora. Espere alguns minutos e tente de novo.":/Password should|weak/i.test(m)?"Senha fraca. Use pelo menos 6 caracteres, misturando letras e números.":/invalid.*email|email.*invalid/i.test(m)?"Esse e-mail não parece válido. Confira e tente de novo.":/fetch|network/i.test(m)?"Sem conexão. Confira a internet e tente de novo.":"Não deu certo agora. Tente de novo em instantes."}
   $("a-btn").disabled=false};
-$("sair").onclick=async()=>{await sb.auth.signOut();turnos=[];gastos=[];perfil={meta:0};if(typeof agenda!=="undefined"){agenda=[];tarefas=[];gfac=[]}if(typeof cofre!=="undefined")cofre=[];document.body.classList.remove("cli");if(typeof papelAplicado!=="undefined")papelAplicado=null;};
+$("sair").onclick=async()=>{await sb.auth.signOut();turnos=[];gastos=[];perfil={meta:0};if(typeof agenda!=="undefined"){agenda=[];tarefas=[];gfac=[]}if(typeof cofre!=="undefined")cofre=[];document.body.classList.remove("cli","promo");if(typeof papelAplicado!=="undefined")papelAplicado=null;};
 
 /* recuperação de senha: quando volta pelo link do e-mail */
 if(location.hash.includes("type=recovery")){setTimeout(async()=>{

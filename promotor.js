@@ -156,21 +156,19 @@ document.addEventListener("click",e=>{
     if(r.error){toast(erroDe(r.error));return}await admLoad();toast(pagar?"Saque marcado como pago":"Saque recusado: o valor voltou pro saldo")});
 });
 
-/* ---------- quem criou a conta como promotor ---------- */
+/* ---------- conta de promotor: só a área de promotor e a conta ---------- */
 // link direto pro cadastro de promotor: cadernex.com.br/#promotor
 if(/promotor/.test(location.hash)&&el("a-tipo")){el("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="promotor"));
   const l=document.querySelector("#s-auth .lead");if(l)l.textContent="Cadastre lojas no Cadernex e ganhe 2% da taxa delas por 24 meses.";setTimeout(()=>{if(typeof setModo==="function")setModo("criar")},0)}
-// na primeira entrada, quem escolheu "Promover" cai direto na tela do promotor
-async function primeiraVez(){
-  if(!sb||!uid||perfil.promotor)return;const k="cx-promo-ir:"+uid;try{if(localStorage.getItem(k))return}catch(e){return}
-  const md=(await sb.auth.getUser()).data.user?.user_metadata||{};if(!md.promotor)return;
-  try{localStorage.setItem(k,"1")}catch(e){}go("promotor");
-}
+const soPromo=()=>document.body.classList.contains("promo");
+const TELAS_PROMO=["promotor","config"];
 
 /* ---------- ligações com o resto do app ---------- */
-if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="promotor"){pinta();carregar()}if(v==="mais")admLoad();if(v==="perfilc")lojaRender()}}
-const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();lojaRender();admLoad();primeiraVez();
+if(typeof go==="function"){const g=go;go=function(v){if(soPromo()&&!TELAS_PROMO.includes(v))v="promotor";g(v);
+  if(soPromo())document.querySelectorAll(".tab.so-promo").forEach(t=>{if(t.dataset.v===v)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
+  if(v==="promotor"){pinta();carregar()}if(v==="mais")admLoad();if(v==="perfilc")lojaRender()}}
+const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();lojaRender();admLoad();if(soPromo()&&!document.querySelector("#v-promotor:not([hidden]),#v-config:not([hidden])"))go("promotor");
   // entrou pelo link de um promotor e já é loja: vincula sozinho
   if(ehLoja()&&!perfil.indicado_por&&guardado())vincular(guardado(),false)};
-if(uid)setTimeout(()=>{lojaRender();admLoad()},0);
+if(uid)setTimeout(()=>{lojaRender();admLoad();if(soPromo())go("promotor")},0);
 })();

@@ -48,6 +48,10 @@ body{margin:0;padding-top:env(safe-area-inset-top,0px)}
 :root[data-theme="dark"]{
   --bg:#0c0e11; --surface:#171a1f; --line:#262a31; --fg:#eaecef; --muted:#8b93a1;
   --accent:#f3ba2f; --accent-ink:#0c0e11; --accent-soft:#2e2610; --good:#2ebd85; --bad:#f6465d; --money:#f7d774; color-scheme:dark}
+/* área de promotor: azul */
+body.promo,#v-promotor,#pma-card,.tipo-op .tipo-largo{--accent:#1d6fe0;--accent-ink:#ffffff;--accent-soft:#dce9fb;--money:#1557b0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body.promo,:root:not([data-theme="light"]) #v-promotor,:root:not([data-theme="light"]) #pma-card,:root:not([data-theme="light"]) .tipo-op .tipo-largo{--accent:#4f95f5;--accent-ink:#0c0e11;--accent-soft:#13233d;--money:#8cbcff}}
+:root[data-theme="dark"] body.promo,:root[data-theme="dark"] #v-promotor,:root[data-theme="dark"] #pma-card,:root[data-theme="dark"] .tipo-op .tipo-largo{--accent:#4f95f5;--accent-ink:#0c0e11;--accent-soft:#13233d;--money:#8cbcff}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45}
 .wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:16px 110px;display:flex;flex-direction:column;gap:18px}
@@ -242,6 +246,8 @@ table.sem{width:100%;border-collapse:collapse;font-size:14px}
 .ch-regras{margin:0;font-size:12px}
 body.cli .so-ent{display:none!important}
 body:not(.cli) .so-cli{display:none!important}
+body:not(.promo) .so-promo{display:none!important}
+body.promo .tab:not(.so-promo){display:none!important}
 body.cli #timerCard,body.cli #hojeCard{display:none}
 .tipo-op{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tipo-op button{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer;font:inherit}
@@ -1452,6 +1458,8 @@ label.check{min-height:40px;align-items:center}
   <button class="tab so-ent" data-v="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
   <button class="tab so-cli" data-v="pedir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>Pedir</button>
   <button class="tab so-cli" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>Pedidos</button>
+  <button class="tab so-promo" data-v="promotor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Lojas</button>
+  <button class="tab so-promo" data-v="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Conta</button>
   <button class="tab so-cli" data-v="perfilc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button>
 </div></nav>
 <div class="toast" id="toast" hidden></div>

@@ -13,8 +13,8 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&display=swap">
 <style>
-:root{--bg:#f7f5ef;--surface:#fff;--fg:#14161a;--muted:#5f646c;--line:#e4dfd2;--accent:#e0a800;--accent-soft:#f8ebc4;--good:#16865a}
-@media (prefers-color-scheme:dark){:root{--bg:#0c0e11;--surface:#171a1f;--fg:#eaecef;--muted:#8b93a1;--line:#262a31;--accent:#f3ba2f;--accent-soft:#2e2610;--good:#2ebd85;color-scheme:dark}}
+:root{--bg:#f7f5ef;--surface:#fff;--fg:#14161a;--muted:#5f646c;--line:#e4dfd2;--accent:#1d6fe0;--accent-soft:#dce9fb;--good:#16865a}
+@media (prefers-color-scheme:dark){:root{--bg:#0c0e11;--surface:#171a1f;--fg:#eaecef;--muted:#8b93a1;--line:#262a31;--accent:#3b82f6;--accent-soft:#13233d;--good:#2ebd85;color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 "Barlow",system-ui,sans-serif}
 main{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:28px 60px}
@@ -31,7 +31,7 @@ a{color:var(--fg)}
 .selo b{color:var(--fg)}
 .passos{list-style:none;counter-reset:p;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .passos li{counter-increment:p;display:grid;grid-template-columns:32px 1fr;column-gap:12px;align-items:start}
-.passos li::before{content:counter(p);width:30px;height:30px;border-radius:50%;background:var(--accent);color:#14161a;font:700 16px "Barlow Condensed",sans-serif;display:grid;place-items:center;grid-row:span 2}
+.passos li::before{content:counter(p);width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font:700 16px "Barlow Condensed",sans-serif;display:grid;place-items:center;grid-row:span 2}
 .passos b{display:block}.passos span{color:var(--muted);font-size:15px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
@@ -53,9 +53,9 @@ tr:last-child td{border-bottom:0}
 .msg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .msg p{margin:0;white-space:pre-line;font-size:15px}.msg .bts{display:flex;flex-wrap:wrap;gap:8px}
 .msg button,.msg a{font:600 15px "Barlow",sans-serif;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;text-decoration:none}
-.msg a{background:var(--accent);border-color:var(--accent);color:#14161a}
+.msg a{background:var(--accent);border-color:var(--accent);color:#fff}
 .ok{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}.ok li::before{content:"✓ ";color:var(--good);font-weight:700}
-.cta{display:inline-block;margin-top:26px;padding:14px 22px;border-radius:12px;background:var(--accent);color:#14161a;font-weight:600;text-decoration:none}
+.cta{display:inline-block;margin-top:26px;padding:14px 22px;border-radius:12px;background:var(--accent);color:#fff;font-weight:600;text-decoration:none}
 </style>
 <meta property="og:title" content="Seja promotor do Cadernex">
 <meta property="og:description" content="Cadastre lojas e ganhe 2% da taxa do Cadernex sobre cada uma por 24 meses, com saque semanal no Pix.">
