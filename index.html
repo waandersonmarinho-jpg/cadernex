@@ -16,7 +16,7 @@
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://cadernex.com.br/#org","name":"Cadernex","url":"https://cadernex.com.br/","logo":"https://cadernex.com.br/icon-512.png","email":"suporte@cadernex.com.br"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App brasileiro para enviar comida, documentos e encomendas com entregadores de moto e bike, e fretes com picape. Rastreio por GPS e pagamento por Pix. O entregador recebe o valor inteiro da corrida.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"Country","name":"Brasil"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App brasileiro para enviar comida, documentos e encomendas com entregadores de moto e bike, e fretes com picape. Rastreio por GPS e pagamento por Pix. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"Country","name":"Brasil"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -305,6 +305,7 @@ body.cli #timerCard,body.cli #hojeCard{display:none}
 .mp-box{display:flex;flex-direction:column;gap:10px;background:var(--bg);border-radius:10px;padding:12px;box-shadow:inset 0 0 0 1px var(--accent)}
 .cod-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cod-g>div{display:flex;flex-direction:column;gap:2px;background:var(--card,transparent);border-radius:8px;padding:10px;box-shadow:inset 0 0 0 1px var(--line,rgba(127,127,127,.25))}.cod-n{font-size:30px;letter-spacing:6px;font-variant-numeric:tabular-nums;line-height:1.1}.cod-g small{font-size:12px;opacity:.75;line-height:1.3}
 .odo{display:flex;flex-direction:column;gap:10px;width:100%;border-top:1px solid var(--line,rgba(127,127,127,.25));padding-top:12px}.odo-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.odo-g>div{display:flex;flex-direction:column;gap:2px}.odo-g b{font-size:24px}.odo-cfg summary{cursor:pointer;font-size:14px;color:var(--muted,inherit)}.odo-cfg .grid2{margin-top:10px}
+.cm{display:flex;flex-direction:column;gap:8px;box-shadow:inset 0 0 0 1px var(--accent)}.cm.cm-bloq{box-shadow:inset 0 0 0 2px var(--bad)}.cm-v{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.cm-v b{font-size:28px}.cm-pix{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:10px}.cm-pix b{word-break:break-all}.cm-mov{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}.cm-mov small{display:block;color:var(--muted);font-size:12px}.cm-mov b.neg{color:var(--bad)}
 .cod-form{display:flex;flex-direction:column;gap:8px;width:100%}.cod-form input{font-size:24px;letter-spacing:8px;text-align:center;font-variant-numeric:tabular-nums}
 .mp-linhas{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}.mp-linhas span{color:var(--muted)}.mp-linhas b{font-size:16px}.mp-linhas b.num{color:var(--money)}
 .mp-pago{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good);font-weight:600;border-radius:10px;padding:10px 12px}
@@ -1250,15 +1251,16 @@ label.check{min-height:40px;align-items:center}
     <div class="stack">
       <div class="card cad-aviso cad-falta" hidden><span><b>Falta completar seu cadastro</b><br><span class="hint">Sem CPF e dados não dá pra usar as corridas.</span></span><button class="btn" type="button" data-cad="1">Completar</button></div>
       <div><div class="eyebrow">Corridas diretas</div><h2 style="font-size:28px">Corridas</h2></div>
+      <div class="card cm" id="cm-card" hidden></div>
       <div class="card mpi" id="mp-intro" hidden>
         <div class="eyebrow">Cadernex Labs</div>
-        <h2 class="mpi-t">Receba <span>100%</span> da sua corrida</h2>
-        <p class="mpi-lead">No Cadernex quem paga a taxa de serviço é o cliente. O valor que você aceitou cai inteiro na sua conta Mercado Pago, por Pix.</p>
+        <h2 class="mpi-t">Receba <span>94%</span> da sua corrida</h2>
+        <p class="mpi-lead">A taxa de serviço é paga por quem pede. Nas corridas pagas pelo app, o Cadernex fica com só 6%, uma das menores comissões do mercado, e o resto cai na sua conta Mercado Pago na hora. Em dinheiro, é 100% seu.</p>
         <div class="mpi-ex" aria-label="Exemplo de corrida de 15 reais">
           <div><small>Corrida aceita</small><b class="num">R$ 15,00</b></div>
           <div class="mpi-seta">→</div>
-          <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 15,00</b></div>
-          <p>O cliente paga R$ 16,67: a corrida + 10% do Cadernex + a taxa do Pix. Nada sai do seu bolso.</p>
+          <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 14,10</b></div>
+          <p>O cliente paga R$ 16,67 pelo app (corrida + 10% + taxa do Pix). Dos R$ 15,00, o Cadernex fica com 6% (R$ 0,90). Vale a partir de 21/10/2026.</p>
         </div>
         <ol class="mpi-passos">
           <li><b>Tenha uma conta no Mercado Pago</b><span>É grátis e abre pelo celular, com seu CPF. Se já tem, pule este passo.</span></li>
@@ -1464,5 +1466,6 @@ label.check{min-height:40px;align-items:center}
 <script src="push.js"></script>
 <script src="nav.js"></script>
 <script src="odometro.js"></script>
+<script src="comissao.js"></script>
 </body>
 </html>

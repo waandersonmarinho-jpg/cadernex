@@ -1,10 +1,12 @@
 // Cadernex — mp-pagar: cria o pagamento (Pix) da corrida já com a divisão
-// 10% vão pro Cadernex (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
+// Cadernex recebe 10% de quem pede + 6% da corrida (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
 // O cliente paga também a taxa do Mercado Pago, pra o entregador receber o valor inteiro.
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-const TAXA_APP = 0.10; // 10% do Cadernex
+const TAXA_APP = 0.10; // 10% do Cadernex, pago por quem pede
+const COMISSAO = 0.06; // 6% do entregador, descontado do valor da corrida
+const COMISSAO_INICIO = Date.parse("2026-10-21T03:00:00Z"); // 21/10/2026 00h em Brasília
 const SITE = "https://cadernex.com.br";
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -68,6 +70,8 @@ Deno.serve(async (req) => {
     const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
     const taxaApp = enc ? 0 : Math.round(valor * TAXA_APP * 100) / 100;
     const total = Math.ceil(((valor + taxaApp) / (1 - mpTaxa)) * 100) / 100;
+    const comissao = Date.now() >= COMISSAO_INICIO ? Math.round(valor * COMISSAO * 100) / 100 : 0;
+    const fee = Math.round((taxaApp + comissao) * 100) / 100; // o Mercado Pago separa isso pro Cadernex
 
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
@@ -80,7 +84,7 @@ Deno.serve(async (req) => {
           unit_price: total,
           currency_id: "BRL",
         }],
-        ...(taxaApp > 0 ? { marketplace_fee: taxaApp } : {}),
+        ...(fee > 0 ? { marketplace_fee: fee } : {}),
         external_reference: c.id,
         notification_url: `${url}/functions/v1/mp-webhook?c=${c.id}`,
         back_urls: { success: `${SITE}/#pago`, pending: `${SITE}/#pago`, failure: `${SITE}/#pedidos` },
@@ -99,7 +103,7 @@ Deno.serve(async (req) => {
 
     const { error } = await admin.from("pagamentos").upsert({
       corrida_id: c.id, cliente_id: c.cliente_id, entregador_id: c.entregador_id,
-      valor, taxa_app: taxaApp, total, preference_id: p.id, status: "pendente",
+      valor, taxa_app: taxaApp, comissao, total, preference_id: p.id, status: "pendente",
     });
     if (error) throw error;
     return json({ url: p.init_point, total, valor, taxa: Math.round((total - valor) * 100) / 100 });

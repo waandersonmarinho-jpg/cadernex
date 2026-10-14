@@ -4,7 +4,7 @@
 
 - Como funciona: o cliente informa os CEPs de coleta e entrega e escolhe o que vai enviar. O app calcula a distância e o valor (até 3 km, R$ 8; acima de 3 km, + R$ 1,40 por km rodado). Um entregador próximo aceita e o cliente acompanha pelo GPS.
 - Várias entregas de uma vez: restaurantes, farmácias e lojas colocam um endereço de coleta e vários destinos; cada destino vira uma corrida.
-- Pagamento: Pix pelo app (Mercado Pago) ou dinheiro. O entregador recebe o valor inteiro da corrida; a taxa de serviço de 10% é paga pelo cliente.
+- Pagamento: Pix pelo app (Mercado Pago) ou dinheiro. O entregador fica com 94% da corrida paga pelo app (comissão de 6% do Cadernex) e 100% da paga em dinheiro; a taxa de serviço de 10% é paga pelo cliente.
 - Fretes e mudanças: picape pequena, picape média ou caminhão, com agendamento e ajudantes.
 - Segurança: cadastro com CPF, endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
 - Abrangência: todo o Brasil.
