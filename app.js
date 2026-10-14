@@ -32,10 +32,13 @@ async function boot(){
 }
 async function enter(user){
   uid=user.id;show("app");go("resumo");$("sync").textContent="Carregando…";
+  // mostra na hora o que estava salvo no celular, enquanto busca o novo
+  if(window.cxOff){const c=await cxOff.get("base:"+uid);if(c&&uid===user.id){turnos=c.turnos||[];gastos=c.gastos||[];perfil={...perfil,...(c.perfil||{})};await cxOff.juntarFila();render();$("sync").textContent="Atualizando…"}}
   await loadAll();
 }
 async function loadAll(){
   try{
+    if(window.cxOff)await cxOff.enviarFila(); // sobe primeiro o que foi anotado sem internet
     const since=new Date();since.setDate(since.getDate()-400);const s=ymd(since);
     const [t,g,p]=await Promise.all([
       sb.from("turnos").select("*").gte("data",s).order("data",{ascending:false}),
@@ -47,9 +50,17 @@ async function loadAll(){
     gastos=g.data.map(x=>({...x,valor:N(x.valor)}));
     if(p.data)perfil={...p.data,meta:N(p.data.meta)};
     else{const md=(await sb.auth.getUser()).data.user?.user_metadata||{};const nome=md.nome||"",tipo=md.tipo==="cliente"?"cliente":"entregador";perfil={meta:0,nome,tipo,turno_inicio:null};await sb.from("perfis").upsert({user_id:uid,nome,tipo})}
-    $("sync").textContent="Salvo na nuvem";
+    if(window.cxOff){cxOff.set("base:"+uid,{turnos,gastos,perfil,em:Date.now()});await cxOff.juntarFila()}
+    const pend=window.cxOff?await cxOff.pendentes():0;
+    $("sync").textContent=pend?`${pend} anotação${pend>1?"ões":""} esperando internet`:"Salvo na nuvem";
     if(window.agendaLoad)window.agendaLoad();
-  }catch(e){$("sync").textContent="Sem conexão";toast("Não carregou. Confira a internet.")}
+  }catch(e){
+    const c=window.cxOff?await cxOff.get("base:"+uid):null;
+    if(c){if(!turnos.length&&!gastos.length){turnos=c.turnos||[];gastos=c.gastos||[];perfil={...perfil,...(c.perfil||{})}}
+      await cxOff.juntarFila();if(typeof aplicaPapel==="function")try{aplicaPapel()}catch(x){}
+      $("sync").textContent="Sem internet · dados salvos no celular"}
+    else{$("sync").textContent="Sem conexão";toast("Não carregou. Confira a internet.")}
+  }
   render();
 }
 async function savePerfil(patch){
@@ -190,18 +201,29 @@ resetTurno();$("g-data").value=ymd(new Date());
 
 $("timerBtn").onclick=()=>{
   if(perfil.turno_inicio){const s=new Date(perfil.turno_inicio),n=new Date();$("t-data").value=ymd(s);$("t-ini").value=hm(s);const velho=(n-s)/60000>=VELHO;$("t-fim").value=velho?"":hm(n);$("turnoTitle").dataset.fechando="1";$("turnoTitle").textContent=velho?"Que horas você parou nesse dia?":"Fechar turno: quanto ganhou?";go("turno");if(velho){toast("O turno ficou aberto "+Math.floor((n-s)/3600e3)+" horas. Coloque o horário em que parou.");$("t-fim").focus()}else $("t-ganho").focus()}
-  else safe(()=>savePerfil({turno_inicio:new Date().toISOString()}),"Turno iniciado. Bom corre!")};
+  else{const ini=new Date().toISOString();
+    safe(async()=>{try{await savePerfil({turno_inicio:ini});toast("Turno iniciado. Bom corre!")}
+      catch(x){if(!window.cxOff||!cxOff.semRede(x))throw x;perfil={...perfil,turno_inicio:ini};await cxOff.fila.add({tab:"perfil",row:{turno_inicio:ini}});render();toast("Sem internet: turno iniciado no celular. Bom corre!")}
+      if(window.cxTurnoIni)cxTurnoIni()})}};
 
 $("fTurno").onsubmit=e=>{e.preventDefault();const ganho=num($("t-ganho").value),gorjeta=num($("t-gorj").value);if(ganho<=0&&gorjeta<=0){toast("Coloque quanto ganhou");return}
   const o={data:$("t-data").value,inicio:$("t-ini").value,fim:$("t-fim").value,minutos:mins($("t-ini").value,$("t-fim").value),app:"Cadernex",ganho,gorjeta,km:num($("t-km").value),entregas:Math.round(num($("t-ent").value))};
   const fechando=$("turnoTitle").dataset.fechando==="1";
-  safe(async()=>{const {data,error}=await sb.from("turnos").insert(o).select().single();if(error)throw error;
-    turnos.unshift({...data,ganho:N(data.ganho),gorjeta:N(data.gorjeta),km:N(data.km)});
-    if(fechando)await savePerfil({turno_inicio:null});resetTurno();render();go("turno")},"Turno salvo")};
+  o.id=window.cxOff?cxOff.novoId():undefined;if(!o.id)delete o.id;
+  safe(async()=>{let off=false;const {data,error}=await sb.from("turnos").insert(o).select().single();
+    if(error){if(!window.cxOff||!cxOff.semRede(error)||!o.id)throw error;await cxOff.fila.add({tab:"turnos",row:o});off=true}
+    const d=off?o:data;turnos.unshift({...d,ganho:N(d.ganho),gorjeta:N(d.gorjeta),km:N(d.km),...(off?{_off:1}:{})});
+    if(fechando){if(off){perfil={...perfil,turno_inicio:null};await cxOff.fila.add({tab:"perfil",row:{turno_inicio:null}})}
+      else await savePerfil({turno_inicio:null}).catch(async x=>{if(!cxOff.semRede(x))throw x;perfil={...perfil,turno_inicio:null};await cxOff.fila.add({tab:"perfil",row:{turno_inicio:null}});off=true})}
+    if(window.cxTurnoFim)cxTurnoFim();
+    resetTurno();render();go("turno");toast(off?"Sem internet: turno salvo no celular. Sobe sozinho quando a internet voltar.":"Turno salvo")})};
 
 $("fGasto").onsubmit=e=>{e.preventDefault();const v=num($("g-valor").value);if(v<=0){toast("Coloque o valor");return}
-  safe(async()=>{const {data,error}=await sb.from("despesas").insert({data:$("g-data").value,categoria:picked($("g-cats")),valor:v,nota:$("g-nota").value.trim()}).select().single();if(error)throw error;
-    gastos.unshift({...data,valor:N(data.valor)});$("g-valor").value="";$("g-nota").value="";render();go("turno")},"Despesa salva")};
+  const row={data:$("g-data").value,categoria:picked($("g-cats")),valor:v,nota:$("g-nota").value.trim()};if(window.cxOff)row.id=cxOff.novoId();
+  safe(async()=>{let off=false;const {data,error}=await sb.from("despesas").insert(row).select().single();
+    if(error){if(!window.cxOff||!cxOff.semRede(error))throw error;await cxOff.fila.add({tab:"despesas",row});off=true}
+    const d=off?row:data;gastos.unshift({...d,valor:N(d.valor),...(off?{_off:1}:{})});$("g-valor").value="";$("g-nota").value="";render();go("turno");
+    toast(off?"Sem internet: despesa salva no celular. Sobe sozinha quando a internet voltar.":"Despesa salva")})};
 
 $("fCfg").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({meta:num($("c-meta").value),nome:$("c-nome").value.trim()}),"Ajustes salvos")};
 

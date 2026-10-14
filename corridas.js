@@ -68,7 +68,12 @@ async function corrLoad(){
     sb.from("corridas").select("*").eq("status","aberta").order("created_at",{ascending:false}).limit(50),
     sb.from("corridas").select("*").or(`cliente_id.eq.${uid},entregador_id.eq.${uid}`).order("created_at",{ascending:false}).limit(40),
     sb.from("disponiveis").select("*")]);
-  if(a.error||m.error||d.error){corrOk=false;corrRender();return}
+  if(a.error||m.error||d.error){
+    // sem internet: mostra as corridas que estavam salvas no celular (com endereço das que estão em andamento)
+    const c=window.cxOff?await cxOff.get("corr:"+uid):null;
+    if(c&&!minhas.length){minhas=c.minhas||[];Object.assign(dets,c.dets||{});Object.assign(cods,c.cods||{});corrOk=true;if(!window.__corrOffAviso){window.__corrOffAviso=1;toast("Sem internet: mostrando suas corridas salvas no celular")}}
+    else if(!c)corrOk=false;
+    corrRender();return}
   corrOk=true;abertas=a.data;minhas=m.data;disp=d.data;
   const ri=await sb.from("infracoes").select("id,corrida_id,motivo,alvo_id,autor_id,arquivada");relatos=ri.error?[]:ri.data;
   const ids=minhas.filter(c=>["aceita","coletada","entregue"].includes(c.status)||c.cliente_id===uid).map(c=>c.id);
@@ -76,6 +81,9 @@ async function corrLoad(){
   // códigos de coleta e entrega: só quem pediu enxerga
   const meusIds=minhas.filter(c=>c.cliente_id===uid&&["aberta","aceita","coletada"].includes(c.status)).map(c=>c.id);
   if(meusIds.length){const r=await sb.from("corrida_codigos").select("corrida_id,coleta,entrega").in("corrida_id",meusIds);if(!r.error)r.data.forEach(x=>cods[x.corrida_id]=x)}
+  if(window.cxOff){const ativos=minhas.filter(c=>["aberta","aceita","coletada"].includes(c.status)),ids2=new Set(ativos.map(c=>c.id)),dd={},cc={};
+    ids2.forEach(id=>{if(dets[id])dd[id]=dets[id];if(cods[id])cc[id]=cods[id]});
+    cxOff.set("corr:"+uid,{minhas:minhas.slice(0,20),dets:dd,cods:cc,em:Date.now()})} // só endereço de corrida em andamento
   for(const c of minhas)if(c.entregador_id&&c.cliente_id===uid&&!medias[c.entregador_id]){const r=await sb.rpc("media_entregador",{uid:c.entregador_id});if(!r.error)medias[c.entregador_id]=r.data}
   corrRender();corrSub();
 }
