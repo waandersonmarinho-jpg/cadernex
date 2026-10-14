@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0c0e11">
 <script>(function(){var t;try{t=localStorage.getItem("cx-tema")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
-<meta name="description" content="Peça entregas de moto e bike, coletas e fretes com picape. Entregadores e freteiros perto de você, rastreio por GPS e pagamento por Pix. Comida, documentos e encomendas, uma ou várias entregas de uma vez.">
+<meta name="description" content="Peça entregas de moto e bike, coletas e fretes com picape. Entregadores e freteiros perto de você, rastreio por GPS e pagamento por Pix. Comida, documentos e encomendas, uma ou várias entregas de uma vez. Seja promotor e ganhe cadastrando lojas.">
 <link rel="canonical" href="https://cadernex.com.br/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cadernex">
@@ -16,7 +16,7 @@
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://cadernex.com.br/#org","name":"Cadernex","url":"https://cadernex.com.br/","logo":"https://cadernex.com.br/icon-512.png","email":"suporte@cadernex.com.br"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App brasileiro para enviar comida, documentos e encomendas com entregadores de moto e bike, e fretes com picape. Rastreio por GPS e pagamento por Pix. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"Country","name":"Brasil"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App brasileiro para enviar comida, documentos e encomendas com entregadores de moto e bike, e fretes com picape. Rastreio por GPS e pagamento por Pix. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro. Promotores autônomos ganham 2% da taxa de cada loja que cadastram, por 24 meses, com saque semanal por Pix.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"Country","name":"Brasil"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -571,7 +571,7 @@ label.check{min-height:40px;align-items:center}
   </section>
 
   <section id="s-auth" class="auth" hidden>
-    <p class="lead">Coleta e envios: peça uma entrega, um frete ou receba corridas como entregador.</p>
+    <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>
     <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
     <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
     <div class="card">
@@ -580,7 +580,7 @@ label.check{min-height:40px;align-items:center}
         <div id="a-tipo-w" hidden><div class="eyebrow" style="margin-bottom:6px">Você quer</div><div class="tipo-op" id="a-tipo" role="radiogroup">
           <button type="button" role="radio" data-tipo="entregador" aria-checked="true"><b>Rodar</b><span>Sou entregador de bike, moto ou carro de frete</span></button>
           <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Enviar</b><span>Comida, documentos, encomendas e fretes</span></button>
-          <button type="button" role="radio" data-tipo="promotor" aria-checked="false" class="tipo-largo"><b>Promover</b><span>Cadastro lojas no Cadernex e ganho 2% da taxa delas por 24 meses, com saque toda semana no Pix</span></button></div></div>
+          <button type="button" role="radio" data-tipo="promotor" aria-checked="false" class="tipo-largo"><b>Promover</b><span>Cadastro lojas no Cadernex, em qualquer cidade, e ganho 2% da taxa delas por 24 meses a partir da 2ª entrega, com saque toda semana no Pix</span></button></div></div>
         <label id="a-nome-w" hidden>Seu nome<input type="text" id="a-nome" autocomplete="name" placeholder="como quer ser chamado"></label>
         <label>E-mail<input type="email" id="a-email" autocomplete="email" required></label>
         <label>Senha<input type="password" id="a-senha" autocomplete="current-password" minlength="6" required></label>

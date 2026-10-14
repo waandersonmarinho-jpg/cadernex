@@ -7,7 +7,7 @@
 - Pagamento: Pix pelo app (Mercado Pago) ou dinheiro. O entregador fica com 94% da corrida paga pelo app (comissão de 6% do Cadernex) e 100% da paga em dinheiro; a taxa de serviço de 10% é paga pelo cliente.
 - Fretes e mudanças: picape pequena, picape média ou caminhão, com agendamento e ajudantes.
 - Segurança: cadastro com CPF, endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
-- Promotores: quem cadastra lojas no Cadernex ganha 2% da taxa do app sobre cada loja durante 24 meses, com saque semanal por Pix. Cadastro grátis, escolhendo "Promover" ao criar a conta.
+- Promotores: autônomos, sem vínculo de emprego, que atuam em todo o Brasil cadastrando lojas. Ganham 2% da taxa do Cadernex sobre cada loja durante 24 meses, a partir da 2ª entrega paga pelo app (a 1ª é da fidelidade da loja com o Cadernex), com saque semanal por Pix a partir de R$ 5. Cadastro grátis, escolhendo "Promover" ao criar a conta, com nome, CPF e aceite do Termo do Promotor Autônomo (https://cadernex.com.br/termo-promotor.html). Cada loja tem uma conta só, e conta de loja não pode ser promotor.
 - Abrangência: todo o Brasil.
 - Suporte: suporte@cadernex.com.br
 
