@@ -67,7 +67,7 @@ async function savePerfil(patch){
   const {error}=await sb.from("perfis").upsert({user_id:uid,...perfil,...patch,updated_at:new Date().toISOString()});
   if(error)throw error;perfil={...perfil,...patch};render();
 }
-async function safe(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){console.error(e);toast("Não salvou. Confira a internet e tente de novo.")}}
+async function safe(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){console.error(e);toast(e&&e.cxMsg||"Não salvou. Confira a internet e tente de novo.")}}
 
 /* ---------------- login ---------------- */
 let modo="entrar";

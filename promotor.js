@@ -27,7 +27,8 @@ const ERROS={codigo:"Esse código de promotor não existe. Confira as letras.",p
   convite_usado:"Esse convite já foi usado por outra conta.",
   dados_nome:"Coloque seu nome completo (nome e sobrenome).",dados_cpf_usado:"Esse CPF já está cadastrado em outra conta de promotor.",dados_cpf:"CPF com 11 números.",
   dados_idade:"Para ser promotor é preciso ter 18 anos ou mais.",dados_whats:"WhatsApp com DDD, ex.: (62) 99999-9999.",dados_cidade:"Coloque sua cidade.",dados_uf:"Escolha seu estado.",
-  dados_termos:"Para continuar, aceite o Termo do Promotor Autônomo.",dados_faltam:"Complete seus dados de promotor.",saldo_sacar:"Antes de sair, saque o seu saldo.",convite:"Convite não encontrado. Peça um novo ao promotor."};
+  dados_termos:"Para continuar, aceite o Termo do Promotor Autônomo.",dados_faltam:"Complete seus dados de promotor.",saldo_sacar:"Antes de sair, saque o seu saldo.",
+  loja_promotor:"Conta de loja não pode ser promotor. Para ser promotor, use outra conta, sem loja.",loja_duplicada:"Já existe uma loja no Cadernex com esse WhatsApp ou CNPJ. Cada loja tem uma conta só.",convite:"Convite não encontrado. Peça um novo ao promotor."};
 const erroDe=e=>{const m=String(e?.message||"");for(const k in ERROS)if(m.includes(k))return ERROS[k];return"Não deu certo agora. Confira a internet e tente de novo."};
 
 /* ---------- loja: vínculo com o promotor ---------- */
@@ -41,6 +42,7 @@ async function vincular(cod,avisa){
   if(!p.error&&p.data)Object.assign(perfil,p.data);lojaRender();toast(`Loja cadastrada pelo promotor ${r.data}`);return true;
 }
 function lojaRender(){
+  document.querySelectorAll('[data-go="promotor"]').forEach(b=>{b.hidden=ehLoja()&&!perfil.promotor});
   const w=el("lj-promo-w");if(!w)return;
   if(perfil.indicado_por){w.innerHTML=`<p class="hint" style="margin:0">Loja cadastrada pelo promotor <b>${esc(meuPromotor||"…")}</b>.</p>`;
     if(!meuPromotor&&sb&&uid)sb.rpc("promotor_meu").then(r=>{if(!r.error&&r.data){meuPromotor=r.data;lojaRender()}});return}
@@ -49,7 +51,8 @@ function lojaRender(){
 }
 document.addEventListener("input",e=>{if(e.target.id==="lj-promo")e.target.value=limpa(e.target.value)});
 // depois que a loja salva as informações, faz o vínculo com o código digitado ou do link
-const _sp=savePerfil;savePerfil=async function(patch){await _sp(patch);
+const _sp=savePerfil;savePerfil=async function(patch){
+  try{await _sp(patch)}catch(e){const m=String(e?.message||"");if(/loja_duplicada|loja_promotor/.test(m))e.cxMsg=erroDe(e);throw e}
   if(ehLoja()&&!perfil.indicado_por){const c=el("lj-promo")?.value||guardado();if(c)await vincular(c,!!el("lj-promo")?.value)}};
 
 /* ---------- tela do promotor ---------- */
@@ -67,6 +70,7 @@ function pinta(){
   if(cadAberto){if(!el("pm-cad")){w.innerHTML=formHTML();scrollTo(0,0)}return}
   if(!painel){w.innerHTML=`<p class="hint">Carregando…</p>`;return}
   if(painel.erro){w.innerHTML=`<div class="card"><p class="hint" style="margin:0">Não deu pra carregar agora. Confira a internet.</p></div>`;return}
+  if(!painel.promotor&&ehLoja()){w.innerHTML=`<div class="card stack"><h2>Conta de loja</h2><p style="margin:0">Esta conta é da loja <b>${esc(perfil.loja_nome)}</b>. Cada loja tem uma conta só, e conta de loja não pode ser promotor.</p><p class="hint" style="margin:0">Quer ser promotor e cadastrar várias lojas? Crie outra conta escolhendo “Promover”, com outro e-mail.</p></div>`;return}
   if(!painel.promotor){w.innerHTML=`
     <div class="card stack pm-intro">
       <h2>Ganhe cadastrando lojas</h2>
