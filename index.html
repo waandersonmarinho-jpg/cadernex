@@ -365,6 +365,12 @@ a.btn{text-align:center;text-decoration:none;display:block}
 .sd-bk{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
 #lj-res{font-size:14px;color:var(--muted)}.lj-doc{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:2px}.lj-doc .ok{color:var(--good);font-weight:600}
 .parado{border-color:var(--accent)!important}.parado-ac{display:flex;gap:8px}.parado-ac .btn{flex:1;padding:10px}
+.pm-tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.pm-tot div{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}.pm-tot b{font-size:18px;overflow-wrap:anywhere}.pm-tot span{font-size:13px;color:var(--muted)}
+.pm-passos{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.pm-cod{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.pm-cod b{font-size:28px;letter-spacing:.12em}
+.pm-aviso{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:14px}.pm-aviso span{color:var(--muted)}
+.pm-link{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;overflow-wrap:anywhere;color:var(--muted)}
+.pma-pg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}.pma-pg b{flex:1 1 100%}.pma-pg input{flex:1;min-width:0;max-width:130px}.pma-pg .btn{padding:8px 14px}
 .adm-it{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
 .adm-it .t{font-weight:700}.adm-it .s{font-size:13px;color:var(--muted)}.adm-it .def{font-size:14px}
 textarea{font:500 16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
@@ -1106,6 +1112,7 @@ label.check{min-height:40px;align-items:center}
       <button class="card maisbtn" type="button" data-go="pedir"><b>Pedir uma entrega</b><span>Precisa mandar algo? Peça pra outro entregador</span></button>
       <button class="card maisbtn" type="button" data-go="pedidos"><b>Meus pedidos</b><span>Acompanhe as entregas que você pediu</span></button>
       <button class="card maisbtn destaque" type="button" data-go="negocio"><b>Do corre ao negócio</b><span>Regra dos 10% e lições de empreendedorismo</span></button>
+      <button class="card maisbtn" type="button" data-go="promotor"><b>Promotor de lojas</b><span>Cadastre lojas e ganhe 2% da taxa do Cadernex sobre elas por 24 meses</span></button>
       <button class="card maisbtn" type="button" data-go="hist"><b>Histórico e ajustes</b><span>Tudo que você anotou, meta da semana e planilha</span></button>
       <a class="card maisbtn so-ent" href="autonomo.html" style="text-decoration:none"><b>Você é autônomo</b><span>Seus direitos, liberdade de horário, INSS e MEI</span></a>
       <div class="card stack" id="on-card" hidden><button type="button" class="cad-h" id="on-abre" aria-expanded="false" aria-controls="on-corpo"><span class="cad-ht"><h2>Online agora</h2><span id="on-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -1125,10 +1132,19 @@ label.check{min-height:40px;align-items:center}
         <div class="stack" id="sd-lista" style="gap:8px"></div>
         <button class="btn ghost" type="button" id="sd-limpar" hidden>Limpar lista de erros</button>
         <button class="link" type="button" id="sd-atual" style="align-self:center">Atualizar lista</button></div></div>
+      <div class="card stack" id="pma-card" hidden><button type="button" class="cad-h" id="pma-abre" aria-expanded="false" aria-controls="pma-corpo"><span class="cad-ht"><h2>Promotores</h2><span id="pma-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="stack" id="pma-corpo" hidden><p class="hint" style="margin:0">Os promotores pedem o saque uma vez por semana. Faça o Pix pelo seu banco e toque em “Já fiz o Pix”.</p><div class="stack" id="pma-lista" style="gap:8px"></div><button class="link" type="button" id="pma-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxa de serviço (10%) dos pagamentos pelo app, por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
       <div class="card" id="adm-card" hidden><h2>Moderação</h2><p class="hint" style="margin:4px 0 10px">Contas bloqueadas por 3 relatos, esperando sua análise.</p><div class="stack" id="adm-lista"></div></div>
       <button class="card maisbtn inst-box" type="button" data-instalar hidden><b>Baixar o app</b><span>Coloque o Cadernex na tela do celular, como um app</span></button>
       <button class="card maisbtn" type="button" data-go="config"><b>Configurações</b><span>Sua conta, modo claro ou escuro, trocar senha e sair</span></button>
+    </div>
+  </section>
+  <!-- PROMOTOR DE LOJAS -->
+  <section id="v-promotor" class="view" hidden>
+    <div class="stack">
+      <h2 style="font-size:28px">Promotor de lojas</h2>
+      <div class="stack" id="pm-corpo"></div>
     </div>
   </section>
   <!-- CONFIGURAÇÕES -->
@@ -1400,9 +1416,11 @@ label.check{min-height:40px;align-items:center}
           <label>Facebook<input type="text" id="lj-face" maxlength="120" autocapitalize="none" autocomplete="off" spellcheck="false"></label>
           <label>Site ou cardápio online<input type="text" inputmode="url" id="lj-site" maxlength="120" autocapitalize="none" autocomplete="url" spellcheck="false"></label>
           <div class="lj-doc" id="lj-doc" hidden></div>
+          <div id="lj-promo-w"></div>
           <p class="hint" style="margin:0">Quer formalizar a parceria? <a href="contrato-lojista.pdf" target="_blank" rel="noopener">Baixe o contrato para lojistas (PDF)</a>: sem mensalidade, sem fidelidade, você só paga quando tem entrega.</p>
           <button class="btn full" type="submit">Salvar informações da loja</button>
         </form></div>
+      <button class="card maisbtn" type="button" data-go="promotor"><b>Promotor de lojas</b><span>Cadastre lojas e ganhe 2% da taxa do Cadernex sobre elas por 24 meses</span></button>
       <p class="hint rel-cont" style="margin:0"></p>
       <div class="card stack rg"><h2>Regras e privacidade</h2><p class="hint" style="margin:0">Como funciona, preço, cancelamento, o que não pode enviar e seus dados.</p>
         <div class="rg-links"><a class="link" href="regras.html">Regras completas</a><a class="link" href="privacidade.html">Política de privacidade</a><a class="link" href="contrato-lojista.pdf" target="_blank" rel="noopener">Contrato para lojistas (PDF)</a></div>
@@ -1467,5 +1485,6 @@ label.check{min-height:40px;align-items:center}
 <script src="nav.js"></script>
 <script src="odometro.js"></script>
 <script src="comissao.js"></script>
+<script src="promotor.js"></script>
 </body>
 </html>
