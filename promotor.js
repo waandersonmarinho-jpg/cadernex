@@ -20,7 +20,11 @@ const guardado=()=>{try{return localStorage.getItem(KEY)||""}catch(e){return""}}
 const esquece=()=>{try{localStorage.removeItem(KEY)}catch(e){}};
 
 const ERROS={codigo:"Esse código de promotor não existe. Confira as letras.",proprio:"Você não pode ser promotor da sua própria loja.",
-  ja_vinculada:"Sua loja já tem um promotor.",semana:"Você já sacou esta semana. Tente de novo na data indicada.",minimo:"Saldo abaixo do mínimo para saque.",saque_aberto:"Você já tem um saque esperando o Pix.",saque:"Esse saque já foi resolvido.",nao_loja:"Salve o nome da loja primeiro.",pix:"Coloque uma chave Pix válida.",bloqueado:"Sua conta está em análise.",admin:"Só o moderador."};
+  ja_vinculada:"Sua loja já tem um promotor.",semana:"Você já sacou esta semana. Tente de novo na data indicada.",minimo:"Saldo abaixo do mínimo para saque.",saque_aberto:"Você já tem um saque esperando o Pix.",saque:"Esse saque já foi resolvido.",nao_loja:"Salve o nome da loja primeiro.",pix:"Coloque uma chave Pix válida.",bloqueado:"Sua conta está em análise.",admin:"Só o moderador.",
+  loja_existe:"Essa loja já usa o Cadernex (mesmo WhatsApp ou CNPJ).",outro_promotor:"Outro promotor já cadastrou essa loja.",repetida:"Você já cadastrou essa loja.",
+  falta_nome:"Coloque o nome da loja.",falta_responsavel:"Coloque o nome do responsável.",falta_rua:"Coloque a rua.",falta_numero:"Coloque o número.",falta_bairro:"Coloque o bairro.",falta_cidade:"Coloque a cidade.",falta_uf:"Coloque o estado (UF).",
+  whats:"WhatsApp com DDD, ex.: (62) 99999-9999.",cep:"CEP com 8 números.",cnpj:"CNPJ inválido.",nao_apaga:"Essa loja já foi ativada.",
+  convite_usado:"Esse convite já foi usado por outra conta.",convite:"Convite não encontrado. Peça um novo ao promotor."};
 const erroDe=e=>{const m=String(e?.message||"");for(const k in ERROS)if(m.includes(k))return ERROS[k];return"Não deu certo agora. Confira a internet e tente de novo."};
 
 /* ---------- loja: vínculo com o promotor ---------- */
@@ -46,14 +50,17 @@ const _sp=savePerfil;savePerfil=async function(patch){await _sp(patch);
   if(ehLoja()&&!perfil.indicado_por){const c=el("lj-promo")?.value||guardado();if(c)await vincular(c,!!el("lj-promo")?.value)}};
 
 /* ---------- tela do promotor ---------- */
-let painel=null,carregando=false;
+let painel=null,carregando=false,pendentes=[],cadAberto=false,recemConvite=null;
 async function carregar(){
   if(!sb||!uid||carregando)return;carregando=true;
-  try{const r=await sb.rpc("promotor_painel");painel=r.error?{erro:true}:r.data}finally{carregando=false}
+  try{const r=await sb.rpc("promotor_painel");painel=r.error?{erro:true}:r.data;
+    if(painel?.promotor){const q=await sb.from("promotor_lojas").select("id,nome,responsavel,whats,bairro,convite,criado_em").eq("status","pendente").order("criado_em",{ascending:false});pendentes=q.error?[]:q.data||[]}
+  }finally{carregando=false}
   pinta();
 }
 function pinta(){
   const w=el("pm-corpo");if(!w)return;
+  if(cadAberto){if(!el("pm-cad")){w.innerHTML=formHTML();scrollTo(0,0)}return}
   if(!painel){w.innerHTML=`<p class="hint">Carregando…</p>`;return}
   if(painel.erro){w.innerHTML=`<div class="card"><p class="hint" style="margin:0">Não deu pra carregar agora. Confira a internet.</p></div>`;return}
   if(!painel.promotor){w.innerHTML=`
@@ -81,6 +88,15 @@ function pinta(){
       <div class="pm-tot"><div><b class="num">${brl(Number(p.mes))}</b><span>Este mês</span></div><div><b class="num">${brl(Number(p.ganho))}</b><span>Total ganho</span></div><div><b class="num">${p.lojas.length}</b><span>Loja${p.lojas.length==1?"":"s"}</span></div></div>
       ${saque}
       <p class="hint" style="margin:0">Você ganha ${pct(p.taxa)} da taxa do Cadernex sobre o que cada loja paga pelo app, por ${p.meses||24} meses desde o cadastro dela. Um saque por semana, a partir de ${brl(min)}, na chave Pix <b>${esc(p.pix)}</b>.</p>
+    </div>
+    ${recemConvite?conviteHTML(recemConvite,true):""}
+    <div class="card stack pm-nova">
+      <h2>Cadastrar loja</h2>
+      <p class="hint" style="margin:0">Está na loja? Preencha os dados com o dono ou gerente. Depois mande o convite: a loja cria a senha e já entra pronta, ligada a você.</p>
+      <button class="btn full" type="button" data-pmnova>+ Cadastrar nova loja</button>
+      ${pendentes.length?`<b>Esperando a loja ativar</b><div class="stack" style="gap:8px">${pendentes.map(l=>`<div class="adm-it"><div class="cad-l1"><span class="t">${esc(l.nome)}</span><span class="cad-tp">Pendente</span></div>
+        <div class="s">${esc(l.responsavel)} · ${esc(l.bairro)} · cadastrada em ${data(l.criado_em)}</div>
+        <div class="grid2"><a class="btn" target="_blank" rel="noopener" href="${zapConvite(l)}">Reenviar convite</a><button class="btn ghost" type="button" data-pmapaga="${l.id}">Apagar</button></div></div>`).join("")}</div>`:""}
     </div>
     <div class="card stack">
       <h2>Seu link de promotor</h2>
@@ -119,6 +135,141 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-pmcopia]")&&painel?.codigo){const l=linkDe(painel.codigo);
     (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado"),()=>{window.prompt("Copie o link:",l)})}
 });
+
+/* ---------- promotor cadastra a loja ---------- */
+const RAMOS=["Farmácia","Restaurante","Lanchonete","Pizzaria","Açaí e sorveteria","Mercado","Padaria","Loja de roupas","Pet shop","Loja","Outro"];
+const UFS="AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
+const dig=v=>String(v||"").replace(/\D/g,"");
+const fmtTel=t=>{t=dig(t).slice(0,11);return t.length>10?t.replace(/(\d{2})(\d{5})(\d{0,4})/,"($1) $2-$3"):t.length>6?t.replace(/(\d{2})(\d{4})(\d{0,4})/,"($1) $2-$3"):t.length>2?t.replace(/(\d{2})(\d+)/,"($1) $2"):t};
+const fmtCnpj=c=>{c=dig(c).slice(0,14);return c.replace(/^(\d{2})(\d)/,"$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3").replace(/\.(\d{3})(\d)/,".$1/$2").replace(/(\d{4})(\d)/,"$1-$2")};
+function cnpjOk(c){c=dig(c);if(c.length!==14||/^(\d)\1{13}$/.test(c))return false;
+  const calc=n=>{let s=0,p=n-7;for(let i=0;i<n;i++){s+=+c[i]*p--;if(p<2)p=9}const r=s%11;return r<2?0:11-r};return calc(12)===+c[12]&&calc(13)===+c[13]}
+const prazo=(u,ms=8000)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);return fetch(u,{signal:ac.signal,headers:{"Accept-Language":"pt-BR"}}).finally(()=>clearTimeout(t))};
+async function cepBusca(c){try{const d=await (await prazo(`https://viacep.com.br/ws/${c}/json/`)).json();return d.erro?null:d}catch(e){return null}}
+async function geoEndereco(q){try{const d=await (await prazo("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q="+encodeURIComponent(q))).json();return d[0]?{lat:+d[0].lat,lng:+d[0].lon}:null}catch(e){return null}}
+const linkConvite=tk=>`${SITE}?l=${tk}#pedir`;
+function zapConvite(l){const nome=String(l.responsavel||"").split(" ")[0];
+  const t=`Oi${nome?", "+nome:""}! Cadastrei a ${l.nome} no Cadernex, o app de entregas com motoboys e bikes da região. Pra ativar, toque no link e crie a senha da loja (leva 1 minuto): ${linkConvite(l.convite)}`;
+  return `https://wa.me/55${dig(l.whats)}?text=${encodeURIComponent(t)}`}
+function conviteHTML(l,novo){return `<div class="card stack pm-ok">
+  <b>${novo?"✓ Loja cadastrada: ":""}${esc(l.nome)}</b>
+  <p class="hint" style="margin:0">Agora mande o convite para ${esc(l.responsavel)}. A loja toca no link, cria a senha e já entra com tudo preenchido e ligada a você. A comissão começa quando a loja ativar.</p>
+  <a class="btn full" target="_blank" rel="noopener" href="${zapConvite(l)}">Mandar convite no WhatsApp da loja</a>
+  <div class="pm-link">${esc(linkConvite(l.convite))}</div>
+  <div class="grid2"><button class="btn ghost" type="button" data-pmcopconv="${esc(l.convite)}">Copiar link</button><button class="btn ghost" type="button" data-pmokfecha>Fechar</button></div></div>`}
+let geoAtual=null;
+function formHTML(){return `<form class="card stack" id="pm-cad" novalidate>
+  <div class="cad-l1"><h2>Cadastrar loja</h2><button class="link" type="button" data-pmcancela>Cancelar</button></div>
+  <p class="hint" style="margin:0">Campos com * são obrigatórios.</p>
+  <b class="pm-sec">A loja</b>
+  <label>Nome da loja *<input id="cl-nome" maxlength="60" autocomplete="off"></label>
+  <label>Ramo<select id="cl-ramo"><option value="">Escolha</option>${RAMOS.map(r=>`<option>${r}</option>`).join("")}</select></label>
+  <label>CNPJ <small class="hint" style="font-weight:400">(se tiver)</small><input id="cl-cnpj" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00"></label>
+  <label>Horário de funcionamento<input id="cl-hora" maxlength="60" placeholder="ex.: seg a sáb, 8h às 20h"></label>
+  <b class="pm-sec">Contato</b>
+  <label>Nome do responsável *<input id="cl-resp" maxlength="80" autocomplete="off" placeholder="dono ou gerente"></label>
+  <label>WhatsApp da loja *<input id="cl-whats" type="tel" inputmode="numeric" autocomplete="off" placeholder="(62) 99999-9999"><small class="hint" style="font-weight:400">O convite vai para este número.</small></label>
+  <div class="grid2"><label>Telefone fixo<input id="cl-tel" type="tel" inputmode="numeric" autocomplete="off"></label>
+  <label>E-mail<input id="cl-email" type="email" inputmode="email" autocomplete="off" autocapitalize="none"></label></div>
+  <b class="pm-sec">Endereço</b>
+  <label>CEP *<input id="cl-cep" inputmode="numeric" autocomplete="off" placeholder="00000-000"><small class="hint" id="cl-cepmsg" style="font-weight:400">Preenche a rua, o bairro e a cidade sozinho.</small></label>
+  <label>Rua *<input id="cl-rua" maxlength="120"></label>
+  <div class="grid2"><label>Número *<input id="cl-num" maxlength="20" inputmode="numeric"></label><label>Complemento<input id="cl-comp" maxlength="60" placeholder="sala, loja…"></label></div>
+  <label>Bairro *<input id="cl-bairro" maxlength="60"></label>
+  <div class="pm-cid"><label>Cidade *<input id="cl-cid" maxlength="60"></label><label>UF *<select id="cl-uf"><option value=""></option>${UFS.map(u=>`<option>${u}</option>`).join("")}</select></label></div>
+  <b class="pm-sec">Localização no mapa</b>
+  <div class="pm-geo" id="cl-geo"><span>Ainda sem localização. Se você está na loja, use o GPS. Se não, a gente acha pelo endereço ao salvar.</span></div>
+  <button class="btn ghost full" type="button" data-pmgps>📍 Estou na loja: usar minha localização</button>
+  <label>Observações<textarea id="cl-obs" maxlength="300" rows="2" placeholder="ex.: entrada pelos fundos, fala com a Maria"></textarea></label>
+  <label class="pm-aceite"><input type="checkbox" id="cl-ok"> <span>O responsável pela loja autorizou este cadastro e vai receber o convite no WhatsApp.</span></label>
+  <p class="hint" id="cl-msg" style="margin:0;color:var(--bad)"></p>
+  <button class="btn full" type="submit" id="cl-salvar">Salvar loja e gerar convite</button>
+</form>`}
+function geoPinta(origem){const g=el("cl-geo");if(!g)return;
+  g.innerHTML=geoAtual?`<span>✓ ${origem==="gps"?"Localização do GPS":"Achamos pelo endereço"}: ${geoAtual.lat.toFixed(5)}, ${geoAtual.lng.toFixed(5)}</span><a href="https://www.google.com/maps?q=${geoAtual.lat},${geoAtual.lng}" target="_blank" rel="noopener">Ver no mapa</a>`
+    :`<span>Ainda sem localização.</span>`}
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#pm-cad"))return;
+  if(t.id==="cl-whats"||t.id==="cl-tel")t.value=fmtTel(t.value);
+  if(t.id==="cl-cnpj")t.value=fmtCnpj(t.value);
+  if(["cl-rua","cl-num","cl-bairro","cl-cid","cl-cep"].includes(t.id)&&geoAtual?.origem==="endereco"){geoAtual=null;geoPinta()}
+  if(t.id==="cl-cep"){const c=dig(t.value).slice(0,8);t.value=c.length>5?c.slice(0,5)+"-"+c.slice(5):c;
+    if(c.length===8){el("cl-cepmsg").textContent="Buscando o CEP…";cepBusca(c).then(d=>{if(dig(el("cl-cep")?.value)!==c)return;
+      if(!d){el("cl-cepmsg").textContent="CEP não encontrado. Confira ou preencha o endereço.";return}
+      el("cl-cepmsg").textContent="✓ Endereço do CEP preenchido. Confira e coloque o número.";
+      if(d.logradouro)el("cl-rua").value=d.logradouro;if(d.bairro)el("cl-bairro").value=d.bairro;
+      el("cl-cid").value=d.localidade||"";el("cl-uf").value=d.uf||"";
+      (d.logradouro?el("cl-num"):el("cl-rua")).focus()})}}
+});
+document.addEventListener("click",e=>{
+  if(e.target.closest("[data-pmnova]")){cadAberto=true;geoAtual=null;recemConvite=null;pinta();return}
+  if(e.target.closest("[data-pmcancela]")){cadAberto=false;pinta();return}
+  if(e.target.closest("[data-pmokfecha]")){recemConvite=null;pinta();return}
+  const cc=e.target.closest("[data-pmcopconv]");if(cc){const l=linkConvite(cc.dataset.pmcopconv);
+    (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link do convite copiado"),()=>window.prompt("Copie o link:",l));return}
+  const ap=e.target.closest("[data-pmapaga]");if(ap){if(ap.dataset.ok!=="1"){ap.dataset.ok="1";ap.textContent="Apagar mesmo?";return}
+    sb.rpc("promotor_loja_apagar",{lid:Number(ap.dataset.pmapaga)}).then(async r=>{if(r.error){toast(erroDe(r.error));return}await carregar();toast("Cadastro apagado")});return}
+  const gps=e.target.closest("[data-pmgps]");if(gps){
+    if(!navigator.geolocation){toast("Esse celular não deu acesso ao GPS");return}
+    gps.disabled=true;gps.textContent="Pegando a localização…";
+    navigator.geolocation.getCurrentPosition(p=>{gps.disabled=false;gps.textContent="📍 Atualizar com minha localização";
+      geoAtual={lat:p.coords.latitude,lng:p.coords.longitude,origem:"gps"};geoPinta("gps");
+      if(p.coords.accuracy>150)toast("Localização pouco precisa. Se puder, vá pra perto da porta da loja e tente de novo.")},
+      err=>{gps.disabled=false;gps.textContent="📍 Estou na loja: usar minha localização";
+        toast(err.code===1?"Libere a localização para o Cadernex nas configurações do navegador.":"Não deu pra pegar a localização agora. Vamos usar o endereço.")},
+      {enableHighAccuracy:true,timeout:15000,maximumAge:0});return}
+});
+document.addEventListener("submit",async e=>{if(e.target.id!=="pm-cad")return;e.preventDefault();
+  const v=id=>(el(id)?.value||"").trim(),msg=el("cl-msg"),erro=(t,id)=>{msg.textContent=t;if(id)el(id).focus()};msg.textContent="";
+  const d={nome:v("cl-nome"),ramo:v("cl-ramo"),cnpj:dig(v("cl-cnpj")),horario:v("cl-hora"),responsavel:v("cl-resp"),whats:dig(v("cl-whats")),
+    telefone:dig(v("cl-tel")),email:v("cl-email"),cep:dig(v("cl-cep")),rua:v("cl-rua"),numero:v("cl-num"),complemento:v("cl-comp"),
+    bairro:v("cl-bairro"),cidade:v("cl-cid"),uf:v("cl-uf"),obs:v("cl-obs")};
+  if(d.nome.length<2)return erro("Coloque o nome da loja.","cl-nome");
+  if(d.cnpj&&!cnpjOk(d.cnpj))return erro("CNPJ inválido. Confira ou deixe em branco.","cl-cnpj");
+  if(d.responsavel.length<2)return erro("Coloque o nome do responsável.","cl-resp");
+  if(d.whats.length<10)return erro("WhatsApp da loja com DDD, ex.: (62) 99999-9999.","cl-whats");
+  if(d.telefone&&d.telefone.length<10)return erro("Telefone fixo com DDD, ou deixe em branco.","cl-tel");
+  if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email))return erro("E-mail inválido. Confira ou deixe em branco.","cl-email");
+  if(d.cep.length!==8)return erro("CEP com 8 números.","cl-cep");
+  if(d.rua.length<3)return erro("Coloque a rua.","cl-rua");
+  if(!d.numero)return erro("Coloque o número (ou s/n).","cl-num");
+  if(d.bairro.length<2)return erro("Coloque o bairro.","cl-bairro");
+  if(d.cidade.length<2)return erro("Coloque a cidade.","cl-cid");
+  if(!d.uf)return erro("Escolha o estado (UF).","cl-uf");
+  if(!el("cl-ok").checked)return erro("Confirme que o responsável autorizou o cadastro.");
+  const b=el("cl-salvar");b.disabled=true;
+  try{
+    if(!geoAtual){b.textContent="Achando a loja no mapa…";
+      const q=[`${d.rua}, ${d.numero}, ${d.bairro}, ${d.cidade} - ${d.uf}`,`${d.rua}, ${d.cidade} - ${d.uf}`,`${d.bairro}, ${d.cidade} - ${d.uf}`];
+      for(const x of q){const g=await geoEndereco(x+", Brasil");if(g){geoAtual={...g,origem:"endereco"};geoPinta("endereco");break}}}
+    b.textContent="Salvando…";
+    const r=await sb.rpc("promotor_loja_salvar",{d:{...d,lat:geoAtual?String(geoAtual.lat):"",lng:geoAtual?String(geoAtual.lng):"",geo:geoAtual?.origem||""}});
+    if(r.error){erro(erroDe(r.error));return}
+    recemConvite={nome:d.nome,responsavel:d.responsavel,whats:d.whats,convite:r.data.convite};
+    cadAberto=false;await carregar();scrollTo(0,0);toast("Loja cadastrada! Mande o convite.");
+  }finally{b.disabled=false;b.textContent="Salvar loja e gerar convite"}
+});
+
+/* ---------- a loja abre o convite ---------- */
+const CONV="cx-convite";
+try{const tk=String(new URLSearchParams(location.search).get("l")||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  if(tk){localStorage.setItem(CONV,tk);const u=new URL(location.href);u.searchParams.delete("l");history.replaceState(history.state,"",u.pathname+u.search+u.hash)}}catch(e){}
+const convite=()=>{try{return localStorage.getItem(CONV)||""}catch(e){return""}};
+// antes de entrar: mostra de qual loja é o convite e já abre "Criar conta" como loja
+setTimeout(async()=>{const tk=convite();if(!tk||uid||!sb||!el("a-tipo"))return;
+  const r=await sb.rpc("promotor_convite_info",{tk});if(r.error||!r.data||r.data.status!=="pendente")return;
+  el("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="cliente"));
+  const l=document.querySelector("#s-auth .lead");if(l)l.textContent="Ative a conta da sua loja no Cadernex.";
+  const tw=el("a-tipo-w");if(tw){tw.style.display="none";
+    if(!el("cv-aviso"))tw.insertAdjacentHTML("beforebegin",`<div class="pm-convite" id="cv-aviso"><b>${esc(r.data.loja)}</b><span>Cadastrada no Cadernex por ${esc(r.data.promotor)}. Crie a senha para ativar: a loja já entra com nome, endereço e contato preenchidos. Se a loja já tem conta, toque em “Já tenho conta”.</span></div>`)}
+  if(typeof setModo==="function")setModo("criar")},800);
+let aceitando=false;
+async function aceitar(){const tk=convite();if(!tk||!sb||!uid||aceitando||soPromo())return;aceitando=true;
+  try{const r=await sb.rpc("promotor_loja_aceitar",{tk});
+    if(r.error){const m=r.error.message||"";if(/convite|ja_vinculada|proprio/.test(m)){try{localStorage.removeItem(CONV)}catch(x){}toast(erroDe(r.error))}return}
+    try{localStorage.removeItem(CONV)}catch(x){}
+    const p=await sb.from("perfis").select("*").eq("user_id",uid).maybeSingle();if(!p.error&&p.data)Object.assign(perfil,p.data);
+    if(r.data!=="ja_ativa"){meuPromotor=r.data;if(typeof aplicaPapel==="function")aplicaPapel(true);lojaRender();toast(`Loja ativada! Cadastrada pelo promotor ${r.data}.`)}
+  }finally{aceitando=false}}
 
 /* ---------- moderador: saques pra pagar e lista de promotores ---------- */
 let adm={saques:[],promotores:[]},admAberto=false;try{admAberto=localStorage.getItem("cx-pma-aberto")==="1"}catch(e){}
@@ -167,7 +318,7 @@ const TELAS_PROMO=["promotor","config"];
 if(typeof go==="function"){const g=go;go=function(v){if(soPromo()&&!TELAS_PROMO.includes(v))v="promotor";g(v);
   if(soPromo())document.querySelectorAll(".tab.so-promo").forEach(t=>{if(t.dataset.v===v)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
   if(v==="promotor"){pinta();carregar()}if(v==="mais")admLoad();if(v==="perfilc")lojaRender()}}
-const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();lojaRender();admLoad();if(soPromo()&&!document.querySelector("#v-promotor:not([hidden]),#v-config:not([hidden])"))go("promotor");
+const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();lojaRender();admLoad();aceitar();if(soPromo()&&!document.querySelector("#v-promotor:not([hidden]),#v-config:not([hidden])"))go("promotor");
   // entrou pelo link de um promotor e já é loja: vincula sozinho
   if(ehLoja()&&!perfil.indicado_por&&guardado())vincular(guardado(),false)};
 if(uid)setTimeout(()=>{lojaRender();admLoad();if(soPromo())go("promotor")},0);
