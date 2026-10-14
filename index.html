@@ -404,7 +404,7 @@ select{font:500 17px var(--body);color:var(--fg);background:var(--bg);border:1px
 .warn{font-size:14px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
-.auth{display:flex;flex-direction:column;gap:16px;padding-top:6vh}
+.auth{display:flex;flex-direction:column;gap:16px;padding-top:2vh}
 .auth .lead{font-size:16px;color:var(--muted);margin:0;max-width:34ch}
 .link{border:0;background:transparent;color:var(--fg);font:600 15px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 0}
 .msg{font-size:14px;color:var(--bad);min-height:1em;margin:0}
@@ -571,10 +571,6 @@ label.check{min-height:40px;align-items:center}
   </section>
 
   <section id="s-auth" class="auth" hidden>
-    <div class="seg" role="group" aria-label="Tema do app" style="max-width:200px;margin-left:auto;margin-bottom:10px;background:var(--surface);border:1px solid var(--line)">
-      <button type="button" data-tema="light" aria-pressed="false">Claro</button>
-      <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
-    </div>
     <p class="lead">Coleta e envios: peça uma entrega, um frete ou receba corridas como entregador.</p>
     <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
     <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
@@ -598,6 +594,10 @@ label.check{min-height:40px;align-items:center}
     </div>
     <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
     <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
+    <div class="seg" role="group" aria-label="Tema do app" style="max-width:200px;margin:14px auto 0;background:var(--surface);border:1px solid var(--line)">
+      <button type="button" data-tema="light" aria-pressed="false">Claro</button>
+      <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
+    </div>
   </section>
 
   <section id="s-dados" class="auth" hidden>
