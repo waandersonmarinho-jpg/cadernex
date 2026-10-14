@@ -247,6 +247,7 @@ body.cli #timerCard,body.cli #hojeCard{display:none}
 .tipo-op button{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer;font:inherit}
 .tipo-op button b{font:700 18px var(--display)}
 .tipo-op button span{font-size:13px;color:var(--muted)}
+.tipo-op .tipo-largo{grid-column:1/-1}
 .tipo-op button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .disp-on{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .dot-on{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--good);margin-right:6px;box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 25%,transparent)}
@@ -570,7 +571,8 @@ label.check{min-height:40px;align-items:center}
       <form id="fAuth">
         <div id="a-tipo-w" hidden><div class="eyebrow" style="margin-bottom:6px">Você quer</div><div class="tipo-op" id="a-tipo" role="radiogroup">
           <button type="button" role="radio" data-tipo="entregador" aria-checked="true"><b>Rodar</b><span>Sou entregador de bike, moto ou carro de frete</span></button>
-          <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Enviar</b><span>Comida, documentos, encomendas e fretes</span></button></div></div>
+          <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Enviar</b><span>Comida, documentos, encomendas e fretes</span></button>
+          <button type="button" role="radio" data-tipo="promotor" aria-checked="false" class="tipo-largo"><b>Promover</b><span>Cadastro lojas no Cadernex e ganho 2% da taxa delas por 24 meses, com saque toda semana no Pix</span></button></div></div>
         <label id="a-nome-w" hidden>Seu nome<input type="text" id="a-nome" autocomplete="name" placeholder="como quer ser chamado"></label>
         <label>E-mail<input type="email" id="a-email" autocomplete="email" required></label>
         <label>Senha<input type="password" id="a-senha" autocomplete="current-password" minlength="6" required></label>

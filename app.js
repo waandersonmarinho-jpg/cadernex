@@ -85,7 +85,7 @@ $("fAuth").onsubmit=async e=>{e.preventDefault();const email=$("a-email").value.
   try{
     if(modo==="criar"){const nome=$("a-nome").value.trim();
       const tipo=document.querySelector('#a-tipo [aria-checked="true"]')?.dataset.tipo||"entregador";
-      const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:{nome,tipo}}});
+      const promo=tipo==="promotor";const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:promo?{nome,tipo:"cliente",promotor:true}:{nome,tipo}}});
       if(error)throw error;if(!data.session)$("a-msg").textContent="Conta criada! Abra seu e-mail e confirme pra entrar.";}
     else{const {error}=await sb.auth.signInWithPassword({email,password:senha});if(error)throw error}
   }catch(err){const m=String(err.message||"");
