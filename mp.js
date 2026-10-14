@@ -1,6 +1,6 @@
-/* Cadernex — pagamento pelo app com Mercado Pago (6% pro Cadernex, pago pelo cliente) */
+/* Cadernex — pagamento pelo app com Mercado Pago (10% pro Cadernex, pago pelo cliente) */
 (function(){
-const CFG=window.CORRE_CONFIG||{},CID=CFG.MP_CLIENT_ID,MP_TAXA=CFG.MP_TAXA||0.0099,TAXA_APP=0.06;
+const CFG=window.CORRE_CONFIG||{},CID=CFG.MP_CLIENT_ID,MP_TAXA=CFG.MP_TAXA||0.0099,TAXA_APP=0.10;
 const ST_KEY="cx-mp-state";
 let conectado=null; // entregador logado tem conta MP ligada?
 const recebe={},pags={};// entregador_id -> bool ; corrida_id -> pagamento
@@ -80,7 +80,7 @@ function pintar(){
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ Pago pelo app · ${brl(Number(p.total))}</div>`;return}
     if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">Esse entregador ainda não recebe pelo app. Pague ${brl(Number(c.valor))} em dinheiro na entrega.</p>`;return}
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
-    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem os 6%: já cobrados na compra)":"Taxa de serviço (Cadernex 6% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
+    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxa de serviço (Cadernex 10% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
       <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último pagamento não passou. Tente de novo. ":""}Abre o Mercado Pago, você paga no Pix e volta pro Cadernex. O entregador recebe o valor inteiro da corrida.</p></div>`;
   });

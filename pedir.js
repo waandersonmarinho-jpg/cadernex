@@ -6,7 +6,7 @@ const MP_TAXA=(window.CORRE_CONFIG||{}).MP_TAXA||0.0099;
 const val=id=>$(id).value.trim();
 
 function valorFinal(){const k=sugerir();let v=num($("pf-valor").value);if(!v&&k!=null)v=pfJusto(k);return{k,v}}
-function totalApp(v){const t=Math.round(v*0.06*100)/100;return Math.ceil((v+t)/(1-MP_TAXA)*100)/100}
+function totalApp(v){const t=Math.round(v*0.10*100)/100;return Math.ceil((v+t)/(1-MP_TAXA)*100)/100}
 
 function ok(n){
   if(n===1){

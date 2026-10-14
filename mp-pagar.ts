@@ -1,10 +1,10 @@
 // Cadernex — mp-pagar: cria o pagamento (Pix) da corrida já com a divisão
-// 6% vão pro Cadernex (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
+// 10% vão pro Cadernex (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
 // O cliente paga também a taxa do Mercado Pago, pra o entregador receber o valor inteiro.
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-const TAXA_APP = 0.06; // 6% do Cadernex
+const TAXA_APP = 0.10; // 10% do Cadernex
 const SITE = "https://cadernex.com.br";
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     const mpTaxa = Number(Deno.env.get("MP_TAXA") || "0.0099");
     const valor = Number(c.valor);
-    // entrega de uma compra da loja: os 6% já foram cobrados na compra, não cobra de novo
+    // entrega de uma compra da loja: a taxa já foi cobrada na compra, não cobra de novo
     const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
     const taxaApp = enc ? 0 : Math.round(valor * TAXA_APP * 100) / 100;
     const total = Math.ceil(((valor + taxaApp) / (1 - mpTaxa)) * 100) / 100;
