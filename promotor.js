@@ -28,6 +28,7 @@ const ERROS={codigo:"Esse código de promotor não existe. Confira as letras.",p
   dados_nome:"Coloque seu nome completo (nome e sobrenome).",dados_cpf_usado:"Esse CPF já está cadastrado em outra conta de promotor.",dados_cpf:"CPF com 11 números.",
   dados_idade:"Para ser promotor é preciso ter 18 anos ou mais.",dados_whats:"WhatsApp com DDD, ex.: (62) 99999-9999.",dados_cidade:"Coloque sua cidade.",dados_uf:"Escolha seu estado.",
   dados_termos:"Para continuar, aceite o Termo do Promotor Autônomo.",dados_faltam:"Complete seus dados de promotor.",saldo_sacar:"Antes de sair, saque o seu saldo.",
+  selfie_falta:"Tire sua selfie para continuar.",
   loja_promotor:"Conta de loja não pode ser promotor. Para ser promotor, use outra conta, sem loja.",loja_duplicada:"Já existe uma loja no Cadernex com esse WhatsApp ou CNPJ. Cada loja tem uma conta só.",convite:"Convite não encontrado. Peça um novo ao promotor."};
 const erroDe=e=>{const m=String(e?.message||"");for(const k in ERROS)if(m.includes(k))return ERROS[k];return"Não deu certo agora. Confira a internet e tente de novo."};
 
@@ -56,11 +57,12 @@ const _sp=savePerfil;savePerfil=async function(patch){
   if(ehLoja()&&!perfil.indicado_por){const c=el("lj-promo")?.value||guardado();if(c)await vincular(c,!!el("lj-promo")?.value)}};
 
 /* ---------- tela do promotor ---------- */
-let painel=null,carregando=false,meusDados=null,pendentes=[],cadAberto=false,recemConvite=null;
+let painel=null,carregando=false,meusDados=null,selfieOk=null,selfieArq=null,pendentes=[],cadAberto=false,recemConvite=null;
 async function carregar(){
   if(!sb||!uid||carregando)return;carregando=true;
   try{const r=await sb.rpc("promotor_painel");painel=r.error?{erro:true}:r.data;
     const dd=await sb.rpc("promotor_meus_dados");meusDados=dd.error?null:dd.data;
+    if(window.cxSelfie)selfieOk=await cxSelfie.tem();
     if(painel?.promotor){const q=await sb.from("promotor_lojas").select("id,nome,responsavel,whats,bairro,convite,criado_em").eq("status","pendente").order("criado_em",{ascending:false});pendentes=q.error?[]:q.data||[]}
   }finally{carregando=false}
   pinta();
@@ -83,7 +85,7 @@ function pinta(){
   const msg=`Oi! Sua loja já faz entregas pelo Cadernex? Motoboys e bikes da região, pagamento por Pix, sem mensalidade. Cadastre aqui: ${link} (ou use o código ${p.codigo})`;
   const prox=p.proximo?new Date(p.proximo):null,podeSemana=prox&&prox<=new Date(),min=Number(p.minimo)||5;
   const semDados=meusDados&&!meusDados.completo;
-  const saque=semDados?`<button class="btn full" type="button" data-pmdados>Complete seus dados para sacar</button>`:pend?`<div class="pm-aviso"><b>Saque de ${brl(Number(pend.valor))} pedido em ${data(pend.pedido)}</b><span>O Pix vai para ${esc(pend.pix)}. Avisamos aqui quando cair.</span></div>`
+  const saque=semDados?`<button class="btn full" type="button" data-pmdados>Complete seus dados para sacar</button>`:selfieOk===false?`<button class="btn full" type="button" data-pmdados>Tire sua selfie para sacar</button>`:pend?`<div class="pm-aviso"><b>Saque de ${brl(Number(pend.valor))} pedido em ${data(pend.pedido)}</b><span>O Pix vai para ${esc(pend.pix)}. Avisamos aqui quando cair.</span></div>`
     :!podeSemana?`<button class="btn full" type="button" disabled>Próximo saque em ${data(prox)}</button>`
     :disp<min?`<button class="btn full" type="button" disabled>Saque a partir de ${brl(min)}</button>`
     :`<button class="btn full" type="button" data-pmsaca>Sacar ${brl(disp)} no Pix</button>`;
@@ -131,6 +133,8 @@ function pinta(){
       <button class="link" type="button" data-pmsair style="align-self:center;color:var(--bad)">Sair do programa de promotor</button>
     </div>`;
 }
+document.addEventListener("change",e=>{if(e.target.id!=="pd-selfie")return;const f=e.target.files[0];if(!f||!/^image\//.test(f.type))return;
+  selfieArq=f;const w=e.target.closest(".sf-w");if(w)w.outerHTML=selfieHTML()});
 document.addEventListener("input",e=>{const t=e.target;if(t.id==="pd-cpf")t.value=cpfFmt(t.value);if(t.id==="pd-whats")t.value=telFmt(t.value)});
 document.addEventListener("submit",e=>{if(e.target.id!=="pm-entrar")return;e.preventDefault();
   const v=id=>(el(id)?.value||"").trim(),foco=id=>{el(id)?.focus()};
@@ -146,11 +150,14 @@ document.addEventListener("submit",e=>{if(e.target.id!=="pm-entrar")return;e.pre
   if(!uf){toast("Escolha seu estado");return foco("pd-uf")}
   if(pix.length<5){toast("Coloque sua chave Pix");return foco("pm-pix")}
   if(el("pd-termo")&&!el("pd-termo").checked){toast("Para continuar, aceite o Termo do Promotor Autônomo");return}
+  if(!selfieOk&&!selfieArq){toast("Tire sua selfie para continuar");e.target.querySelector(".sf-w")?.scrollIntoView({behavior:"smooth",block:"center"});return}
   const dados={nome,cpf:tem?"":cpf,nasc,whats,cidade,uf,termos:el("pd-termo")?.checked?"1":""};
   const novo=!painel?.promotor,b=e.target.querySelector("button[type=submit]");b.disabled=true;
-  sb.rpc("promotor_entrar",{pix,dados}).then(async r=>{b.disabled=false;if(r.error){toast(erroDe(r.error));return}
+  (async()=>{if(selfieArq){const ok=window.cxSelfie&&await cxSelfie.enviar(selfieArq);if(!ok){b.disabled=false;return null}selfieArq=null;selfieOk=true}
+    return sb.rpc("promotor_entrar",{pix,dados})})().then(async r=>{b.disabled=false;if(!r)return;if(r.error){toast(erroDe(r.error));return}
     perfil.promotor=true;await carregar();toast(novo?"Pronto! Agora é só divulgar seu link.":"Dados salvos")})});
 document.addEventListener("click",e=>{
+  if(e.target.closest("[data-pmselfie]")){const f=el("pd-selfie");f.value="";f.click();return}
   if(e.target.closest("[data-pmdados]")){el("pm-entrar")?.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>el("pd-nome")?.focus(),400);return}
   if(e.target.closest("[data-pmexporta]")){
     const copia={gerado_em:new Date().toISOString(),meus_dados:meusDados,codigo:painel?.codigo,chave_pix:painel?.pix,lojas:painel?.lojas,saques:painel?.saques,lojas_esperando_ativar:pendentes};
@@ -175,10 +182,17 @@ const telFmt=t=>{t=dgt(t).slice(0,11);return t.length>10?t.replace(/(\d{2})(\d{5
 const cpfFmt=c=>{c=dgt(c).slice(0,11);return c.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})\.(\d{3})(\d)/,"$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/,".$1-$2")};
 function cpfOk(c){c=dgt(c);if(c.length!==11||/^(\d)\1{10}$/.test(c))return false;
   const dv=n=>{let s=0;for(let i=0;i<n;i++)s+=+c[i]*(n+1-i);const r=s*10%11;return r===10?0:r};return dv(9)===+c[9]&&dv(10)===+c[10]}
+function selfieHTML(){const ok=selfieOk||selfieArq;
+  return `<div class="stack sf-w" style="gap:8px"><div class="eyebrow">Sua selfie (obrigatória)</div>
+  <div class="sf-linha"><div class="sf-av" id="pd-sf-prev" aria-hidden="true">${selfieArq?`<img src="${URL.createObjectURL(selfieArq)}" alt="">`:ok?`<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--good)" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>`:`<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>`}</div>
+  <p class="hint" style="margin:0">${ok&&!selfieArq?"Selfie enviada ✓. Se quiser, tire outra.":"Foto do seu rosto, de frente, sem óculos escuros nem boné, com boa luz. Serve pra confirmar que é você."}</p></div>
+  <button class="btn ghost full" type="button" data-pmselfie>${ok?"Tirar outra selfie":"Tirar selfie"}</button>
+  <input type="file" id="pd-selfie" accept="image/*" capture="user" hidden></div>`}
 function dadosForm(d,novo){d=d||{};const tem=!!d.completo,pix=painel?.pix||"";
   return `<form class="card stack" id="pm-entrar">
   <h2>${novo?"Seus dados de promotor":"Seus dados"}</h2>
   ${!novo&&!tem?`<p class="pm-aviso" style="margin:0"><b>Falta completar seus dados</b><span>Sem nome completo e CPF não dá pra fazer o Pix dos seus ganhos.</span></p>`:""}
+  ${selfieHTML()}
   <label>Nome completo<input id="pd-nome" maxlength="80" autocomplete="name" value="${esc(d.nome||"")}"></label>
   <div class="grid2"><label>CPF${tem?`<input value="${esc(d.cpf)}" disabled>`:`<input id="pd-cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00">`}</label>
   <label>Nascimento<input id="pd-nasc" type="date" value="${esc(d.nasc||"")}"></label></div>
