@@ -259,7 +259,7 @@ function onCorrSubmit(e){
 // ficar disponível
 chips($("dp-vei"),Object.values(VEIC).map(v=>v.n),"Bike");
 $("fDisp").onsubmit=e=>{e.preventDefault();const o={veiculo:veiCod(picked($("dp-vei"))),regiao:$("dp-reg").value.trim()||null};
-  safe(async()=>{if(FRETE_VEIC.includes(o.veiculo)&&typeof salvarPlaca==="function")await salvarPlaca(o.veiculo,"dp");const{error}=await sb.from("disponiveis").upsert(o);if(error)throw error;try{localStorage.setItem("cadernex_disp",JSON.stringify(o))}catch(e){}await corrLoad()},"Você está disponível")};
+  safe(async()=>{if((FRETE_VEIC.includes(o.veiculo)||o.veiculo==="moto")&&typeof salvarPlaca==="function")await salvarPlaca(o.veiculo,"dp");const{error}=await sb.from("disponiveis").upsert(o);if(error)throw error;try{localStorage.setItem("cadernex_disp",JSON.stringify(o))}catch(e){}await corrLoad()},"Você está disponível")};
 $("co-off").onclick=()=>safe(async()=>{const{error}=await sb.from("disponiveis").delete().eq("user_id",uid);if(error)throw error;await corrLoad()},"Você saiu do modo disponível");
 try{const s=JSON.parse(localStorage.getItem("cadernex_disp"));if(s){$("dp-reg").value=s.regiao||"";$("dp-vei").querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",veiCod(c.textContent)===s.veiculo))}}catch(e){}
 

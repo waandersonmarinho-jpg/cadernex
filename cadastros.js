@@ -15,7 +15,7 @@ const semAc=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase
 function filtrados(){
   const b=semAc(busca);
   return lista.filter(p=>(filtro==="todos"||(filtro==="moto"?ehMoto(p):!ehMoto(p)))&&
-    (!b||semAc([p.nome,p.loja_nome,p.email,p.bairro,p.whats].join(" ")).includes(b)));
+    (!b||semAc([p.nome,p.loja_nome,p.email,p.bairro,p.whats,p.docs_veiculo].join(" ")).includes(b)));
 }
 function pinta(){
   const card=el("cad-card");if(!card)return;
@@ -33,6 +33,7 @@ function pinta(){
     const w=String(p.whats||"").replace(/\D/g,"");
     return `<div class="adm-it cad-it"><div class="cad-l1"><span class="t">${esc(p.loja&&p.loja_nome?p.loja_nome:p.nome||"(sem nome)")}</span><span class="cad-tp ${ehMoto(p)?"m":"e"}">${rotulo(p)}</span></div>
       <div class="s">${[p.loja&&p.loja_nome&&p.nome!==p.loja_nome?esc(p.nome):"",esc(p.bairro),vs?esc(vs):"",`Cadastro ${data(p.criado_em)}`].filter(Boolean).join(" · ")}</div>
+      ${p.docs_veiculo?`<div class="s">${esc(p.docs_veiculo)}</div>`:""}
       <div class="s">${ehMoto(p)?`${p.entregas} entrega${p.entregas==1?"":"s"}`:`${p.pedidos} pedido${p.pedidos==1?"":"s"}`} · Último acesso ${data(p.ultimo_acesso)}</div>
       ${tags.trim()?`<div class="cad-tags">${tags}</div>`:""}
       <div class="cad-ac">${w?`<a href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp ${esc(fone(w))}</a>`:'<span class="s">Sem WhatsApp</span>'}<span class="s">${esc(p.email)}</span></div></div>`}).join("")
@@ -50,8 +51,8 @@ async function carregar(){
 }
 function planilha(){
   const f=filtrados(),q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const linhas=[["Nome","Tipo","Loja","Bairro","WhatsApp","E-mail","Veículos","Documentos","Mercado Pago","Bloqueado","Entregas","Pedidos","Cadastro","Último acesso"],
-    ...f.map(p=>[p.nome,rotulo(p),p.loja_nome,p.bairro,fone(p.whats),p.email,(p.veiculos||[]).map(v=>VEI[v]||v).join(", "),
+  const linhas=[["Nome","Tipo","Loja","Bairro","WhatsApp","E-mail","Veículos","CNH / placa","Documentos","Mercado Pago","Bloqueado","Entregas","Pedidos","Cadastro","Último acesso"],
+    ...f.map(p=>[p.nome,rotulo(p),p.loja_nome,p.bairro,fone(p.whats),p.email,(p.veiculos||[]).map(v=>VEI[v]||v).join(", "),p.docs_veiculo,
       p.documentos?"Sim":"Não",p.mp?"Sim":"Não",p.bloqueado?"Sim":"Não",p.entregas,p.pedidos,data(p.criado_em),data(p.ultimo_acesso)])];
   const csv="﻿"+linhas.map(l=>l.map(q).join(";")).join("\r\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));

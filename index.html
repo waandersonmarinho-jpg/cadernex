@@ -629,9 +629,10 @@ label.check{min-height:40px;align-items:center}
           <button class="btn ghost full" type="button" id="dd-foto-btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Tirar ou escolher foto da bike</button>
           <input type="file" id="dd-file" accept="image/*" hidden>
           <div id="dd-placa-w" class="placa-w" hidden>
-            <div class="grid2"><label>Placa<input type="text" id="dd-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
-            <label>CNH<select id="dd-cnh"><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
-            <label>RNTRC (opcional)<input type="text" id="dd-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
+            <div class="grid2"><label id="dd-placa-l">Placa<input type="text" id="dd-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
+            <label>Categoria da CNH<select id="dd-cnh"><option>A</option><option>AB</option><option>AC</option><option>AD</option><option>AE</option><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
+            <label id="dd-cnhn-l" hidden>Número da CNH<input type="text" id="dd-cnhn" inputmode="numeric" maxlength="14" placeholder="11 números, está na CNH"></label>
+            <label id="dd-rntrc-l">RNTRC (opcional)<input type="text" id="dd-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
           </div>
           <p class="hint" style="margin:0;font-size:12px">Foto do veículo inteiro, de lado e com boa luz. Fica guardada com segurança: só o cliente de uma corrida sua vê, pra reconhecer você na coleta.</p>
         </div>
@@ -662,9 +663,10 @@ label.check{min-height:40px;align-items:center}
           <div class="chips" id="dp-vei"></div>
           <div id="dp-foto"></div><input type="file" id="dp-file" accept="image/*" hidden>
           <div id="dp-placa-w" class="placa-w" hidden>
-            <div class="grid2"><label>Placa<input type="text" id="dp-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
-            <label>CNH<select id="dp-cnh"><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
-            <label>RNTRC (opcional)<input type="text" id="dp-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
+            <div class="grid2"><label id="dp-placa-l">Placa<input type="text" id="dp-placa" maxlength="8" placeholder="ABC1D23" autocapitalize="characters"></label>
+            <label>Categoria da CNH<select id="dp-cnh"><option>A</option><option>AB</option><option>AC</option><option>AD</option><option>AE</option><option>B</option><option>C</option><option>D</option><option>E</option></select></label></div>
+            <label id="dp-cnhn-l" hidden>Número da CNH<input type="text" id="dp-cnhn" inputmode="numeric" maxlength="14" placeholder="11 números, está na CNH"></label>
+            <label id="dp-rntrc-l">RNTRC (opcional)<input type="text" id="dp-rntrc" inputmode="numeric" placeholder="se tiver registro de transportador"></label>
           </div>
           <label>Sua região<input type="text" id="dp-reg" placeholder="ex.: Centro, zona sul"></label>
           <button class="btn full" type="submit">Ficar disponível pra corridas</button>

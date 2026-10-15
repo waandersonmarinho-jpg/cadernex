@@ -5,6 +5,10 @@ let tenho={},thumbs={},placas={},carregou=false,ddArquivo=null;
 const ehEnt=()=>typeof perfil!=="undefined"&&perfil.tipo!=="cliente";
 const fotoDe=v=>`${v==="caminhao"?"do seu":"da sua"} ${veiNome(v).toLowerCase()}`;
 const ehFrete=v=>FRETE_VEIC.includes(v);
+const ehMoto=v=>v==="moto";
+const pedeDocs=v=>ehFrete(v)||ehMoto(v); // frete: placa + CNH; moto: só CNH (número e categoria A)
+const cnhNum=p=>String($(p+"-cnhn").value||"").replace(/\D/g,"");
+const cnhNumOk=n=>/^\d{11}$/.test(n)&&!/^(\d)\1{10}$/.test(n);
 const normPlaca=p=>String(p||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
 const placaOk=p=>/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
 
@@ -18,7 +22,7 @@ async function comprimir(file){
 }
 async function carregar(){
   if(!sb||!uid||!ehEnt()||!sb.storage)return;
-  const [r,pv]=await Promise.all([sb.storage.from(BK).list(uid),sb.from("veiculos").select("tipo,placa,cnh,rntrc")]);
+  const [r,pv]=await Promise.all([sb.storage.from(BK).list(uid),sb.from("veiculos").select("tipo,placa,cnh,rntrc,cnh_numero")]);
   if(!pv.error)(pv.data||[]).forEach(x=>placas[x.tipo]=x);
   if(r.error){carregou=true;dispRender();return}
   const nomes=(r.data||[]).map(f=>f.name);tenho={};CODES.forEach(v=>tenho[v]=nomes.includes(v+".jpg"));
@@ -37,15 +41,27 @@ async function enviar(vei,file){
   catch(e){toast(/bucket|not found|policy|row-level/i.test(String(e.message))?"Não deu pra enviar a foto agora. Tente de novo mais tarde.":"Não deu pra enviar a foto. Confira a internet.");return false}
 }
 // placa, CNH e RNTRC dos veículos de frete (pref = "dp" no Ficar disponível, "dd" no cadastro)
-function lerPlaca(pref){return{placa:normPlaca($(pref+"-placa").value),cnh:$(pref+"-cnh").value,rntrc:$(pref+"-rntrc").value.replace(/\D/g,"")||null}}
+function lerPlaca(pref,v){const n=cnhNum(pref)||null;
+  return ehMoto(v)?{placa:null,cnh:$(pref+"-cnh").value,cnh_numero:n,rntrc:null}
+    :{placa:normPlaca($(pref+"-placa").value),cnh:$(pref+"-cnh").value,cnh_numero:n,rntrc:$(pref+"-rntrc").value.replace(/\D/g,"")||null}}
+// o que falta pra salvar (ou "" se está tudo certo)
+function faltaDocs(v,pref){
+  if(ehMoto(v)){if(!/A/.test($(pref+"-cnh").value))return"Pra moto, a CNH precisa ter categoria A.";
+    if(!cnhNumOk(cnhNum(pref)))return"Coloque o número da sua CNH (11 números).";return""}
+  if(ehFrete(v)&&!placaOk(normPlaca($(pref+"-placa").value)))return"Coloque a placa do veículo (ex.: ABC1D23).";
+  if(ehFrete(v)&&cnhNum(pref)&&!cnhNumOk(cnhNum(pref)))return"Número da CNH inválido: são 11 números.";
+  return""}
 window.salvarPlaca=async function(v,pref){
-  const x=lerPlaca(pref);
-  if(!placaOk(x.placa))throw new Error("Placa inválida. Use o formato ABC1234 ou ABC1D23.");
+  const x=lerPlaca(pref,v),falta=faltaDocs(v,pref);
+  if(falta)throw new Error(falta);
   if(x.rntrc&&!/^\d{6,12}$/.test(x.rntrc))throw new Error("RNTRC inválido: só números (6 a 12).");
   const{error}=await sb.from("veiculos").upsert({tipo:v,...x});if(error)throw error;placas[v]={tipo:v,...x};
 };
-function preenchePlaca(v,pref){const w=$(pref+"-placa-w");if(!w)return;w.hidden=!ehFrete(v);const p=placas[v];
-  if(p&&document.activeElement?.closest?.("#"+pref+"-placa-w")==null){$(pref+"-placa").value=p.placa||"";$(pref+"-cnh").value=p.cnh||"B";$(pref+"-rntrc").value=p.rntrc||""}}
+function preenchePlaca(v,pref){const w=$(pref+"-placa-w");if(!w)return;w.hidden=!pedeDocs(v);
+  $(pref+"-placa-l").hidden=ehMoto(v);$(pref+"-rntrc-l").hidden=ehMoto(v);$(pref+"-cnhn-l").hidden=!ehMoto(v)&&!(placas[v]&&placas[v].cnh_numero);
+  if(document.activeElement?.closest?.("#"+pref+"-placa-w")!=null)return;
+  const p=placas[v]||{};
+  $(pref+"-placa").value=p.placa||"";$(pref+"-cnh").value=p.cnh||(ehMoto(v)?"A":"B");$(pref+"-rntrc").value=p.rntrc||"";$(pref+"-cnhn").value=p.cnh_numero||""}
 
 /* ---------- Ficar disponível: foto e placa do veículo escolhido ---------- */
 const veiSel=()=>veiCod((document.querySelector('#dp-vei [aria-pressed="true"]')||{}).textContent||"Bike");
@@ -62,7 +78,8 @@ $("dp-file").addEventListener("change",async e=>{const ok=await enviar(veiSel(),
 // sem foto (e placa, no frete), não deixa ficar disponível. O banco também confere.
 document.addEventListener("submit",e=>{
   if(e.target.id!=="fDisp"||!carregou)return;const v=veiSel();
-  if(ehFrete(v)&&!placaOk(normPlaca($("dp-placa").value))){e.preventDefault();e.stopImmediatePropagation();toast("Coloque a placa do veículo.");$("dp-placa").focus();return}
+  const falta=pedeDocs(v)?faltaDocs(v,"dp"):"";
+  if(falta){e.preventDefault();e.stopImmediatePropagation();toast(falta);$(ehMoto(v)?"dp-cnhn":"dp-placa").focus();return}
   if(!tenho[v]){e.preventDefault();e.stopImmediatePropagation();toast(`Primeiro mande uma foto ${fotoDe(v)}.`);const f=$("dp-file");f.value="";f.dataset.depois="1";f.click()}
 },true);
 
@@ -82,7 +99,7 @@ const espera=ms=>new Promise(r=>setTimeout(r,ms));
 async function ficarDisponivelAposCadastro(v,arquivo){
   try{
     if(arquivo&&!(await enviar(v,arquivo)))return;
-    if(ehFrete(v))await salvarPlaca(v,"dd");
+    if(pedeDocs(v))await salvarPlaca(v,"dd");
     for(let i=0;i<40&&dadosOk!==true;i++)await espera(500); // espera o cadastro (CPF etc.) terminar de salvar
     if(dadosOk!==true)return;
     const{error}=await sb.from("disponiveis").upsert({veiculo:v,regiao:null});if(error)throw error;
@@ -95,7 +112,7 @@ document.addEventListener("submit",e=>{
   if(e.target.id!=="fDados"||!ehEnt())return;
   const v=ddVei(),parar=m=>{e.preventDefault();e.stopImmediatePropagation();$("dd-msg").textContent=m};
   if(!ddArquivo&&!tenho[v])return parar(`Mande uma foto ${fotoDe(v)} pra completar o cadastro.`);
-  if(ehFrete(v)&&!placaOk(normPlaca($("dd-placa").value)))return parar("Coloque a placa do veículo (ex.: ABC1D23).");
+  const falta=pedeDocs(v)?faltaDocs(v,"dd"):"";if(falta)return parar(falta);
   const f=ddArquivo;ddArquivo=null;ficarDisponivelAposCadastro(v,f);
 },true);
 const _abrir=window.abrirDados;if(typeof abrirDados==="function"){abrirDados=function(){_abrir();ddRender()}}
