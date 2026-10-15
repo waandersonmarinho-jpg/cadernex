@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     });
     const p = await r.json();
     if (!r.ok || !p.init_point) {
-      return json({ erro: "O Mercado Pago não criou o pagamento. Tente de novo.", detalhe: p.message || p.error }, 400);
+      { console.error("mp-pagar", p.message || p.error); return json({ erro: "O Mercado Pago não criou o pagamento. Tente de novo." }, 400); }
     }
 
     const { error } = await admin.from("pagamentos").upsert({
@@ -108,6 +108,6 @@ Deno.serve(async (req) => {
     if (error) throw error;
     return json({ url: p.init_point, total, valor, taxa: Math.round((total - valor) * 100) / 100 });
   } catch (e) {
-    return json({ erro: "Não deu pra criar o pagamento agora.", detalhe: String((e as Error)?.message || e) }, 500);
+    { console.error("mp-pagar", String((e as Error)?.message || e)); return json({ erro: "Não deu pra criar o pagamento agora." }, 500); }
   }
 });

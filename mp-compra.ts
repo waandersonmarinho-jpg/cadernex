@@ -145,10 +145,10 @@ Deno.serve(async (req) => {
       }),
     });
     const p = await r.json();
-    if (!r.ok || !p.init_point) return json({ erro: "O Mercado Pago não criou o pagamento. Tente de novo.", detalhe: p.message || p.error }, 400);
+    if (!r.ok || !p.init_point) { console.error("mp-compra", p.message || p.error); return json({ erro: "O Mercado Pago não criou o pagamento. Tente de novo." }, 400); }
     await admin.from("encomendas").update({ total, taxa_app: taxaApp, preference_id: p.id }).eq("id", e.id);
     return json({ url: p.init_point, total });
   } catch (err) {
-    return json({ erro: "Não deu certo agora. Tente de novo.", detalhe: String((err as Error)?.message || err) }, 500);
+    { console.error("mp-compra", String((err as Error)?.message || err)); return json({ erro: "Não deu certo agora. Tente de novo." }, 500); }
   }
 });

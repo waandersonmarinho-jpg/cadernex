@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     });
     const t = await r.json();
     if (!r.ok || !t.access_token) {
-      return json({ erro: "O Mercado Pago não aceitou a conexão. Tente de novo.", detalhe: t.message || t.error }, 400);
+      { console.error("mp-conectar", t.message || t.error); return json({ erro: "O Mercado Pago não aceitou a conexão. Tente de novo." }, 400); }
     }
 
     const { error } = await admin.from("mp_contas").upsert({
@@ -60,6 +60,6 @@ Deno.serve(async (req) => {
     if (error) throw error;
     return json({ ok: true });
   } catch (e) {
-    return json({ erro: "Não deu pra conectar agora.", detalhe: String((e as Error)?.message || e) }, 500);
+    { console.error("mp-conectar", String((e as Error)?.message || e)); return json({ erro: "Não deu pra conectar agora." }, 500); }
   }
 });
