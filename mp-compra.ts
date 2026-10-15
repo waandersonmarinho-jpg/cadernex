@@ -70,6 +70,14 @@ async function aviso(admin: SupabaseClient, url: URL, req: Request) {
   if (!r.ok) return;
   const pay = await r.json();
   if (String(pay.external_reference) !== "enc-" + eid || pay.status !== "approved") return;
+  // o valor pago tem que cobrir o total, e os 6% do Cadernex têm que ter sido separados
+  const feeRecebida = (pay.fee_details || [])
+    .filter((f: { type?: string }) => f.type === "application_fee")
+    .reduce((s: number, f: { amount?: number }) => s + Number(f.amount || 0), 0);
+  if (Number(pay.transaction_amount || 0) + 0.01 < Number(e.total || 0) || feeRecebida + 0.01 < Number(e.taxa_app || 0)) {
+    console.error("mp-compra: valor divergente", { eid, pid: pay.id, pago: pay.transaction_amount, total: e.total, feeRecebida });
+    return;
+  }
   if (e.status === "aceita") {
     await admin.from("encomendas").update({ status: "paga", payment_id: String(pay.id), pago_em: new Date().toISOString() })
       .eq("id", eid).eq("status", "aceita");
