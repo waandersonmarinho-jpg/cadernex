@@ -242,7 +242,7 @@ function cnpjOk(c){c=dig(c);if(c.length!==14||/^(\d)\1{13}$/.test(c))return fals
   const calc=n=>{let s=0,p=n-7;for(let i=0;i<n;i++){s+=+c[i]*p--;if(p<2)p=9}const r=s%11;return r<2?0:11-r};return calc(12)===+c[12]&&calc(13)===+c[13]}
 const prazo=(u,ms=8000)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);return fetch(u,{signal:ac.signal,headers:{"Accept-Language":"pt-BR"}}).finally(()=>clearTimeout(t))};
 async function cepBusca(c){try{const d=await (await prazo(`https://viacep.com.br/ws/${c}/json/`)).json();return d.erro?null:d}catch(e){return null}}
-async function geoEndereco(q){try{const d=await (await prazo("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q="+encodeURIComponent(q))).json();return d[0]?{lat:+d[0].lat,lng:+d[0].lon}:null}catch(e){return null}}
+const geoEndereco=q=>cxGeo.ponto(q); // Geoapify, com o OpenStreetMap de reserva (geo.js)
 const linkConvite=tk=>`${SITE}?l=${tk}#pedir`;
 function zapConvite(l){const nome=String(l.responsavel||"").split(" ")[0];
   const t=`Oi${nome?", "+nome:""}! Cadastrei a ${l.nome} no Cadernex, o app de entregas com motoboys e bikes da região. Pra ativar, toque no link e crie a senha da loja (leva 1 minuto): ${linkConvite(l.convite)}`;

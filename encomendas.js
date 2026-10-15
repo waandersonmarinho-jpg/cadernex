@@ -19,7 +19,7 @@ async function erroDe(error,data){
 /* ---------- endereço: CEP (ViaCEP) e ponto no mapa (OpenStreetMap) ---------- */
 const comPrazo=(u,ms=7000)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);return fetch(u,{signal:ac.signal,headers:{"Accept-Language":"pt-BR"}}).finally(()=>clearTimeout(t))};
 async function viaCep(c){c=so(c);if(c.length!==8)return null;try{const d=await (await comPrazo(`https://viacep.com.br/ws/${c}/json/`)).json();return d.erro?null:d}catch(e){return null}}
-async function nomi(q){try{const d=await (await comPrazo("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q="+encodeURIComponent(q))).json();return d[0]?{lat:+d[0].lat,lng:+d[0].lon}:null}catch(e){return null}}
+const nomi=q=>cxGeo.ponto(q); // Geoapify, com o OpenStreetMap de reserva (geo.js)
 async function ponto(end,bairro,info){
   const cid=info?`${info.localidade} - ${info.uf}`:"";
   const tent=[`${end}, ${bairro}${cid?", "+cid:""}`,info&&info.logradouro?`${info.logradouro}, ${cid}`:null,info?`${bairro||info.bairro}, ${cid}`:null].filter(Boolean);

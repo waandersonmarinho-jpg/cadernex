@@ -1,1 +1,1 @@
-window.CORRE_CONFIG={SUPABASE_URL:"https://pwmnczoiybktyxavjbjl.supabase.co",SUPABASE_KEY:"sb_publishable_YNGRxEAeYsb7qXtIrJOKKg_XROigJmy",MP_CLIENT_ID:"4566059372687510",MP_TAXA:0.0099};
+window.CORRE_CONFIG={SUPABASE_URL:"https://pwmnczoiybktyxavjbjl.supabase.co",SUPABASE_KEY:"sb_publishable_YNGRxEAeYsb7qXtIrJOKKg_XROigJmy",MP_CLIENT_ID:"4566059372687510",MP_TAXA:0.0099,GEOAPIFY_KEY:"d74f500b3af44fdbaf4998e75d727490"};

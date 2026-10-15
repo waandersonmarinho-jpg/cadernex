@@ -67,14 +67,14 @@ async function buscaCep(q){
 const cidadeDe=q=>{const i=cepInfo[q]||cepInfo[q==="c"?"e":"c"];return i?`${i.localidade} - ${i.uf}`:""};
 // tira acento e caixa pra comparar nomes (bairro, cidade)
 const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
-const nomi=async q=>{const r=await comPrazo(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=br&q=${encodeURIComponent(q)}`);return await r.json()};
+const nomi=q=>cxGeo.busca(q,5); // Geoapify, com o OpenStreetMap de reserva (geo.js)
 const espera=()=>new Promise(r=>setTimeout(r,1100)); // o OpenStreetMap pede no máximo 1 busca por segundo
 // caixa da cidade (do CEP): a busca só aceita pontos dentro dela
 const caixas={};
 async function caixaCidade(q){
   const i=cepInfo[q]||cepInfo[q==="c"?"e":"c"];if(!i)return null;const k=norm(i.localidade+" "+i.uf);
   if(caixas[k]!==undefined)return caixas[k];
-  try{const d=await nomi(`${i.localidade}, ${i.uf}, Brasil`);const c=(d||[]).find(x=>x.boundingbox);
+  try{const d=await cxGeo.busca(`${i.localidade}, ${i.uf}, Brasil`,5,true);const c=(d||[]).find(x=>x.boundingbox);
     caixas[k]=c?{s:+c.boundingbox[0],n:+c.boundingbox[1],w:+c.boundingbox[2],e:+c.boundingbox[3],cid:i.localidade}:null}catch(e){caixas[k]=null}
   await espera();return caixas[k];
 }
@@ -125,8 +125,8 @@ async function geoNome(q,end,bai,cid){
 }
 async function rotaKm(a,b){
   const reta=km(a.lat,a.lng,b.lat,b.lng)/1.3; // linha reta de verdade
-  try{const r=await comPrazo(`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`,8000);const d=await r.json();
-    if(d.routes&&d.routes[0]){const k=Math.max(0.5,Math.round(d.routes[0].distance/100)/10);
+  try{const m=await cxGeo.rotaMetros(a,b);
+    if(m){const k=Math.max(0.5,Math.round(m/100)/10);
       // rota mais de 1,9× a linha reta quase sempre é desvio errado do mapa: usa a linha reta × 1,4
       if(reta>0.3&&k>reta*1.9)return Math.max(0.5,Math.round(reta*1.4*10)/10);
       return k}}catch(e){}
