@@ -11,6 +11,27 @@ const SITE="https://cadernex.com.br/";
 const KEY="cx-promo";
 const pct=t=>String(Math.round((Number(t)||0.02)*1000)/10).replace(".",",")+"%";
 const linkDe=c=>`${SITE}?p=${encodeURIComponent(c)}#pedir`;
+const APRES="apresentacao-lojistas.pdf",ARTES=["promotor-flyer-1.jpg","promotor-flyer-2.jpg"];
+// compartilha uma arte (imagem) pelo compartilhar do celular; se não der, manda o link pelo WhatsApp
+async function enviarArte(i,cod){
+  const txt=`Quer ganhar cadastrando lojas no Cadernex? Ganhe 2% do que o Cadernex recebe de cada loja, por 24 meses. Saiba mais: ${SITE}promotores.html`;
+  try{
+    const r=await fetch(ARTES[i]);if(!r.ok)throw new Error("arte");
+    const f=new File([await r.blob()],`Cadernex-promotor-${i+1}.jpg`,{type:"image/jpeg"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:txt,title:"Seja promotor Cadernex"});return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  open(`https://wa.me/?text=${encodeURIComponent(txt)}`,"_blank","noopener");
+}
+// manda o PDF de apresentação: no celular, abre o compartilhar do sistema (WhatsApp) com o arquivo; se não der, manda o link
+async function enviarApresentacao(cod){
+  const link=linkDe(cod),txt=`Oi! Segue a apresentação do Cadernex: entregas sem diária, você só paga quando tem entrega. Cadastre sua loja grátis: ${link} (código do promotor: ${cod})`;
+  try{
+    const r=await fetch(APRES,{cache:"no-store"});if(!r.ok)throw new Error("pdf");
+    const f=new File([await r.blob()],"Cadernex-para-lojas.pdf",{type:"application/pdf"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:txt,title:"Cadernex para lojas"});return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  open(`https://wa.me/?text=${encodeURIComponent(txt+"\n\nApresentação: "+SITE+APRES)}`,"_blank","noopener");
+}
 const limpa=c=>String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
 const ehLoja=()=>!!(perfil.loja&&String(perfil.loja_nome||"").trim());
 
@@ -113,6 +134,16 @@ function pinta(){
       <p class="hint" style="margin:0">Na loja, peça pra criar a conta pelo link. Se a loja já tem conta, ela coloca o código em Perfil → Informações da loja.</p>
     </div>
     <div class="card stack">
+      <h2>Apresentação para a loja</h2>
+      <p class="hint" style="margin:0">PDF com as vantagens, o preço e as regras do Cadernex. Mande para o dono ou gerente: a mensagem já vai com o seu link e o seu código <b>${esc(p.codigo)}</b>.</p>
+      <div class="grid2"><a class="btn ghost" href="${APRES}" target="_blank" rel="noopener" download="Cadernex-para-lojas.pdf">Baixar PDF</a><button class="btn" type="button" data-pmpdf>Enviar no WhatsApp</button></div>
+    </div>
+    <div class="card stack">
+      <h2>Artes para divulgar</h2>
+      <p class="hint" style="margin:0">Poste no status, no Instagram ou mande nos grupos para chamar mais promotores. A mensagem vai com o link da página de promotores.</p>
+      <div class="pm-artes">${ARTES.map((a,i)=>`<figure><img src="${a}" alt="Arte ${i+1}: Torne-se um promotor Cadernex" loading="lazy" width="796" height="1024"><figcaption class="grid2"><a class="btn ghost" href="${a}" download="Cadernex-promotor-${i+1}.jpg">Baixar</a><button class="btn" type="button" data-pmarte="${i}">Compartilhar</button></figcaption></figure>`).join("")}</div>
+    </div>
+    <div class="card stack">
       <h2>Suas lojas</h2>
       ${p.lojas.length?`<div class="stack" style="gap:8px">${p.lojas.map(l=>`<div class="adm-it"><div class="cad-l1"><span class="t">${esc(l.nome||"(sem nome)")}</span><b class="num">${brl(Number(l.comissao))}</b></div>
         <div class="s">${[esc(l.bairro),new Date(l.ate)>new Date()?`Comissão até ${data(l.ate)}`:`Prazo encerrado em ${data(l.ate)}`,l.mov?`${l.mov} entrega${l.mov==1?"":"s"} com comissão`:"Comissão começa na 2ª entrega paga pelo app"].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>`
@@ -171,6 +202,8 @@ document.addEventListener("click",e=>{
   if(sq){if(sq.dataset.ok!=="1"){sq.dataset.ok="1";sq.textContent=`Confirmar saque de ${brl(Number(painel.disponivel))}?`;return}
     sq.disabled=true;sb.rpc("promotor_sacar").then(async r=>{if(r.error){sq.disabled=false;toast(erroDe(r.error));await carregar();return}
       await carregar();toast(`Saque de ${brl(Number(r.data))} pedido. O Pix cai na sua chave.`)});return}
+  if(e.target.closest("[data-pmpdf]")&&painel?.codigo){enviarApresentacao(painel.codigo);return}
+  const ar=e.target.closest("[data-pmarte]");if(ar){enviarArte(Number(ar.dataset.pmarte),painel?.codigo);return}
   if(e.target.closest("[data-pmcopia]")&&painel?.codigo){const l=linkDe(painel.codigo);
     (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado"),()=>{window.prompt("Copie o link:",l)})}
 });
