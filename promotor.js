@@ -160,7 +160,6 @@ function pinta(){
       <h2>Privacidade</h2>
       <p class="hint" style="margin:0">Seu CPF, nascimento e chave Pix só você e o moderador do Cadernex veem. As lojas veem só o seu primeiro nome. Você vê das suas lojas só o nome, o bairro e quanto rendeu, nunca os clientes delas.</p>
       <div class="rg-links"><a class="link" href="termo-promotor.html" target="_blank" rel="noopener">Termo do Promotor Autônomo</a><a class="link" href="privacidade.html#promotores" target="_blank" rel="noopener">Política de privacidade</a></div>
-      <button class="btn ghost full" type="button" data-pmexporta>Baixar uma cópia dos meus dados</button>
       <button class="link" type="button" data-pmsair style="align-self:center;color:var(--bad)">Sair do programa de promotor</button>
     </div>`;
 }
@@ -187,36 +186,9 @@ document.addEventListener("submit",e=>{if(e.target.id!=="pm-entrar")return;e.pre
   (async()=>{if(selfieArq){const ok=window.cxSelfie&&await cxSelfie.enviar(selfieArq);if(!ok){b.disabled=false;return null}selfieArq=null;selfieOk=true}
     return sb.rpc("promotor_entrar",{pix,dados})})().then(async r=>{b.disabled=false;if(!r)return;if(r.error){toast(erroDe(r.error));return}
     perfil.promotor=true;await carregar();toast(novo?"Pronto! Agora é só divulgar seu link.":"Dados salvos")})});
-// "Baixar meus dados" (LGPD): documento legível, com CPF escondido (inclusive quando a chave Pix é o CPF)
-function relatorioDados(){
-  const d=meusDados||{},p=painel||{},lj=p.lojas||[],sq=p.saques||[],pe=pendentes||[];
-  const so=x=>String(x||"").replace(/\D/g,"");
-  const ocultaCPF=v=>{const n=so(v);return n.length===11?`***.${n.slice(3,6)}.${n.slice(6,9)}-**`:v};
-  const pix=v=>{if(!v)return"—";const n=so(v);return (n.length===11&&!/@/.test(v))?ocultaCPF(v)+" (CPF)":v};
-  const dt=v=>!v?"—":/^\d{4}-\d{2}-\d{2}$/.test(String(v))?String(v).split("-").reverse().join("/"):new Date(v).toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"});
-  const nasc=v=>v?String(v).slice(0,10).split("-").reverse().join("/"):"—";
-  const fone=v=>{const n=so(v);return n.length===11?`(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`:n.length===10?`(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`:(v||"—")};
-  const reais=v=>brl(Number(v)||0),e2=x=>esc(x??"—");
-  const linha=(k,v)=>`<tr><th>${k}</th><td>${v}</td></tr>`;
-  const st={pedido:"Esperando o Pix",pago:"Pago",recusado:"Recusado"};
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meus dados de promotor · Cadernex</title>
-<style>body{font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#14161a;background:#fff;margin:0;padding:20px;max-width:720px;margin:auto}h1{font-size:22px;margin:0}h2{font-size:16px;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid #1d6fe0}.sub{color:#5f646c;font-size:13px;margin:2px 0 0}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #e5e5e5;vertical-align:top}th{width:40%;color:#5f646c;font-weight:600}.lista th{width:auto;background:#f4f6fa;color:#14161a}.vazio{color:#5f646c;font-size:14px}.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}button{font:600 14px system-ui;padding:9px 14px;border-radius:8px;border:0;background:#1d6fe0;color:#fff}.rod{color:#5f646c;font-size:12px;margin-top:24px}@media print{button{display:none}body{padding:0}}</style></head><body>
-<div class="topo"><div><h1>Meus dados de promotor</h1><p class="sub">Cadernex · gerado em ${new Date().toLocaleString("pt-BR")}</p></div><button onclick="print()">Salvar em PDF</button></div>
-<h2>Dados pessoais</h2><table>${linha("Nome",e2(d.nome))}${linha("CPF",e2(ocultaCPF(d.cpf)))}${linha("Nascimento",nasc(d.nasc))}${linha("WhatsApp",e2(fone(d.whats)))}${linha("Cidade",e2([d.cidade,d.uf].filter(Boolean).join(" / ")||"—"))}${linha("Cadastro completo",d.completo?"Sim":"Não")}${linha("Termo do promotor aceito em",dt(d.termos))}</table>
-<h2>Promotor</h2><table>${linha("Código",e2(p.codigo))}${linha("Chave Pix para saques",e2(pix(p.pix)))}${linha("Total ganho",reais(p.ganho))}${linha("Total recebido",reais(p.pago))}</table>
-<h2>Suas lojas</h2>${lj.length?`<table class="lista"><tr><th>Loja</th><th>Bairro</th><th>Comissão até</th><th>Rendeu</th></tr>${lj.map(l=>`<tr><td>${e2(l.nome)}</td><td>${e2(l.bairro)}</td><td>${dt(l.ate)}</td><td>${reais(l.comissao)}</td></tr>`).join("")}</table>`:`<p class="vazio">Nenhuma loja ainda.</p>`}
-<h2>Lojas esperando ativar</h2>${pe.length?`<table class="lista"><tr><th>Loja</th><th>Responsável</th><th>Cadastrada em</th></tr>${pe.map(l=>`<tr><td>${e2(l.nome)}</td><td>${e2(l.responsavel)}</td><td>${dt(l.criado_em)}</td></tr>`).join("")}</table>`:`<p class="vazio">Nenhuma.</p>`}
-<h2>Saques</h2>${sq.length?`<table class="lista"><tr><th>Data</th><th>Situação</th><th>Valor</th></tr>${sq.map(x=>`<tr><td>${dt(x.pago||x.pedido)}</td><td>${e2(st[x.status]||x.status)}</td><td>${reais(x.valor)}</td></tr>`).join("")}</table>`:`<p class="vazio">Nenhum saque ainda.</p>`}
-<p class="rod">Cópia dos seus dados guardados pelo Cadernex, conforme a LGPD. O CPF aparece incompleto por segurança. Dúvidas: suporte@cadernex.com.br</p>
-</body></html>`;
-}
 document.addEventListener("click",e=>{
   if(e.target.closest("[data-pmselfie]")){const f=el("pd-selfie");f.value="";f.click();return}
   if(e.target.closest("[data-pmdados]")){el("pm-entrar")?.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>el("pd-nome")?.focus(),400);return}
-  if(e.target.closest("[data-pmexporta]")){
-    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([relatorioDados()],{type:"text/html;charset=utf-8"}));
-    a.download=`meus-dados-promotor-cadernex-${new Date().toISOString().slice(0,10)}.html`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
-    toast("Seus dados foram baixados. Abra o arquivo para ver ou salvar em PDF.");return}
   const sai=e.target.closest("[data-pmsair]");if(sai){
     if(sai.dataset.ok!=="1"){sai.dataset.ok="1";sai.textContent="Toque de novo: apaga seu Pix, WhatsApp e código, e suas lojas deixam de render comissão";return}
     sai.disabled=true;sb.rpc("promotor_sair").then(async r=>{sai.disabled=false;if(r.error){toast(erroDe(r.error));return}
