@@ -532,6 +532,11 @@ label.check{min-height:40px;align-items:center}
 .dl-qt button[data-dlmenos]{background:var(--line);color:var(--fg)}
 .dl-bar{position:sticky;bottom:84px;z-index:4;filter:drop-shadow(0 8px 18px rgba(0,0,0,.2))}
 .dl-ckc .row{display:flex;justify-content:space-between;gap:10px}
+.cx-exc{border-color:color-mix(in srgb,var(--bad,#e5484d) 40%,var(--line))}
+.cx-exc h2{color:var(--bad,#d93a3f)}
+.ex-lista{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.ex-btn{background:var(--bad,#d93a3f)!important;color:#fff!important;box-shadow:none!important}
+.ex-btn:disabled{opacity:.45}
 .promo-l{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
 .promo-l span{color:var(--muted);font-size:14px}
 @media (max-width:360px){.hero-cta{grid-template-columns:1fr}}
@@ -1378,6 +1383,21 @@ label.check{min-height:40px;align-items:center}
         <button class="btn full" id="sair" type="button">Sair da conta</button>
         <button class="btn ghost full" id="cf-trocar" type="button">Entrar com outra conta</button>
       </div>
+      <div class="card stack cx-exc" id="cf-excluir">
+        <button type="button" class="cad-h" id="ex-abre" aria-expanded="false" aria-controls="ex-corpo"><span class="cad-ht"><h2>Excluir minha conta</h2><span>Apaga sua conta e seus dados do Cadernex</span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="stack" id="ex-corpo" hidden>
+          <p class="hint" style="margin:0"><b>Isso não tem volta.</b> Vamos apagar:</p>
+          <ul class="ex-lista">
+            <li>seu login, perfil, foto, CPF/CNPJ e dados pessoais;</li>
+            <li>veículos e documentos (motoqueiro);</li>
+            <li>loja, cardápio e fotos dos produtos (lojista);</li>
+            <li>seus pedidos, corridas, conversas, anotações e ganhos.</li>
+          </ul>
+          <p class="hint" style="margin:0;font-size:13px">Por obrigação legal, o Cadernex guarda só os valores das corridas pagas pelo app (sem seu nome nem CPF). Antes, termine ou cancele as corridas em andamento.</p>
+          <label>Pra confirmar, digite <b>EXCLUIR</b><input id="ex-conf" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+          <button class="btn full ex-btn" type="button" id="ex-btn" disabled>Excluir minha conta para sempre</button>
+        </div>
+      </div>
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0 20px"><a class="link" href="sobre.html">Sobre</a><a class="link" href="perguntas.html">Perguntas frequentes</a><a class="link" href="regras.html">Regras</a><a class="link" href="privacidade.html">Privacidade</a></div>
     </div>
   </section>
@@ -1681,5 +1701,6 @@ label.check{min-height:40px;align-items:center}
 <script src="comissao.js"></script>
 <script src="promotor.js"></script>
 <script src="delivery.js"></script>
+<script src="conta.js"></script>
 </body>
 </html>
