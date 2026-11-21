@@ -22,7 +22,9 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return ok();
   const seg = Deno.env.get("WOOVI_WEBHOOK_SECRET") || "";
   const veio = req.headers.get("authorization") || req.headers.get("x-cadernex") || new URL(req.url).searchParams.get("s") || "";
-  if (!seg || veio.replace(/^Bearer\s+/i, "") !== seg) return new Response("no", { status: 401 });
+  // Senha errada ou ausente: responde 200 (a Woovi exige 200 pra registrar), mas não faz nada.
+  // Mesmo com a senha certa, nada é confiado no aviso: a cobrança é conferida de novo na Woovi.
+  if (!seg || veio.replace(/^Bearer\s+/i, "") !== seg) { console.warn("woovi-webhook: aviso sem a senha certa"); return ok(); }
 
   let body: any = {};
   try { body = await req.json(); } catch (_) { return ok(); }
