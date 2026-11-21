@@ -578,9 +578,13 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 .dl-capa img{width:100%;height:100%;object-fit:cover;display:block}
 .dl-head .dl-logo-h{width:56px;height:56px;border-radius:14px}
 .dl-capa+.row .dl-logo-h{margin-top:-38px}
-.cx-exc{border-color:color-mix(in srgb,var(--bad,#e5484d) 40%,var(--line))}
-.cx-exc h2{color:var(--bad,#d93a3f)}
-.ex-lista{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.cx-exc{padding:10px 14px;background:transparent;border-color:var(--line)}
+.cx-exc .cad-h h2{font-size:15px;color:var(--fg)}
+.cx-exc .cad-ht>span{font-size:12px;color:var(--fg);opacity:.75}
+.cx-exc .cad-seta{width:18px;height:18px}
+.cx-exc #ex-corpo,.cx-exc #ex-corpo .hint{color:var(--fg)}
+.cx-exc #ex-corpo .hint{opacity:.9}
+.ex-lista{margin:0;padding-left:18px;color:var(--fg);font-size:14px;display:flex;flex-direction:column;gap:4px}
 .ex-btn{background:var(--bad,#d93a3f)!important;color:#fff!important;box-shadow:none!important}
 .ex-btn:disabled{opacity:.45}
 /* edição profissional: delivery das lojas */
@@ -1480,14 +1484,22 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <div class="card stack cx-exc" id="cf-excluir">
         <button type="button" class="cad-h" id="ex-abre" aria-expanded="false" aria-controls="ex-corpo"><span class="cad-ht"><h2>Excluir minha conta</h2><span>Apaga sua conta e seus dados do Cadernex</span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="ex-corpo" hidden>
-          <p class="hint" style="margin:0"><b>Isso não tem volta.</b> Vamos apagar:</p>
+          <p class="hint" style="margin:0"><b>Isso não tem volta.</b> A conta é apagada na hora e não dá pra recuperar.</p>
+          <p class="hint" style="margin:0"><b>O que é apagado:</b></p>
           <ul class="ex-lista">
-            <li>seu login, perfil, foto, CPF/CNPJ e dados pessoais;</li>
-            <li>veículos e documentos (motoqueiro);</li>
-            <li>loja, cardápio e fotos dos produtos (lojista);</li>
-            <li>seus pedidos, corridas, conversas, anotações e ganhos.</li>
+            <li>login, perfil, foto, CPF/CNPJ, nascimento e endereço;</li>
+            <li>veículos, CNH e documentos (motoqueiro);</li>
+            <li>loja, cardápio, fotos, link da loja e pedidos (lojista);</li>
+            <li>corridas, conversas, anotações, ganhos e Pix cadastrado.</li>
           </ul>
-          <p class="hint" style="margin:0;font-size:13px">Por obrigação legal, o Cadernex guarda só os valores das corridas pagas pelo app (sem seu nome nem CPF). Antes, termine ou cancele as corridas em andamento.</p>
+          <p class="hint" style="margin:0"><b>O que fica guardado:</b> só os valores das corridas e pedidos pagos pelo app, sem seu nome, CPF ou contato, porque a lei obriga a guardar para impostos. As cópias de segurança antigas são apagadas sozinhas com o tempo.</p>
+          <p class="hint" style="margin:0"><b>Antes de excluir:</b></p>
+          <ul class="ex-lista">
+            <li>termine ou cancele as corridas em andamento;</li>
+            <li>espere cair o Pix de corridas e vendas que ainda está sendo enviado;</li>
+            <li>lojista: entregue os pedidos já pagos.</li>
+          </ul>
+          <p class="hint" style="margin:0">Só quer parar por um tempo? Use <b>Sair da conta</b>: seus dados ficam salvos. Dúvidas: suporte@cadernex.com.br.</p>
           <label>Pra confirmar, digite sua senha<input id="ex-conf" type="password" autocomplete="current-password" placeholder="a senha que você usa pra entrar"></label>
           <button class="btn full ex-btn" type="button" id="ex-btn" disabled>Excluir minha conta para sempre</button>
         </div>
