@@ -1,11 +1,13 @@
 // Cadernex — mp-pagar: cria o pagamento (Pix) da corrida já com a divisão
-// Cadernex recebe 10% de quem pede + 6% da corrida (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
+// Cadernex recebe 10% de quem pede + comissão da corrida (6%; 8% a partir de 01/12/2026) (marketplace_fee); o resto vai pra conta Mercado Pago do entregador.
 // O cliente paga também a taxa do Mercado Pago, pra o entregador receber o valor inteiro.
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const TAXA_APP = 0.10; // 10% do Cadernex, pago por quem pede
-const COMISSAO = 0.06; // 6% do entregador, descontado do valor da corrida
+const COMISSAO = 0.06; // até 30/11/2026
+const COMISSAO_NOVA = 0.08; // a partir de 01/12/2026
+const COMISSAO_NOVA_INICIO = Date.parse("2026-12-01T03:00:00Z"); // 01/12/2026 00h em Brasília
 const COMISSAO_INICIO = Date.parse("2026-10-21T03:00:00Z"); // 21/10/2026 00h em Brasília
 const SITE = "https://cadernex.com.br";
 const cors = {
@@ -70,7 +72,7 @@ Deno.serve(async (req) => {
     const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
     const taxaApp = enc ? 0 : Math.round(valor * TAXA_APP * 100) / 100;
     const total = Math.ceil(((valor + taxaApp) / (1 - mpTaxa)) * 100) / 100;
-    const comissao = Date.now() >= COMISSAO_INICIO ? Math.round(valor * COMISSAO * 100) / 100 : 0;
+    const comissao = Date.now() >= COMISSAO_INICIO ? Math.round(valor * (Date.now() >= COMISSAO_NOVA_INICIO ? COMISSAO_NOVA : COMISSAO) * 100) / 100 : 0;
     const fee = Math.round((taxaApp + comissao) * 100) / 100; // o Mercado Pago separa isso pro Cadernex
 
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {

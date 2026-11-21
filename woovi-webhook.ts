@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch (_) { return ok(); }
   if (body?.evento === "teste_webhook" || body?.event === "teste_webhook") return ok();
   const corr: string | undefined = body?.charge?.correlationID || body?.pix?.charge?.correlationID;
+  if (corr && corr.startsWith("cxp-")) return pedidoLoja(corr);
   if (!corr || !corr.startsWith("cx-")) return ok();
 
   try {
@@ -82,3 +83,40 @@ Deno.serve(async (req) => {
     return new Response("retry", { status: 500 });
   }
 });
+
+// pedidos do delivery (produtos da loja): confere na Woovi, marca pago e manda a parte da loja pro Pix dela
+async function pedidoLoja(corr: string) {
+  try {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: pd } = await admin.from("pedidos_loja").select("*").eq("correlation_id", corr).maybeSingle();
+    if (!pd) return ok();
+    const g = await woovi(`/charge/${encodeURIComponent(corr)}`);
+    const ch = g.b?.charge;
+    if (!g.ok || !ch || ch.correlationID !== corr) return new Response("retry", { status: 500 });
+    if (ch.status === "EXPIRED") {
+      if (pd.status === "aguardando") await admin.from("pedidos_loja").update({ status: "expirado" }).eq("id", pd.id).eq("status", "aguardando");
+      return ok();
+    }
+    if (ch.status !== "COMPLETED") return ok();
+    if (Number(ch.value) !== Math.round(Number(pd.total) * 100)) { console.error("pedido valor diferente", corr); return ok(); }
+    if (pd.status === "aguardando" || pd.status === "expirado") {
+      await admin.from("pedidos_loja").update({ status: "pago", pago_em: new Date().toISOString() }).eq("id", pd.id);
+    }
+    const { data: trava } = await admin.from("pedidos_loja").update({ repasse_status: "enviando" })
+      .eq("id", pd.id).or("repasse_status.is.null,repasse_status.eq.erro").select("id");
+    if (!trava?.length) return ok();
+    const { data: s } = await admin.from("woovi_subcontas").select("pix_key").eq("user_id", pd.loja_id).maybeSingle();
+    let st = "erro";
+    if (s?.pix_key) {
+      const w = await woovi(`/subaccount/${encodeURIComponent(s.pix_key)}/withdraw`, {
+        method: "POST", body: JSON.stringify({ value: Math.round(Number(pd.repasse) * 100) }),
+      });
+      if (w.ok) st = "enviado"; else console.error("pedido saque", w.status, JSON.stringify(w.b));
+    }
+    await admin.from("pedidos_loja").update({ repasse_status: st, repasse_em: st === "enviado" ? new Date().toISOString() : null }).eq("id", pd.id);
+    return ok();
+  } catch (e) {
+    console.error("woovi-webhook pedido", String((e as Error)?.message || e));
+    return new Response("retry", { status: 500 });
+  }
+}

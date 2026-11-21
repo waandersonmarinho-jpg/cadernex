@@ -19,7 +19,7 @@
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://cadernex.com.br/#org","name":"Cadernex Entregas","alternateName":"Cadernex","taxID":"70.019.938/0001-39","url":"https://cadernex.com.br/","logo":"https://cadernex.com.br/icon-512.png","image":"https://cadernex.com.br/motoqueiros-flyer.jpg","email":"suporte@cadernex.com.br","address":{"@type":"PostalAddress","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},"areaServed":{"@type":"City","name":"Goiânia"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex Entregas","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App de entregas de Goiânia: peça motoboy, bike ou frete na hora. O entregador coleta com código e entrega com código, com rastreio ao vivo por GPS e pagamento por Pix ou dinheiro. Lojas têm delivery com cardápio, fotos e link próprio pra mandar aos clientes. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro. Promotores ganham 2% da taxa de cada loja que cadastram, por 24 meses.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"City","name":"Goiânia"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex Entregas","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App de entregas de Goiânia: peça motoboy, bike ou frete na hora. O entregador coleta com código e entrega com código, com rastreio ao vivo por GPS e pagamento por Pix ou dinheiro. Lojas têm delivery com cardápio, fotos e link próprio pra mandar aos clientes. O entregador fica com 92% da corrida paga pelo app e 100% da paga em dinheiro. Promotores ganham 2% da taxa de cada loja que cadastram, por 24 meses.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"City","name":"Goiânia"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -553,6 +553,11 @@ html.vitrine .wrap>header{display:none}
 .vt-top .btn{padding:8px 14px;font-size:14px}
 .vt-pub .dl-bar{bottom:14px}
 .vt-rod{text-align:center;font-size:12px;margin:0}
+.dl-pixbox{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);text-align:center}
+.dl-pixbox.ok{border-color:var(--good,#2ebd85);background:color-mix(in srgb,var(--good,#2ebd85) 12%,var(--surface))}
+.dl-ped{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.dl-ped .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dl-ped .dl-pill{margin-left:0}
 .dl-tot b{font-size:17px}.dl-tot b.num{color:var(--accent)}
 .dl-capa-ed{position:relative;height:130px;border-radius:14px;border:2px dashed var(--line);background:var(--bg);overflow:visible;cursor:pointer;margin-bottom:26px;color:var(--muted)}
 .dl-capa-ed>img{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
@@ -815,7 +820,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
         <h2 id="en-t">Rode quando quiser e receba no Pix.</h2>
         <ul class="lj-vant">
           <li><b>Você escolhe</b><span>Fica disponível quando quiser e aceita só as corridas que fazem sentido.</span></li>
-          <li><b>94% é seu</b><span>Nas corridas pagas pelo app, o Cadernex fica com 6%. Em dinheiro, 100% é seu.</span></li>
+          <li><b>92% é seu</b><span>Nas corridas pagas pelo app, o Cadernex fica com 8%. Em dinheiro, 100% é seu.</span></li>
           <li><b>Pix no seu CPF</b><span>Quando o cliente paga pelo app, sua parte cai direto no seu Pix.</span></li>
           <li><b>Moto, bike ou carro</b><span>Também tem corrida de frete pra quem tem carro, picape ou caminhão.</span></li>
         </ul>
@@ -1559,13 +1564,13 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <div class="card cm" id="cm-card" hidden></div>
       <div class="card mpi" id="mp-intro" hidden>
         <div class="eyebrow">Cadernex Labs</div>
-        <h2 class="mpi-t">Receba <span>94%</span> da sua corrida</h2>
-        <p class="mpi-lead">A taxa de serviço é paga por quem pede. Nas corridas pagas pelo app, o Cadernex fica com só 6%, uma das menores comissões do mercado, e o resto cai na sua conta Mercado Pago na hora. Em dinheiro, é 100% seu.</p>
+        <h2 class="mpi-t">Receba <span>92%</span> da sua corrida</h2>
+        <p class="mpi-lead">A taxa de serviço é paga por quem pede. Nas corridas pagas pelo app, o Cadernex fica com 8%, e o resto cai na sua conta Mercado Pago na hora. Em dinheiro, é 100% seu.</p>
         <div class="mpi-ex" aria-label="Exemplo de corrida de 15 reais">
           <div><small>Corrida aceita</small><b class="num">R$ 15,00</b></div>
           <div class="mpi-seta">→</div>
-          <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 14,10</b></div>
-          <p>O cliente paga R$ 16,67 pelo app (corrida + 10% + taxa do Pix). Dos R$ 15,00, o Cadernex fica com 6% (R$ 0,90). Vale a partir de 21/10/2026.</p>
+          <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 13,80</b></div>
+          <p>O cliente paga R$ 16,67 pelo app (corrida + 10% + taxa do Pix). Dos R$ 15,00, o Cadernex fica com 8% (R$ 1,20). Vale a partir de 01/12/2026.</p>
         </div>
         <ol class="mpi-passos">
           <li><b>Tenha uma conta no Mercado Pago</b><span>É grátis e abre pelo celular, com seu CPF. Se já tem, pule este passo.</span></li>

@@ -78,7 +78,7 @@ function pintar(){
     if(el.dataset.papel==="ent"){
       const liq=Number(p&&p.valor)-Number(p&&p.comissao||0);
       const onde=p&&p.provedor==="woovi"?(p.repasse_status==="enviado"?"Pix enviado pro seu CPF ✓":p.repasse_status==="erro"?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"na sua conta Mercado Pago";
-      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − 6% do Cadernex)</span>`:""}</div>`
+      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − ${Math.round(Number(p.comissao)/Number(p.valor)*100)}% do Cadernex)</span>`:""}</div>`
         :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair…</p>`
         :euRecebo===false?`<div class="mp-box"><b>Ative seu Pix pra receber pelo app</b><p class="hint" style="margin:0">Quando o cliente paga pelo app, sua parte cai direto no Pix do seu CPF. Sem isso, ele só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Ativar meu Pix</button></div>`:"";
       return}

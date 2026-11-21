@@ -96,6 +96,15 @@ function admRender(){
     <button class="btn full${ab?" ghost":""}" type="button" data-dlab>${ab?"Fechar a loja agora":"Abrir a loja"}</button>
     ${z?"":`<p class="dl-aviso">Coloque o <b>WhatsApp da loja</b> em Perfil → Informações da loja. É por ele que chegam os pedidos. <button class="link" type="button" data-go="perfilc">Colocar agora</button></p>`}
   </div>
+  ${pedLojaHtml()}
+  <div class="card stack">
+    <div><div class="eyebrow">Pix direto pra loja</div><h2 style="margin:2px 0 0">Receber pelo app</h2></div>
+    ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora no Pix da loja (o CNPJ ou CPF do seu cadastro).</p>
+      <button class="link" type="button" data-dlpixoff style="align-self:flex-start;padding:0">Desligar</button>`
+    :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> no Pix da loja (CNPJ ou CPF do seu cadastro). O pedido chega pra você já pago.</p>
+      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega. Pagamento na entrega (pelo WhatsApp) continua sem taxa.</p>
+      <button class="btn full" type="button" data-dlpixon>Ativar recebimento pelo app</button>`}
+  </div>
   <div class="card stack">
     <div><div class="eyebrow">A cara da sua loja</div><h2 style="margin:2px 0 0">Logo, capa e endereço</h2></div>
     <div class="dl-capa-ed" data-dlimg="capa" role="button" tabindex="0" aria-label="Trocar a capa">${perfil.loja_capa_v?`<img src="${esc(imgLoja(uid,"capa",perfil.loja_capa_v))}" alt="">`:`<span>${IC.foto}<b>Foto de capa</b><small>a fachada, o balcão ou seu prato mais bonito</small></span>`}
@@ -158,6 +167,10 @@ async function salvaEnd(){
     if(!p)toast("Endereço salvo, mas não achamos no mapa. Confira o número e o bairro.")},"Endereço salvo ✓");
 }
 V.addEventListener("click",e=>{
+  if(e.target.closest("[data-dlpixon]")){pixLigar(true);return}
+  if(e.target.closest("[data-dlpixoff]")){if(confirm("Parar de receber pedidos pagos pelo app?"))pixLigar(false);return}
+  const ps=e.target.closest("[data-pdst]");if(ps){pedStatus(ps.dataset.pdid,ps.dataset.pdst,ps);return}
+  if(e.target.closest("[data-pdmoto]")){window.cxNavUser=Date.now();go("pedir");toast("Coloque a coleta na sua loja e a entrega no endereço do cliente.");return}
   const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
   if(e.target.closest("[data-dlend]")){salvaEnd();return}
   if(e.target.closest("[data-dlpick]")){$("dl-file").click();return}
@@ -190,7 +203,7 @@ function cliRender(){
   const w=$("dl-cli");if(!w)return;
   if(loja)return cardRender();
   if(lojas==null){w.innerHTML=`<p class="hint">Carregando as lojas…</p>`;return}
-  w.innerHTML=`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
+  w.innerHTML=meusPedHtml()+`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
     ${lojas.length?lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}">${l.logo_v?logoHtml(l.id,l.nome,l.logo_v,"dl-lj-i dl-lj-logo"):`<span class="dl-lj-i">${IC.loja}</span>`}
       <span class="dl-lj-t"><b>${esc(l.nome)}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")
@@ -300,23 +313,34 @@ function ckRender(){
     ${its.map(x=>`<div class="row"><span>${x.n}× ${esc(x.p.nome)}</span><b class="num">${brl(x.n*Number(x.p.preco))}</b></div>`).join("")}
     <div class="row" style="border-top:1px solid var(--line);padding-top:8px"><b>Produtos</b><b class="num">${brl(total())}</b></div>
     <div class="row" id="dl-fr-r"><span>Entrega</span><b class="num" id="dl-fr">${loja.lat!=null?"coloque o endereço":"a loja informa"}</b></div>
+    ${loja.pix?`<div class="row" id="dl-sv-r"><span>Taxa de serviço (10%)</span><b class="num">${brl(servicoDe())}</b></div>`:""}
     <div class="row dl-tot" id="dl-tot-r" hidden><b>Total estimado</b><b class="num" id="dl-tot"></b></div>
     <p class="hint" style="margin:0;font-size:12px" id="dl-fr-h">${loja.lat!=null?"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.":"A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação."}</p>
     ${uid&&String(perfil.nome||"").trim()?"":`<label>Seu nome<input id="dl-nome-c" maxlength="40" autocomplete="name" placeholder="Como a loja te chama"></label>`}
     <label>Endereço de entrega<input id="dl-end" maxlength="140" placeholder="Rua, número, quadra, lote, referência" value="${esc(perfil.end_padrao||"")}"></label>
     <label>Bairro<input id="dl-bairro" maxlength="40"></label>
-    <label>Pagamento<select id="dl-pag"><option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
+    <label>Pagamento<select id="dl-pag">${loja.pix?`<option value="app">Pix pelo app (paga agora)</option>`:""}<option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
     <label id="dl-troco-w" hidden>Troco pra quanto?<input id="dl-troco" inputmode="decimal" placeholder="opcional"></label>
     <label>Observação<input id="dl-obs" maxlength="140" placeholder="opcional: sem cebola, ponto da carne…"></label>
-    <button class="btn full" type="button" data-dlenviar>${IC.zap}Enviar pedido no WhatsApp da loja</button>
-    <p class="hint" style="margin:0;font-size:12px">A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.</p></div>`;
-  $("dl-pag").onchange=()=>$("dl-troco-w").hidden=$("dl-pag").value!=="Dinheiro";
+    <button class="btn full" type="button" data-dlenviar id="dl-env-b">${IC.zap}Enviar pedido no WhatsApp da loja</button>
+    <p class="hint" style="margin:0;font-size:12px" id="dl-env-h">A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.</p>
+    <div id="dl-pix"></div></div>`;
+  const modo=()=>{const app=$("dl-pag").value==="app";$("dl-troco-w").hidden=$("dl-pag").value!=="Dinheiro";
+    if($("dl-sv-r"))$("dl-sv-r").hidden=!app;
+    if($("dl-fr-h")&&loja.lat!=null)$("dl-fr-h").textContent=app?"A entrega já vai junto no Pix e fica com a loja, que chama o motoboy.":"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.";
+    $("dl-env-b").innerHTML=app?"Pagar com Pix":`${IC.zap}Enviar pedido no WhatsApp da loja`;
+    $("dl-env-h").textContent=app?"Você paga agora pelo app. O dinheiro vai direto pra loja, que já recebe o pedido pago.":"A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.";totAtual()};
+  $("dl-pag").onchange=modo;modo();
   frete=null;let t=null;const calc=()=>{clearTimeout(t);t=setTimeout(calcFrete,700)};
   $("dl-end").addEventListener("input",calc);$("dl-bairro").addEventListener("input",calc);
   if(String(perfil.end_padrao||"").length>=5)calc();
   w.scrollIntoView({behavior:"smooth",block:"start"});
 }
 let frete=null,freteN=0;
+const servicoDe=()=>Math.round(total()*10)/100;
+function totAtual(){const r=$("dl-tot-r");if(!r)return;const app=$("dl-pag")&&$("dl-pag").value==="app";
+  if(!frete&&!app){r.hidden=true;return}
+  $("dl-tot").textContent=brl(total()+(frete?frete.v:0)+(app?servicoDe():0));r.hidden=false}
 async function calcFrete(){
   if(!loja||loja.lat==null||!$("dl-fr"))return;
   const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),n=++freteN;frete=null;
@@ -329,12 +353,13 @@ async function calcFrete(){
   const k=Math.round(m/100)/10;
   if(k>40){$("dl-fr").textContent="fora da área: a loja informa";$("dl-tot-r").hidden=true;return}
   frete={v:freteDe(k),km:k};
-  $("dl-fr").textContent=`${brl(frete.v)} · ${String(k).replace(".",",")} km`;$("dl-tot").textContent=brl(total()+frete.v);$("dl-tot-r").hidden=false;
+  $("dl-fr").textContent=`${brl(frete.v)} · ${String(k).replace(".",",")} km`;totAtual();
 }
 function enviar(){
   const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),pag=$("dl-pag").value,troco=$("dl-troco").value.trim(),obs=$("dl-obs").value.trim();
   if(end.length<5){toast("Coloque o endereço de entrega");$("dl-end").focus();return}
   if(bairro.length<2){toast("Coloque o bairro");$("dl-bairro").focus();return}
+  if(pag==="app")return pagarApp(end,bairro,obs);
   const nc=$("dl-nome-c"),nome=(nc?nc.value.trim():String(perfil.nome||"").trim().split(" ")[0]);
   if(nc&&nome.length<2){toast("Coloque seu nome");nc.focus();return}
   const its=itens();
@@ -355,14 +380,79 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-dlenviar]")){enviar();return}
 });
 
+/* ---------- pedido pago pelo app (Pix na Woovi): dinheiro vai direto pra loja ---------- */
+let pedCanal=null;
+async function pagarApp(end,bairro,obs){
+  const b=$("dl-env-b");b.disabled=true;const t=b.innerHTML;b.textContent="Gerando o Pix…";
+  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>({id:x.p.id,n:x.n})),endereco:end,bairro,obs,entrega:frete?frete.v:0}});
+  b.disabled=false;b.innerHTML=t;
+  if(error||!data||!data.brcode){let m=data&&data.erro;if(!m)try{const j=await error.context.json();m=j&&j.erro}catch(x){}toast(m||"Não deu pra gerar o Pix agora. Tente de novo.");return}
+  if(uid&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
+  pixMostra(data);esperaPago(data.id);
+}
+function pixMostra(d){
+  const w=$("dl-pix");if(!w)return;$("dl-env-b").hidden=true;$("dl-env-h").hidden=true;
+  const qr=/^https:\/\//.test(d.qrcode||"")?`<img src="${esc(d.qrcode)}" alt="QR Code do Pix" width="220" height="220" style="display:block;margin:4px auto;background:#fff;border-radius:10px">`:"";
+  w.innerHTML=`<div class="dl-pixbox"><b>Pague ${brl(Number(d.total))} no Pix</b>${qr}
+    <button class="btn full" type="button" id="dl-pix-cp">Copiar Pix copia e cola</button>
+    <p class="hint" style="margin:0;text-align:center" id="dl-pix-st">Aguardando o pagamento… Vale 30 minutos.</p></div>`;
+  $("dl-pix-cp").onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(d.brcode):Promise.reject()).then(()=>toast("Pix copiado ✓ Cole no app do seu banco."),()=>prompt("Copie o código do Pix:",d.brcode))};
+  w.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function esperaPago(id){
+  if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
+  let fim=false;const ok=()=>{if(fim)return;fim=true;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
+    cart={loja:loja.id,q:{}};salvaCart();
+    const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox ok"><b>✓ Pago! Seu pedido foi pra loja.</b><p class="hint" style="margin:0">Acompanhe aqui no Delivery, em "Seus pedidos". A loja prepara e chama o motoboy.</p></div>`;
+    toast("Pagamento confirmado ✓");setTimeout(()=>{if(loja){cardRender();meusPedLoad()}},2500)};
+  try{pedCanal=sb.channel("ped-"+id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`id=eq.${id}`},m=>{if(m.new&&m.new.status==="pago")ok()}).subscribe()}catch(e){}
+  let n=0;const tick=async()=>{if(fim||++n>200)return;const r=await sb.from("pedidos_loja").select("status").eq("id",id).maybeSingle();
+    if(r.data&&r.data.status==="pago")return ok();if(r.data&&r.data.status==="expirado"){const s=$("dl-pix-st");if(s)s.textContent="O Pix venceu. Faça o pedido de novo.";return}setTimeout(tick,6000)};setTimeout(tick,6000);
+}
+/* cliente: seus pedidos do delivery */
+let meusPed=[];
+const ST={aguardando:"Aguardando pagamento",pago:"Pago · a loja vai aceitar",aceito:"A loja está preparando",saiu:"Saiu pra entrega 🛵",entregue:"Entregue ✓",cancelado:"Cancelado",expirado:"Pix vencido"};
+async function meusPedLoad(){if(!sb||!uid)return;const r=await sb.from("pedidos_loja").select("id,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
+  meusPed=r.error?[]:r.data||[];if(!loja)cliRender()}
+function meusPedHtml(){if(!meusPed.length)return"";const nome=id=>((lojas||[]).find(l=>l.id===id)||{}).nome||"Loja";
+  return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Seus pedidos</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(ST[p.status]||p.status)}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small></div>`).join("")}</div>`}
+
+/* lojista: receber pelo app + pedidos */
+async function pixLigar(on){
+  if(on){const r=await sb.from("dados_pessoais").select("cpf,cnpj").eq("user_id",uid).maybeSingle();
+    if(!r.data||!(r.data.cnpj||r.data.cpf)){toast("Complete seu cadastro com CPF ou CNPJ primeiro");if(typeof abrirDados==="function")abrirDados();return}}
+  safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Sua loja recebe pelo app ✓":"Recebimento pelo app desligado");
+}
+let pedLoja=[],pedLojaCanal=null;
+async function pedLojaLoad(){if(!sb||!uid||!ehLoja())return;
+  const r=await sb.from("pedidos_loja").select("*").eq("loja_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(30);
+  pedLoja=r.error?[]:r.data||[];admRender();
+  if(!pedLojaCanal){try{pedLojaCanal=sb.channel("pl-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"pedidos_loja",filter:`loja_id=eq.${uid}`},m=>{
+    if(m.new&&m.new.status==="pago"&&(!m.old||m.old.status!=="pago"))toast("🛍️ Novo pedido pago!");pedLojaLoad()}).subscribe()}catch(e){}}
+}
+function pedLojaHtml(){
+  if(!perfil.loja_pix)return"";
+  const ativos=pedLoja.filter(p=>p.status!=="entregue"),feitos=pedLoja.filter(p=>p.status==="entregue").slice(0,5);
+  const um=p=>{const w=so(p.cliente_whats);return`<div class="dl-ped"><div class="row"><b>${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(ST[p.status]||p.status)}</span></div>
+    <div>${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join("<br>")}</div>
+    <small class="hint">Entregar em: ${esc(p.endereco)}${p.bairro?" — "+esc(p.bairro):""}${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>
+    <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex + entrega ${brl(Number(p.entrega))} = <b>você recebe ${brl(Number(p.repasse))}</b>${p.repasse_status==="enviado"?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}</small>
+    ${w?`<a class="link" href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp do cliente</a>`:""}
+    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?`<div class="grid2"><button class="btn ghost" type="button" data-pdmoto>Chamar motoboy</button><button class="btn" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega</button></div>`:p.status==="saiu"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="entregue">Marcar entregue</button>`:""}</div>`};
+  return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Pedidos da loja</h2></div>
+    ${ativos.length?ativos.map(um).join(""):`<p class="hint" style="margin:0">Nenhum pedido em andamento. Quando um cliente pagar, ele aparece aqui na hora.</p>`}
+    ${feitos.length?`<details><summary class="hint">Entregues (${feitos.length})</summary>${feitos.map(um).join("")}</details>`:""}</div>`;
+}
+function pedStatus(id,novo,b){b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_status",{pid:id,novo});b.disabled=false;if(r.error)throw Object.assign(r.error,{cxMsg:r.error.message});await pedLojaLoad()},novo==="aceito"?"Pedido aceito ✓":novo==="saiu"?"Cliente avisado: saiu pra entrega":"Pedido entregue ✓")}
+
 /* ---------- ligações com o resto do app ---------- */
 async function abrirDoLink(){const v=linkPend();if(!v||!uid)return;try{localStorage.removeItem(LINK_KEY)}catch(e){}
   const id=await idDoLink(v);if(!id)return;
   window.cxNavUser=Date.now(); // não deixa o app puxar de volta pro início
   if(id===uid){go("lojas");return}go("lojas");abrirLoja(id)}
-function entrar(){admRender();if(!loja)lojasLoad();if(ehLoja()&&!meus.length)meusLoad()}
+function entrar(){admRender();if(!loja)lojasLoad();if(ehLoja()&&!meus.length)meusLoad();pedLojaLoad();meusPedLoad()}
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="lojas")entrar()}}
-const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();vitrineFechar();meusLoad();await dadosPendentes();abrirDoLink()};
+const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();vitrineFechar();meusLoad();pedLojaLoad();await dadosPendentes();abrirDoLink()};
 if(uid)setTimeout(()=>{meusLoad();abrirDoLink()},0);
 window.cxDelivery={abrir:abrirLoja};
 })();

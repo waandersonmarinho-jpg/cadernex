@@ -82,7 +82,7 @@ tr:last-child td{border-bottom:0}
 </ol>
 
 <h2>Quanto dá pra ganhar?</h2>
-<p>Mexa nos números e veja uma estimativa. Cada entrega de R$ 10 paga pelo app gera R$ 1,60 de taxa pro Cadernex (10% de quem pede + 6% do entregador, a partir de 21/10/2026), e 2% disso é seu.</p>
+<p>Mexa nos números e veja uma estimativa. Cada entrega de R$ 10 paga pelo app gera R$ 1,80 de taxa pro Cadernex (10% de quem pede + 8% do entregador, a partir de 01/12/2026), e 2% disso é seu.</p>
 <div class="calc">
 <label>Lojas que você cadastrou<span class="lin"><input type="range" id="c-lojas" min="1" max="100" value="10"><output id="o-lojas">10</output></span></label>
 <label>Entregas pagas pelo app, por loja, por dia<span class="lin"><input type="range" id="c-ent" min="1" max="40" value="5"><output id="o-ent">5</output></span></label>
@@ -150,8 +150,8 @@ Cadastro grátis: https://cadernex.com.br/promotores.html</p><div class="bts"><b
 const $=id=>document.getElementById(id),brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:v<100?2:0});
 function calc(){const l=+$("c-lojas").value,e=+$("c-ent").value,v=+$("c-val").value;
   $("o-lojas").textContent=l;$("o-ent").textContent=e;$("o-val").textContent="R$ "+v;
-  // taxa do Cadernex por entrega paga pelo app: 10% do cliente + 6% do entregador
-  const mes=l*e*30*v*0.16*0.02;$("r-mes").textContent=brl(mes);$("r-tot").textContent=brl(Math.max(0,mes*24-l*v*0.16*0.02))}
+  // taxa do Cadernex por entrega paga pelo app: 10% do cliente + 8% do entregador
+  const mes=l*e*30*v*0.18*0.02;$("r-mes").textContent=brl(mes);$("r-tot").textContent=brl(Math.max(0,mes*24-l*v*0.18*0.02))}
 ["c-lojas","c-ent","c-val"].forEach(id=>$(id).addEventListener("input",calc));calc();
 document.querySelectorAll(".msg").forEach(m=>{const t=m.querySelector("[data-m]").textContent;
   m.querySelector("[data-zap]").href="https://wa.me/?text="+encodeURIComponent(t);

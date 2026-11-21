@@ -1,5 +1,5 @@
 // Cadernex — woovi-pagar: cria o Pix da corrida na Woovi já com a divisão
-// Cliente paga corrida + 10% (+ taxa do Pix). A parte do entregador (corrida − 6%) vai
+// Cliente paga corrida + 10% (+ taxa do Pix). A parte do entregador (corrida − comissão: 6%, e 8% a partir de 01/12/2026) vai
 // direto pra subconta dele (chave = CPF) e o webhook manda pro Pix dele quando o pagamento cai.
 // Segredo necessário (Supabase → Edge Functions → Secrets): WOOVI_APP_ID
 // Publicar com "Verify JWT" LIGADO (padrão).
@@ -7,7 +7,9 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 const API = "https://api.woovi.com/api/v1";
 const TAXA_APP = 0.10;
-const COMISSAO = 0.06;
+const COMISSAO = 0.06; // até 30/11/2026
+const COMISSAO_NOVA = 0.08; // a partir de 01/12/2026
+const COMISSAO_NOVA_INICIO = Date.parse("2026-12-01T03:00:00Z"); // 01/12/2026 00h em Brasília
 const COMISSAO_INICIO = Date.parse("2026-10-21T03:00:00Z");
 const VALIDADE = 30 * 60; // o Pix vale 30 minutos
 const cors = {
@@ -80,7 +82,7 @@ Deno.serve(async (req) => {
     const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
     const taxaApp = enc ? 0 : r2(valor * TAXA_APP);
     const total = Math.ceil(((valor + taxaApp) / (1 - taxaPix)) * 100) / 100;
-    const comissao = Date.now() >= COMISSAO_INICIO ? r2(valor * COMISSAO) : 0;
+    const comissao = Date.now() >= COMISSAO_INICIO ? r2(valor * (Date.now() >= COMISSAO_NOVA_INICIO ? COMISSAO_NOVA : COMISSAO)) : 0;
     const repasse = r2(valor - comissao);
     const corr = `cx-${c.id}-${Date.now().toString(36)}`;
 
