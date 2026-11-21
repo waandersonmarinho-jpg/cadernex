@@ -49,7 +49,7 @@ async function vitrineCheca(){
 }
 vitrineCheca();
 if(typeof show==="function"){const sh=show;show=function(w){if(publico&&w==="auth")return;sh(w)}}
-document.addEventListener("click",e=>{if(!e.target.closest("#vt-entrar"))return;vitrineFechar();show("auth");if(window.auAba)auAba("entrar")});
+document.addEventListener("click",e=>{if(!e.target.closest("#vt-entrar,[data-vtentrar]"))return;vitrineFechar();show("auth");if(window.auAba)auAba("entrar")});
 
 /* ---------- foto: reduz pra no máximo 900 px ---------- */
 async function comprimir(file){
@@ -190,6 +190,8 @@ async function abrirLoja(id){
   loja=l;cardapio=null;if(cart.loja!==id)cart={loja:id,q:{}};cardRender();
   const r=await sb.rpc("cardapio_publico",{lid:id});
   cardapio=r.error?[]:r.data;Object.keys(cart.q).forEach(k=>{if(!cardapio.some(p=>p.id===k))delete cart.q[k]});cardRender();scrollTo(0,0);
+  let ck=false;try{ck=sessionStorage.getItem("cx-dl-ck")==="1";if(ck)sessionStorage.removeItem("cx-dl-ck")}catch(e){}
+  if(ck&&uid&&itens().length)setTimeout(ckRender,200);
 }
 const itens=()=>Object.entries(cart.q).filter(([,n])=>n>0).map(([id,n])=>({p:(cardapio||[]).find(x=>x.id===id),n})).filter(x=>x.p);
 const total=()=>itens().reduce((s,x)=>s+x.n*Number(x.p.preco),0);
@@ -210,8 +212,74 @@ function cardRender(){if(!loja)return;
   ${pode&&itens().length?`<div class="dl-bar"><button class="btn full" type="button" data-dlck>Ver pedido · ${itens().reduce((s,x)=>s+x.n,0)} ${itens().reduce((s,x)=>s+x.n,0)===1?"item":"itens"} · ${brl(total())}</button></div>`:""}
   <div id="dl-ck"></div>`;
 }
+/* cliente do lojista sem conta: cadastro rápido (cria a conta Cadernex) antes de pedir */
+const PEND="cx-dados-pend";
+const soN=v=>String(v||"").replace(/\D/g,"");
+function cpfOk(c){c=soN(c);if(c.length!==11||/^(\d)\1{10}$/.test(c))return false;let s=0;for(let i=0;i<9;i++)s+=+c[i]*(10-i);let d1=(s*10)%11;if(d1===10)d1=0;
+  s=0;for(let i=0;i<10;i++)s+=+c[i]*(11-i);let d2=(s*10)%11;if(d2===10)d2=0;return d1===+c[9]&&d2===+c[10]}
+function idadeDe(d){const n=new Date(d+"T12:00"),h=new Date();let a=h.getFullYear()-n.getFullYear();const m=h.getMonth()-n.getMonth();if(m<0||(m===0&&h.getDate()<n.getDate()))a--;return a}
+function cadRender(w){
+  w.innerHTML=`<div class="card stack dl-cad"><div><div class="eyebrow">Falta pouco</div><h2 style="margin:2px 0 0">Crie sua conta pra pedir</h2></div>
+    <p class="hint" style="margin:0">É rápido e é uma vez só. Na próxima, você entra direto com e-mail e senha.</p>
+    <form id="dl-cadf" class="stack" novalidate>
+      <label>Nome completo<input id="dc-nome" autocomplete="name" maxlength="80" required></label>
+      <div class="grid2"><label>Nascimento<input id="dc-nasc" type="date" required></label><label>CPF<input id="dc-cpf" inputmode="numeric" placeholder="000.000.000-00" required></label></div>
+      <label>Celular (WhatsApp)<input id="dc-cel" inputmode="tel" autocomplete="tel" placeholder="(62) 99999-9999" required></label>
+      <label>Endereço de entrega<input id="dc-end" maxlength="140" autocomplete="street-address" placeholder="Rua, número, quadra, lote" required></label>
+      <label>Bairro<input id="dc-bairro" maxlength="40" required></label>
+      <label>E-mail<input id="dc-email" type="email" autocomplete="email" required></label>
+      <label>Crie uma senha<input id="dc-senha" type="password" autocomplete="new-password" minlength="6" placeholder="mínimo 6 caracteres" required></label>
+      <label class="dl-ok"><input type="checkbox" id="dc-ok"> <span>Li e aceito a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>. O CPF e o nascimento servem pra identificar você e dar segurança às entregas. Não são mostrados à loja.</span></label>
+      <p class="hint" id="dc-msg" role="alert" style="margin:0;color:var(--bad,#d93a3f)"></p>
+      <button class="btn full" type="submit" id="dc-btn">Criar conta e continuar</button>
+    </form>
+    <p class="hint" style="margin:0;text-align:center">Já tem conta? <button class="link" type="button" data-vtentrar>Entrar</button></p></div>`;
+  $("dc-cpf").addEventListener("input",e=>{const v=soN(e.target.value).slice(0,11);e.target.value=v.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")});
+  $("dc-cel").addEventListener("input",e=>{const v=soN(e.target.value).slice(0,11);e.target.value=v.length>2?`(${v.slice(0,2)}) ${v.slice(2,v.length>10?7:6)}${v.length>(v.length>10?7:6)?"-"+v.slice(v.length>10?7:6):""}`:v});
+  $("dl-cadf").onsubmit=criarConta;
+  w.scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function gravaDados(d){ // grava os dados pessoais e o endereço na conta já logada
+  const r=await sb.from("dados_pessoais").insert({nome_completo:d.nome,celular:d.cel,nascimento:d.nasc,cpf:d.cpf,nacionalidade:"Brasileira"});
+  if(r.error&&!/duplicate|já/i.test(r.error.message||""))throw r.error;
+  const{data:{user}}=await sb.auth.getUser();
+  if(user)await sb.from("perfis").update({end_padrao:[d.end,d.bairro].filter(Boolean).join(" — "),telefone:d.cel}).eq("user_id",user.id);
+  try{localStorage.removeItem(PEND);sessionStorage.removeItem("cadernex_dados_depois")}catch(e){}
+}
+async function criarConta(e){
+  e.preventDefault();const msg=$("dc-msg");msg.textContent="";
+  const d={nome:$("dc-nome").value.trim().replace(/\s+/g," "),nasc:$("dc-nasc").value,cpf:soN($("dc-cpf").value),cel:soN($("dc-cel").value),
+    end:$("dc-end").value.trim(),bairro:$("dc-bairro").value.trim(),email:$("dc-email").value.trim()};const senha=$("dc-senha").value;
+  const erro=(t,id)=>{msg.textContent=t;if(id)$(id).focus()};
+  if(d.nome.split(" ").length<2)return erro("Escreva o nome completo, com sobrenome.","dc-nome");
+  if(!d.nasc)return erro("Coloque a data de nascimento.","dc-nasc");
+  if(idadeDe(d.nasc)<18)return erro("É preciso ter 18 anos ou mais pra pedir pelo Cadernex.","dc-nasc");
+  if(!cpfOk(d.cpf))return erro("CPF inválido. Confira os números.","dc-cpf");
+  if(d.cel.length<10)return erro("Celular com DDD. Ex.: (62) 99999-9999.","dc-cel");
+  if(d.end.length<5)return erro("Coloque o endereço de entrega.","dc-end");
+  if(d.bairro.length<2)return erro("Coloque o bairro.","dc-bairro");
+  if(!/^\S+@\S+\.\S+$/.test(d.email))return erro("E-mail inválido.","dc-email");
+  if(senha.length<6)return erro("A senha precisa ter pelo menos 6 caracteres.","dc-senha");
+  if(!$("dc-ok").checked)return erro("Pra continuar, aceite a Política de Privacidade.");
+  const b=$("dc-btn");b.disabled=true;b.textContent="Criando sua conta…";
+  try{
+    try{sessionStorage.setItem("cadernex_dados_depois","1");localStorage.setItem(PEND,JSON.stringify({...d,email:d.email.toLowerCase()}))}catch(x){}
+    const{data,error}=await sb.auth.signUp({email:d.email,password:senha,options:{data:{nome:d.nome.split(" ")[0],tipo:"cliente"}}});
+    if(error)throw error;
+    if(!data.session){b.textContent="Criar conta e continuar";b.disabled=false;
+      $("dl-ck").innerHTML=`<div class="card stack"><h2 style="margin:0">Confirme seu e-mail ✉️</h2><p class="hint" style="margin:0">Mandamos um link para <b>${esc(d.email)}</b>. Abra o e-mail, toque no link e você volta direto pra loja, já com a conta pronta.</p></div>`;return}
+    await gravaDados(d);try{sessionStorage.setItem("cx-dl-ck","1")}catch(x){}toast("Conta criada ✓ Agora é só confirmar o pedido.");
+  }catch(err){b.disabled=false;b.textContent="Criar conta e continuar";const m=String(err.message||"");
+    msg.textContent=/already registered|already been registered/i.test(m)?"Esse e-mail já tem conta. Toque em Entrar, logo abaixo.":/CPF/i.test(m)?m:/rate limit|too many/i.test(m)?"Muitos cadastros agora. Espere alguns minutos e tente de novo.":/Password|weak/i.test(m)?"Senha fraca. Use pelo menos 6 caracteres.":"Não deu pra criar a conta agora. Confira a internet e tente de novo."}
+}
+async function dadosPendentes(){ // quem confirmou o e-mail depois: grava os dados guardados
+  let d=null;try{d=JSON.parse(localStorage.getItem(PEND)||"null")}catch(e){}if(!d||!uid)return;
+  const{data:{user}}=await sb.auth.getUser();if(!user||String(user.email||"").toLowerCase()!==d.email){try{localStorage.removeItem(PEND)}catch(e){}return}
+  try{await gravaDados(d);if(typeof dadosCheck==="function")await dadosCheck();if($("s-dados")&&!$("s-dados").hidden)show("app");try{sessionStorage.setItem("cx-dl-ck","1")}catch(e){}}catch(e){}
+}
 function ckRender(){
   const w=$("dl-ck");if(!w)return;const its=itens();if(!its.length){w.innerHTML="";return}
+  if(!uid)return cadRender(w);
   w.innerHTML=`<div class="card stack dl-ckc"><div><div class="eyebrow">Seu pedido</div><h2 style="margin:2px 0 0">${esc(loja.nome)}</h2></div>
     ${its.map(x=>`<div class="row"><span>${x.n}× ${esc(x.p.nome)}</span><b class="num">${brl(x.n*Number(x.p.preco))}</b></div>`).join("")}
     <div class="row" style="border-top:1px solid var(--line);padding-top:8px"><b>Produtos</b><b class="num">${brl(total())}</b></div>
@@ -277,7 +345,7 @@ function abrirDoLink(){const id=linkPend();if(!id||!uid)return;try{localStorage.
   if(id===uid){go("lojas");return}go("lojas");abrirLoja(id)}
 function entrar(){admRender();if(!loja)lojasLoad();if(ehLoja()&&!meus.length)meusLoad()}
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="lojas")entrar()}}
-const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();vitrineFechar();meusLoad();abrirDoLink()};
+const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();vitrineFechar();meusLoad();await dadosPendentes();abrirDoLink()};
 if(uid)setTimeout(()=>{meusLoad();abrirDoLink()},0);
 window.cxDelivery={abrir:abrirLoja};
 })();
