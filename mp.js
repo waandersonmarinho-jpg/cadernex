@@ -77,7 +77,7 @@ function pintar(){
     const c=minhas.find(x=>x.id===el.dataset.mp);if(!c)return;const p=pags[c.id];
     if(el.dataset.papel==="ent"){
       const liq=Number(p&&p.valor)-Number(p&&p.comissao||0);
-      const onde=p&&p.provedor==="woovi"?(p.repasse_status==="enviado"?"Pix enviado pro seu CPF ✓":p.repasse_status==="erro"?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"na sua conta Mercado Pago";
+      const onde=p&&p.provedor==="woovi"?(["enviado","manual"].includes(p.repasse_status)?"Pix enviado pro seu CPF ✓":p.repasse_status==="erro"?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"na sua conta Mercado Pago";
       el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − ${Math.round(Number(p.comissao)/Number(p.valor)*100)}% do Cadernex)</span>`:""}</div>`
         :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair… <b>Só colete depois que aparecer "Cliente pagou".</b></p>`
         :c.status==="aceita"?`<p class="hint" style="margin:0">⏳ Aguardando o cliente pagar o Pix pelo app. <b>Só colete depois que aparecer "Cliente pagou".</b></p>`

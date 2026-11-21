@@ -570,6 +570,12 @@ html.vitrine .wrap>header{display:none}
 #net-bar{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:5000;max-width:min(92vw,480px);padding:9px 14px;border-radius:12px;font:600 13px var(--body,inherit);box-shadow:0 6px 20px rgba(0,0,0,.25);text-align:center}
 #net-bar.off{background:#3a1d1d;color:#ffd9d9}#net-bar.lento{background:#3a2f12;color:#ffe9b0}#net-bar.ok{background:#173a2a;color:#c8f5dc}
 .cod-fila{margin:0;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px}
+.pp-n{min-width:34px;height:34px;padding:0 10px;border-radius:999px;display:grid;place-items:center;font-weight:800;background:var(--line)}
+.pp-n.ok{background:color-mix(in srgb,var(--good,#2ebd85) 20%,transparent);color:var(--good,#1f9d6a)}
+.pp-n.alerta{background:var(--bad,#d93a3f);color:#fff}
+.pp-it{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid var(--line);border-left:4px solid var(--bad,#d93a3f);border-radius:12px;background:var(--surface)}
+.pp-it.aviso{border-left-color:var(--accent)}
+.pp-it .row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px;align-items:baseline}.pp-it .row .num{white-space:nowrap}.pp-it .row>span{min-width:0;overflow-wrap:anywhere}
 .dl-tot b{font-size:17px}.dl-tot b.num{color:var(--accent)}
 .dl-capa-ed{position:relative;height:130px;border-radius:14px;border:2px dashed var(--line);background:var(--bg);overflow:visible;cursor:pointer;margin-bottom:26px;color:var(--muted)}
 .dl-capa-ed>img{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
@@ -1411,6 +1417,11 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <a class="card maisbtn so-ent" href="autonomo.html" style="text-decoration:none"><b>Você é autônomo</b><span>Seus direitos, liberdade de horário, INSS e MEI</span></a>
       <div class="card stack" id="on-card" hidden><button type="button" class="cad-h" id="on-abre" aria-expanded="false" aria-controls="on-corpo"><span class="cad-ht"><h2>Online agora</h2><span id="on-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="on-corpo" hidden><div class="stack" id="on-lista" style="gap:8px"></div><button class="link" type="button" id="on-atual" style="align-self:center">Atualizar lista</button></div></div>
+      <div class="card stack pp-card" id="pp-card" hidden>
+        <div class="row" style="align-items:center;gap:10px"><div style="flex:1"><div class="eyebrow">Moderador</div><h2 style="margin:2px 0 0">Pagamentos com problema</h2></div><span class="pp-n" id="pp-n">…</span></div>
+        <div class="stack" id="pp-lista" style="gap:10px"></div>
+        <button class="btn ghost full" type="button" id="pp-atual">Atualizar</button>
+      </div>
       <div class="card stack" id="cad-card" hidden><button type="button" class="cad-h" id="cad-abre" aria-expanded="false" aria-controls="cad-corpo"><span class="cad-ht"><h2>Cadastros</h2><span id="cad-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="cad-corpo" hidden><div class="cad-tot" id="cad-tot"></div>
         <div class="chips" id="cad-chips"><button type="button" class="chip" data-cf="todos" aria-pressed="true">Todos</button><button type="button" class="chip" data-cf="moto" aria-pressed="false">Motoboys</button><button type="button" class="chip" data-cf="envio" aria-pressed="false">Lojas e envio</button></div>
@@ -1812,6 +1823,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 <script src="ganhos.js"></script>
 <script src="foto.js"></script>
 <script src="cadastros.js"></script>
+<script src="painel.js"></script>
 <script src="saude.js"></script>
 <script src="lojainfo.js"></script>
 <script src="online.js"></script>
