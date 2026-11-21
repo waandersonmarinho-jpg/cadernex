@@ -1,7 +1,7 @@
 // Deixa o app instalável e abre na hora: os arquivos do app saem da memória do celular
 // e são atualizados por trás. Os dados (Supabase) sempre vêm da internet.
-const C="cadernex-v161";
-const F=["./","index.html","app.js","agenda.js","licoes.js","negocio.js","chat.js","corridas.js","dados.js","ajustes.js","instalar.js","alerta.js","push.js","nav.js","offline.js","odometro.js","comissao.js","promotor.js","delivery.js","conta.js","rastreio.js","faculdades.js","mp.js","selfie.js","veiculo.js","pedir.js","lote.js","enviar.js","ganhos.js","foto.js","cadastros.js","saude.js","lojainfo.js","online.js","monitor.js","config.js","geo.js","manifest.json","icon-192.png","icon.svg","marca.svg"];
+const C="cadernex-v162";
+const F=["./","index.html","app.js","agenda.js","licoes.js","negocio.js","chat.js","corridas.js","dados.js","ajustes.js","instalar.js","alerta.js","push.js","nav.js","net.js","offline.js","odometro.js","comissao.js","promotor.js","delivery.js","conta.js","rastreio.js","wake.js","faculdades.js","mp.js","selfie.js","veiculo.js","pedir.js","lote.js","enviar.js","ganhos.js","foto.js","cadastros.js","saude.js","lojainfo.js","online.js","monitor.js","config.js","geo.js","manifest.json","icon-192.png","icon.svg","marca.svg"];
 const LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js";
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>Promise.all([c.addAll(F.map(u=>new Request(u,{cache:"reload"}))),c.add(LIB).catch(()=>{})])));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
@@ -24,4 +24,4 @@ self.addEventListener("notificationclick",e=>{e.notification.close();e.waitUntil
 const PUSH_FN="https://pwmnczoiybktyxavjbjl.supabase.co/functions/v1/push";
 self.addEventListener("push",e=>{e.waitUntil(self.registration.pushManager.getSubscription()
   .then(s=>s?fetch(PUSH_FN+"?e="+encodeURIComponent(s.endpoint)).then(r=>r.json()):{}).catch(()=>({}))
-  .then(m=>self.registration.showNotification(m.titulo||"Cadernex",{body:m.corpo||"Tem novidade no Cadernex. Toque pra ver.",icon:"icon-192.png",badge:"icon-192.png",tag:m.tag||"cadernex",renotify:true,vibrate:[300,120,300,120,300],requireInteraction:/^(corrida|enc)-/.test(m.tag||""),data:{url:"./"}})))});
+  .then(m=>self.registration.showNotification(m.titulo||"Cadernex",{body:m.corpo||"Tem novidade no Cadernex. Toque pra ver.",icon:"icon-192.png",badge:"icon-192.png",tag:m.tag||"cadernex",renotify:true,timestamp:Date.now(),vibrate:[300,120,300,120,300,120,300],requireInteraction:/^(corrida|enc)-/.test(m.tag||""),data:{url:"./"}})))});

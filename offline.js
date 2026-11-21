@@ -32,7 +32,11 @@ const filaDel=n=>seguro(tx("fila","readwrite",s=>s.delete(n)));
 const semRede=e=>!navigator.onLine||!e||/fetch|network|Failed|Load failed|timeout|NetworkError/i.test(String(e.message||e))&&!e.code;
 const novoId=()=>crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
 
-let enviando=null;
+let enviando=null,acaoOk=[];
+const NOME_ACAO={coletada:"Coleta",entregue:"Entrega",devolvida:"Devolução"};
+function acaoAviso(row,msg){window.cxAcaoFeita&&cxAcaoFeita(row);toast(`⚠️ ${NOME_ACAO[row.acao]||"Ação"} feita sem sinal não foi salva: ${msg}`);if(typeof corrLoad==="function")corrLoad()}
+// ações de corrida que estão esperando sinal (pra tela mostrar "aguardando sinal")
+async function acoesPendentes(){return (await filaTodos()).filter(i=>i.u===uid&&i.tab==="acao").map(i=>i.row)}
 async function enviarFila(){
   if(enviando)return enviando;
   enviando=(async()=>{
@@ -43,11 +47,18 @@ async function enviarFila(){
       let r;
       if(it.tab==="turnos"||it.tab==="despesas")r=await sb.from(it.tab).upsert(it.row,{onConflict:"id",ignoreDuplicates:true});
       else if(it.tab==="perfil")r=await sb.from("perfis").update(it.row).eq("user_id",uid);
+      else if(it.tab==="acao"){ // código de coleta/entrega digitado sem sinal
+        r=await sb.rpc("mudar_corrida",{cid:it.row.cid,acao:it.row.acao,codigo:it.row.codigo});
+        if(!r.error&&!(r.data&&r.data.id)){await filaDel(it.n);acaoAviso(it.row,"O código não confirmou. Confira com a pessoa e digite de novo.");continue}
+        if(r.error&&!semRede(r.error)){await filaDel(it.n);acaoAviso(it.row,String(r.error.message||"Não deu certo").replace(/^.*?: /,""));continue}
+        if(!r.error){acaoOk.push(it.row);window.cxAcaoFeita&&cxAcaoFeita(it.row)}
+      }
       else{await filaDel(it.n);continue}
       if(r.error){if(semRede(r.error))break;console.error("Anotação offline recusada pelo banco: "+(r.error.message||r.error));await filaDel(it.n);continue}
       await filaDel(it.n);ok++;
     }
-    if(ok)toast(ok===1?"Anotação feita sem internet foi salva na nuvem ✓":`${ok} anotações feitas sem internet foram salvas na nuvem ✓`);
+    if(acaoOk.length){const a=acaoOk;acaoOk=[];toast(a.length===1?`${NOME_ACAO[a[0].acao]||"Ação"} feita sem sinal foi confirmada ✓`:`${a.length} ações feitas sem sinal foram confirmadas ✓`);if(typeof corrLoad==="function")corrLoad()}
+    else if(ok)toast(ok===1?"Anotação feita sem internet foi salva na nuvem ✓":`${ok} anotações feitas sem internet foram salvas na nuvem ✓`);
     return ok;
   })().finally(()=>{enviando=null});
   return enviando;
@@ -63,7 +74,10 @@ async function juntarFila(){
 }
 async function pendentes(){return (await filaTodos()).filter(i=>i.u===uid).length}
 
-window.cxOff={get,set,limpar,semRede,novoId,fila:{add:filaAdd,todos:filaTodos},enviarFila,juntarFila,pendentes};
+window.cxOff={get,set,limpar,semRede,novoId,fila:{add:filaAdd,todos:filaTodos},enviarFila,juntarFila,pendentes,acoesPendentes};
+// tenta subir a fila também quando o app volta pra frente e a cada 20 s (o sinal às vezes volta sem o evento "online")
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&uid&&navigator.onLine)enviarFila()});
+setInterval(()=>{if(uid&&navigator.onLine)pendentes().then(n=>{if(n)enviarFila()})},20000);
 
 // internet voltou: sobe a fila e atualiza
 addEventListener("online",()=>{if(uid)enviarFila().then(n=>{if(n&&typeof loadAll==="function")loadAll()})});

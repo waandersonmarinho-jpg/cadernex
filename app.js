@@ -26,7 +26,7 @@ function show(which){ // "setup" | "auth" | "app"
 async function boot(){
   const c=window.CORRE_CONFIG||{};
   if(!window.supabase||!c.SUPABASE_URL||c.SUPABASE_URL.startsWith("COLE")){show("setup");return}
-  sb=window.supabase.createClient(c.SUPABASE_URL,c.SUPABASE_KEY);
+  sb=window.supabase.createClient(c.SUPABASE_URL,c.SUPABASE_KEY,window.cxFetch?{global:{fetch:window.cxFetch}}:undefined);
   const {data:{session}}=await sb.auth.getSession();
   sb.auth.onAuthStateChange((_e,s)=>{if(s&&s.user&&s.user.id!==uid)enter(s.user);if(!s){uid=null;show("auth")}});
   if(session&&session.user)enter(session.user);else show("auth");

@@ -567,6 +567,9 @@ html.vitrine .wrap>header{display:none}
 .dl-hero img{display:block;width:100%;height:auto;aspect-ratio:848/600;object-fit:cover}
 .dl-hero-t{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(transparent,rgba(10,21,48,.92));color:#fff}
 .dl-hero-t b{font-size:20px}.dl-hero-t span{font-size:13px;color:#d5dcec}
+#net-bar{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:5000;max-width:min(92vw,480px);padding:9px 14px;border-radius:12px;font:600 13px var(--body,inherit);box-shadow:0 6px 20px rgba(0,0,0,.25);text-align:center}
+#net-bar.off{background:#3a1d1d;color:#ffd9d9}#net-bar.lento{background:#3a2f12;color:#ffe9b0}#net-bar.ok{background:#173a2a;color:#c8f5dc}
+.cod-fila{margin:0;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px}
 .dl-tot b{font-size:17px}.dl-tot b.num{color:var(--accent)}
 .dl-capa-ed{position:relative;height:130px;border-radius:14px;border:2px dashed var(--line);background:var(--bg);overflow:visible;cursor:pointer;margin-bottom:26px;color:var(--muted)}
 .dl-capa-ed>img{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
@@ -1788,6 +1791,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 <script src="monitor.js"></script>
 <script src="config.js"></script>
 <script src="geo.js"></script>
+<script src="net.js"></script>
 <script src="offline.js"></script>
 <script src="app.js"></script>
 <script src="agenda.js"></script>
@@ -1797,6 +1801,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 <script src="corridas.js"></script>
 <script src="dados.js"></script>
 <script src="rastreio.js"></script>
+<script src="wake.js"></script>
 <script src="faculdades.js"></script>
 <script src="mp.js"></script>
 <script src="selfie.js"></script>

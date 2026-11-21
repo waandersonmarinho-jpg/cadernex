@@ -46,7 +46,9 @@ const zap=t=>{let d=String(t||"").replace(/\D/g,"");if(d.length===10||d.length==
 function codBox(c){const k=cods[c.id];if(!k||!["aberta","aceita","coletada"].includes(c.status))return"";
   const d=dets[c.id],z=zap(d&&d.contato),txt=`Olá! Sua entrega está a caminho pelo Cadernex. Quando o entregador chegar, informe a ele o código de entrega: ${k.entrega}. Passe o código só depois de receber a encomenda.`;
   return`<div class="mp-box cod"><b>🔐 Códigos desta entrega</b><div class="cod-g"><div><span class="eyebrow">Coleta</span><b class="cod-n">${k.coleta}</b><small>Fale para o entregador só quando entregar a encomenda a ele${c.retorno_em?" (e quando ele devolver)":""}</small></div><div><span class="eyebrow">Entrega</span><b class="cod-n">${k.entrega}</b><small>Quem recebe fala para o entregador na entrega</small></div></div><a class="btn ghost full" href="https://wa.me/${z}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Mandar código de entrega no WhatsApp${z?"":" (escolher contato)"}</a><p class="hint" style="margin:0">Sem o código certo, o entregador não consegue marcar a coleta nem a entrega.</p></div>`}
-const codForm=(c,acao,rot,dica)=>`<form class="cod-form" data-codform="${acao}" data-id="${c.id}"><label>${acao==="entregue"?"Código de entrega":"Código de coleta"}<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" autocomplete="one-time-code" aria-describedby="cd-${acao}-${c.id}"></label><button class="btn full" type="submit">${rot}</button><p class="hint" id="cd-${acao}-${c.id}" style="margin:0">${dica}</p></form>`;
+const acaoPend=new Set(); // "cid:acao" guardados sem sinal
+if(window.cxOff)setTimeout(()=>cxOff.acoesPendentes().then(l=>{(l||[]).forEach(r=>acaoPend.add(r.cid+":"+r.acao));if(l&&l.length&&typeof corrRender==="function")corrRender()}),0);
+const codForm=(c,acao,rot,dica)=>acaoPend.has(c.id+":"+acao)?`<p class="cod-fila">📶 ${{coletada:"Coleta",entregue:"Entrega",devolvida:"Devolução"}[acao]||"Ação"} guardada no celular. Confirma sozinha quando o sinal voltar.</p>`:`<form class="cod-form" data-codform="${acao}" data-id="${c.id}"><label>${acao==="entregue"?"Código de entrega":"Código de coleta"}<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" autocomplete="one-time-code" aria-describedby="cd-${acao}-${c.id}"></label><button class="btn full" type="submit">${rot}</button><p class="hint" id="cd-${acao}-${c.id}" style="margin:0">${dica}</p></form>`;
 
 const ANOT_KEY="cadernex_corridas_anotadas";
 let anotadas=(()=>{try{return JSON.parse(localStorage.getItem(ANOT_KEY))||[]}catch(e){return[]}})();
@@ -367,8 +369,20 @@ if(uid)admLoad();
 // Se dois tocam juntos, quem chegou depois recebe um aviso claro, e a corrida some da lista dele.
 window.aceitarCorrida=async function(id){
   try{
-    const{error}=await sb.rpc("aceitar_corrida",{cid:id});
+    // aceitar NÃO vai pra fila: outro entregador pode pegar enquanto você está sem sinal.
+    // Com sinal fraco, tenta até 3 vezes; se a resposta se perdeu, confere no banco se a corrida já é sua.
+    let error=null;
+    for(let i=0;i<3;i++){
+      ({error}=await sb.rpc("aceitar_corrida",{cid:id}));
+      if(!error||!(window.cxOff&&cxOff.semRede(error)))break;
+      if(i===0)toast("Sinal fraco… tentando aceitar de novo");
+      await new Promise(r=>setTimeout(r,[800,2000,0][i]));
+      const v=await sb.from("corridas").select("status,entregador_id").eq("id",id).maybeSingle();
+      if(v.data&&v.data.entregador_id===uid){error=null;break}           // a primeira tentativa tinha chegado
+      if(v.data&&v.data.status!=="aberta"){error={message:"já foi pega"};break}
+    }
     if(error){const m=String(error.message||"");
+      if(window.cxOff&&cxOff.semRede(error)){toast("Sem sinal pra aceitar agora. Assim que voltar, tente de novo (se ainda estiver livre).");return false}
       if(/já foi pega|cancelada/i.test(m)){toast("Outro entregador aceitou primeiro. Fica pra próxima! 🏍️");if(typeof alertaSumir==="function")alertaSumir(id,true);await corrLoad();return false}
       if(/Termine|veículo|bloqueada|cadastro|entregador|Pix/i.test(m)){toast(m.replace(/^.*?: /,""));if(/Pix/.test(m)&&typeof go==="function")go("resumo");return false}
       throw error}
@@ -384,11 +398,20 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-mais]");if
   b.disabled=true;safe(async()=>{const{error}=await sb.rpc("aumentar_valor",{cid:b.dataset.mais,novo});if(error)throw error;await corrLoad()},`Valor aumentado para ${brl(novo)}. Os entregadores foram avisados.`).finally(()=>{b.disabled=false})});
 // atualiza o tempo de espera na tela enquanto alguém está esperando o cliente
 setInterval(()=>{if(!document.hidden&&typeof minhas!=="undefined"&&minhas.some(c=>c.status==="coletada"&&c.ausente_em&&!c.retorno_em))corrRender()},30000);
+// sem sinal: guarda o código no celular e confirma sozinho quando o sinal voltar (o servidor ainda confere o código)
+window.cxAcaoFeita=r=>acaoPend.delete(r.cid+":"+r.acao);
+async function codFila(f,cid,acao,codigo,b){
+  await cxOff.fila.add({tab:"acao",row:{cid,acao,codigo}});acaoPend.add(cid+":"+acao);b.disabled=false;
+  f.innerHTML=`<p class="cod-fila">📶 Sem sinal agora. <b>${{coletada:"Coleta",entregue:"Entrega",devolvida:"Devolução"}[acao]||"Ação"} guardada no celular</b> e confirmada sozinha quando o sinal voltar. Pode seguir.</p>`;
+  toast("Sem sinal: guardado no celular. Confirma sozinho quando voltar.");
+}
 async function codEnviar(f){
   const acao=f.dataset.codform,cid=f.dataset.id,inp=f.querySelector("input"),b=f.querySelector("button"),codigo=inp.value.replace(/\D/g,"");
   if(codigo.length!==4){toast("Digite o código de 4 números");inp.focus();return}
   b.disabled=true;
+  if(window.cxOff&&!navigator.onLine)return codFila(f,cid,acao,codigo,b);
   let{data,error}=await sb.rpc("mudar_corrida",{cid,acao,codigo});
+  if(error&&window.cxOff&&cxOff.semRede(error))return codFila(f,cid,acao,codigo,b);
   if(error&&(error.code==="PGRST202"||/codigo/.test(error.message||"")))({data,error}=await sb.rpc("mudar_corrida",{cid,acao})); // banco ainda sem códigos
   b.disabled=false;
   if(error){toast(/Muitos|Espere|Você já|não é possível|pagou/.test(error.message||"")?error.message.replace(/^.*?: /,""):"Não salvou. Confira a internet e tente de novo.");return}

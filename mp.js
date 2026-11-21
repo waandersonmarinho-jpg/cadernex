@@ -120,6 +120,13 @@ document.addEventListener("click",async e=>{
 // volta do Mercado Pago
 if(/#pago/.test(location.hash)){history.replaceState(null,"",location.pathname);setTimeout(()=>{toast("Pagamento enviado! Assim que o Pix cair, aparece Pago ✓ no pedido.");if(typeof go==="function")go("pedidos")},800)}
 
+// reserva do tempo real: se o aviso do Pix atrasar (sinal fraco, app em segundo plano), confere a cada 8 s
+// enquanto houver corrida aceita esperando pagamento na tela
+setInterval(()=>{
+  if(document.hidden||!sb||!uid||typeof minhas==="undefined")return;
+  const esperando=minhas.some(c=>c.entregador_id&&["aceita","coletada"].includes(c.status)&&!(pags[c.id]&&pags[c.id].status==="pago"));
+  if(esperando)dadosLoad();
+},8000);
 // tempo real: atualiza quando o pagamento muda
 let canal=null;
 function sub(){if(canal||!sb.channel)return;canal=sb.channel("pagamentos").on("postgres_changes",{event:"*",schema:"public",table:"pagamentos"},p=>{const n=p.new;if(!n||!n.corrida_id)return;const antes=pags[n.corrida_id];pags[n.corrida_id]=n;pintar();if(n.status==="pago"&&(!antes||antes.status!=="pago"))toast(n.entregador_id===uid?"💰 Cliente pagou pelo app!":"Pagamento confirmado ✓")}).subscribe()}
