@@ -60,14 +60,24 @@ function leaflet(){
   return leafletP;
 }
 const pino=(t,cls)=>L.divIcon({className:"rpin "+cls,html:`<span>${t}</span>`,iconSize:[26,26],iconAnchor:[13,13]});
+// o mapa segue o motoqueiro; se a pessoa mexer no mapa, para de seguir por 20 s e mostra o botão "Seguir"
+const PAUSA=20000;
+function seguidor(el,voltar,rot){
+  const st={em:0},b=document.createElement("button");b.type="button";b.className="rseg";b.hidden=true;b.textContent=rot||"◎ Seguir o entregador";
+  b.addEventListener("click",ev=>{ev.stopPropagation();st.em=0;b.hidden=true;voltar()});
+  ["touchstart","mousedown","wheel"].forEach(t=>el.addEventListener(t,ev=>{if(ev.target===b)return;st.em=Date.now();b.hidden=false},{passive:true}));
+  el.appendChild(b);if(window.L&&L.DomEvent){L.DomEvent.disableClickPropagation(b);L.DomEvent.disableScrollPropagation(b)}
+  st.livre=()=>{if(st.em&&Date.now()-st.em>PAUSA){st.em=0;b.hidden=true}return!st.em};
+  return st;
+}
 function montaMapa(el,c){
   const id=c.id;
   if(mapas[id]){if(mapas[id].el!==el){el.replaceWith(mapas[id].el);mapas[id].map.invalidateSize()}return mapas[id]}
   if(!window.L){leaflet().then(()=>pintar()).catch(()=>{el.innerHTML=`<p class="hint" style="margin:8px">Não deu pra carregar o mapa. Verifique a internet.</p>`});return null}
   const map=L.map(el,{zoomControl:false,attributionControl:true}).setView([-14.235,-51.925],4); // Brasil (o mapa centraliza na pessoa quando tem a posição)
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
-  const m={el,map,ent:null,mexeu:false,pts:L.layerGroup().addTo(map)};
-  map.on("dragstart zoomstart",e=>{if(e.originalEvent||e.type==="dragstart")m.mexeu=true});
+  const m={el,map,ent:null,pts:L.layerGroup().addTo(map)};
+  m.seg=seguidor(el,()=>{const cc=minhas.find(x=>x.id===id);if(cc)atualizaMapa(m,cc)});
   const d=dets[id];
   if(d&&d.coleta_lat!=null)L.marker([d.coleta_lat,d.coleta_lng],{icon:pino("C","col"),title:"Coleta"}).addTo(m.pts);
   if(d&&d.entrega_lat!=null)L.marker([d.entrega_lat,d.entrega_lng],{icon:pino("E","ent"),title:"Entrega"}).addTo(m.pts);
@@ -77,8 +87,14 @@ function atualizaMapa(m,c){
   const p=pos[c.id];if(!m)return;
   if(p){const ll=[p.lat,p.lng];
     if(!m.ent)m.ent=L.marker(ll,{icon:pino(icV(c.ent_veiculo||c.veiculo),"mot"),zIndexOffset:1000,title:"Entregador"}).addTo(m.map);else m.ent.setLatLng(ll);
-    if(!m.mexeu){const d=dets[c.id],alvo=c.status==="aceita"?[d?.coleta_lat,d?.coleta_lng]:[d?.entrega_lat,d?.entrega_lng];
-      if(alvo[0]!=null)m.map.fitBounds([ll,alvo],{padding:[36,36],maxZoom:16});else m.map.setView(ll,15)}}
+    if(m.seg.livre()){const d=dets[c.id],alvo=c.status==="aceita"?[d?.coleta_lat,d?.coleta_lng]:[d?.entrega_lat,d?.entrega_lng];
+      if(!m.el.offsetWidth)return;m.map.invalidateSize({pan:false});
+      const z=m.map.getZoom(),dentro=m.map.getBounds().pad(-0.15).contains(ll);
+      // perto do destino: enquadra os dois; longe: centraliza no motoqueiro com zoom de rua
+      if(alvo[0]!=null&&m.map.distance(ll,alvo)<2500)m.map.fitBounds([ll,alvo],{padding:[40,40],maxZoom:17});
+      else if(!m.ini||z<14)m.map.setView(ll,16);
+      else m.map.panTo(ll,{animate:true,duration:dentro?0.8:0.4});
+      m.ini=true}}
   else if(m.ent){m.ent.remove();m.ent=null}
 }
 
@@ -126,7 +142,7 @@ document.addEventListener("click",e=>{
 
 /* ---------- mapa de quem está disponível ---------- */
 const GRADE=0.004,arred=x=>+(Math.round(x/GRADE)*GRADE).toFixed(3),GYN=[-16.6869,-49.2648];
-let dWatch=null,dEu=null,dEnviado=null,dNegado=false,dMapEnt=null,dMarkEnt=null,dMarkVei=null,dCentrou=false,dMexeu=false,dMapCli=null,dMarksCli=[],dKey="";
+let dWatch=null,dEu=null,dEnviado=null,dNegado=false,dMapEnt=null,dMarkEnt=null,dMarkVei=null,dCentrou=false,dSeg=null,dMapCli=null,dMarksCli=[],dKey="";
 function novoMapa(el,ll,z){const map=L.map(el,{zoomControl:false}).setView(ll,z);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   setTimeout(()=>map.invalidateSize(),60);return map}
@@ -142,7 +158,7 @@ function dispLigar(){
   },e=>{if(e.code===1){dNegado=true;dispDesligar();pintarDisp()}},{enableHighAccuracy:true,maximumAge:10000,timeout:30000});
 }
 let dAuto=false;
-function dispDesligar(){if(dWatch!=null)navigator.geolocation.clearWatch(dWatch);dWatch=null;dEu=null;dEnviado=null;dCentrou=false;dMexeu=false}
+function dispDesligar(){if(dWatch!=null)navigator.geolocation.clearWatch(dWatch);dWatch=null;dEu=null;dEnviado=null;dCentrou=false}
 function pintarDisp(){
   if(typeof meuDisp!=="function")return;
   // entregador: ele mesmo no mapa, ponto exato (só no celular dele)
@@ -154,10 +170,10 @@ function pintarDisp(){
     else if(!window.L){leaflet().then(pintarDisp).catch(()=>{tx.textContent="Não deu pra carregar o mapa. Verifique a internet."});}
     else{el.hidden=false;const ll=[dEu.lat,dEu.lng],ic=icV(md.veiculo);
       if(!el.offsetWidth)return; // tela não visível ainda
-      if(!dMapEnt){dMapEnt=novoMapa(el,ll,16);dMapEnt.on("dragstart",()=>dMexeu=true);dMapEnt.on("zoomstart",e=>{if(dCentrou&&e&&e.target&&dMapEnt._loaded&&!dAuto)dMexeu=true})}else dMapEnt.invalidateSize();
+      if(!dMapEnt){dMapEnt=novoMapa(el,ll,16);dSeg=seguidor(el,()=>{if(dEu&&dMapEnt)dMapEnt.setView([dEu.lat,dEu.lng],Math.max(dMapEnt.getZoom(),15))},"◎ Centralizar em mim");dSeg.el=el}else dMapEnt.invalidateSize();
       if(dMarkEnt&&dMarkVei!==ic){dMarkEnt.remove();dMarkEnt=null}
       if(!dMarkEnt){dMarkEnt=L.marker(ll,{icon:pino(ic,"mot on"),title:"Você"}).addTo(dMapEnt);dMarkVei=ic}else dMarkEnt.setLatLng(ll);
-      if(!dMexeu){dAuto=true;dMapEnt.setView(ll,dCentrou?dMapEnt.getZoom():16);dAuto=false;dCentrou=true}
+      if(!dSeg||dSeg.livre()){dAuto=true;dMapEnt.setView(ll,dCentrou?dMapEnt.getZoom():16);dAuto=false;dCentrou=true}
       tx.textContent=`Você está aqui${dEu.prec?` (precisão ~${dEu.prec} m)`:""}. Quem pede vê só uma posição aproximada, de uns 400 m.`}
   }else{w.hidden=true;if(dWatch!=null)dispDesligar();}
   // cliente: entregadores disponíveis por perto (posição aproximada)
