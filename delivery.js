@@ -205,11 +205,11 @@ function cliRender(){
   const w=$("dl-cli");if(!w)return;
   if(loja)return cardRender();
   if(lojas==null){w.innerHTML=`<p class="hint">Carregando as lojas…</p>`;return}
-  w.innerHTML=meusPedHtml()+`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
+  w.innerHTML=`<div class="dl-hero"><img src="delivery-hero.jpg" alt="Motoboy do Cadernex Delivery com pizza, hambúrguer e sacolas prontas pra entrega" width="848" height="600" loading="lazy" decoding="async"><div class="dl-hero-t"><b>Bateu a fome? A gente leva.</b><span>Pizza, lanche, mercado e mais · Pix pelo app e entrega com código</span></div></div>`+meusPedHtml()+`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
     ${lojas.length?lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}">${l.logo_v?logoHtml(l.id,l.nome,l.logo_v,"dl-lj-i dl-lj-logo"):`<span class="dl-lj-i">${IC.loja}</span>`}
       <span class="dl-lj-t"><b>${esc(l.nome)}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")
-    :`<p class="hint" style="margin:0">Ainda não tem lojas com delivery. Tem uma loja? Cadastre em Perfil → Informações da loja.</p>`}</div>`;
+    :`<p class="hint" style="margin:0">As lojas da sua região estão chegando. Volte em breve!</p><button class="link" type="button" id="pc-tenho-loja2" style="align-self:flex-start;padding:0">Tem uma loja? Venda pelo Cadernex Delivery →</button>`}</div>`;
 }
 async function abrirLoja(id){
   for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return;
@@ -363,6 +363,7 @@ function enviar(){
   return pagarApp(end,bairro,obs);
 }
 document.addEventListener("click",e=>{
+  if(e.target.closest("#pc-tenho-loja2")){window.cxNavUser=Date.now();go("perfilc");const b=$("pc-tenho-loja");if(b)setTimeout(()=>b.click(),50);return}
   if(!e.target.closest("#dl-cli"))return;
   const lj=e.target.closest("[data-dlloja]");if(lj){abrirLoja(lj.dataset.dlloja);return}
   if(e.target.closest("[data-dlvolta]")){loja=null;cliRender();scrollTo(0,0);return}
