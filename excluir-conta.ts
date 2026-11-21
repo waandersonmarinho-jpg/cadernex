@@ -1,6 +1,7 @@
 // Cadernex — excluir-conta: a própria pessoa apaga a conta dela.
 // Confere se pode (sem corrida em andamento, sem repasse pendente), apaga as fotos,
 // guarda só os valores das corridas pagas (sem dados pessoais) e apaga o usuário.
+// A pessoa confirma com a senha da conta.
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
@@ -39,10 +40,13 @@ Deno.serve(async (req) => {
     const { data: { user } } = await admin.auth.getUser(jwt);
     if (!user) return json({ erro: "Entre na sua conta de novo." }, 401);
 
-    const { confirmar } = await req.json().catch(() => ({}));
-    if (String(confirmar || "").trim().toUpperCase() !== "EXCLUIR") {
-      return json({ erro: "Digite EXCLUIR para confirmar." }, 400);
-    }
+    // confirma com a senha da conta
+    const { senha } = await req.json().catch(() => ({}));
+    if (!senha || String(senha).length < 6) return json({ erro: "Digite a sua senha." }, 400);
+    if (!user.email) return json({ erro: "Essa conta não tem e-mail. Escreva para suporte@cadernex.com.br." }, 400);
+    const pub = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { auth: { persistSession: false } });
+    const { data: ent, error: eS } = await pub.auth.signInWithPassword({ email: user.email, password: String(senha) });
+    if (eS || !ent?.user || ent.user.id !== user.id) return json({ erro: "Senha errada. Confira e tente de novo." }, 403);
 
     const { data: motivo, error: e1 } = await admin.rpc("conta_pode_excluir", { u: user.id });
     if (e1) throw e1;
