@@ -217,7 +217,7 @@ function corrRender0(){
   const on=disp.filter(d=>fresco(d)&&(pfTipo==="frete"?FRETE_VEIC.includes(d.veiculo):!FRETE_VEIC.includes(d.veiculo))),porV=Object.keys(VEIC).map(k=>[k,on.filter(d=>d.veiculo===k).length]).filter(x=>x[1]);
   const qm=pfTipo==="frete"?"freteiro":"entregador";$("pd-disp").innerHTML=on.length?`<b>${on.length} ${qm}${on.length>1?(qm==="freteiro"?"s":"es"):""} ${on.length>1?"disponíveis":"disponível"} agora</b><span>${porV.map(([k,n])=>n+" "+veiNome(k).toLowerCase()).join(" · ")}</span>${[...new Set(on.map(d=>d.regiao).filter(Boolean))].slice(0,6).map(r=>`<span class="pill">${esc(r)}</span>`).join("")}`:`<b>Nenhum ${pfTipo==="frete"?"freteiro":"entregador"} disponível agora</b><span>Você pode pedir mesmo assim. O pedido fica aberto até alguém aceitar.</span>`;
   const meus=minhas.filter(c=>c.cliente_id===uid);
-  $("pd-lista").innerHTML=meus.length?meus.map(c=>cartao(c,"cli")).join(""):`<p class="empty">Você ainda não fez pedidos. Toque em <b>Pedir</b> pra fazer o primeiro.</p>`;
+  $("pd-lista").innerHTML=meus.length?meus.map(c=>cartao(c,"cli")).join(""):`<p class="empty">Você ainda não fez pedidos. Toque em <b>Enviar</b> pra fazer o primeiro.</p>`;
   const ativos=meus.filter(c=>["aberta","aceita","coletada"].includes(c.status)).length;
   document.querySelectorAll('.tab[data-v="pedidos"]').forEach(t=>{let b=t.querySelector(".nb");if(!ativos){b&&b.remove();return}if(!b){b=document.createElement("span");b.className="nb";t.appendChild(b)}b.textContent=ativos});
   preencheTextos();
