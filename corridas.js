@@ -314,11 +314,18 @@ function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend"
 const foneFmt=v=>{let d=String(v||"").replace(/\D/g,"");if(d.length>11&&d.startsWith("55"))d=d.slice(2);d=d.slice(0,11);if(d.length<3)return d;
   return d.length>10?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length>6?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:`(${d.slice(0,2)}) ${d.slice(2)}`};
 ["pc-tel","pf-tel"].forEach(id=>$(id)?.addEventListener("input",e=>{e.target.value=foneFmt(e.target.value)}));
-function perfilRender(){if(document.activeElement?.closest?.("#fPerfilC"))return;$("pc-nome").value=perfil.nome||"";$("pc-tel").value=foneFmt(perfil.telefone);$("pc-end").value=perfil.end_padrao||""}
+function perfilRender(){
+  // quem não tem loja vê o perfil de cliente do Delivery (nome, WhatsApp e endereço de entrega)
+  const cli=!(perfil.loja&&String(perfil.loja_nome||"").trim())&&!window.cxQuerLoja,v=$("v-perfilc");
+  if(v)v.classList.toggle("pf-cliente",cli);
+  if($("pc-nome-l")){$("pc-nome-l").textContent=cli?"Seu nome":"Nome da loja ou seu nome";$("pc-end-l").textContent=cli?"Endereço de entrega":"Endereço de coleta";
+    $("pc-end-h").textContent=cli?"Já vem preenchido nos seus pedidos do Delivery e nas entregas.":"Já vem preenchido quando você pede uma entrega.";$("pc-nome").autocomplete=cli?"name":"organization"}
+  if(document.activeElement?.closest?.("#fPerfilC"))return;$("pc-nome").value=perfil.nome||"";$("pc-tel").value=foneFmt(perfil.telefone);$("pc-end").value=perfil.end_padrao||""}
 $("fPerfilC").onsubmit=e=>{e.preventDefault();const nome=$("pc-nome").value.trim().replace(/\s+/g," "),tel=$("pc-tel").value.replace(/\D/g,"");
-  if(nome.length<2){toast("Coloque o nome da loja ou o seu nome");$("pc-nome").focus();return}
+  if(nome.length<2){toast("Coloque o seu nome");$("pc-nome").focus();return}
   if(tel&&tel.length<10){toast("Telefone incompleto: coloque o DDD e o número");$("pc-tel").focus();return}
   safe(()=>savePerfil({nome,telefone:tel?foneFmt(tel):null,end_padrao:$("pc-end").value.trim()||null}),"Perfil salvo")};
+if($("pc-tenho-loja"))$("pc-tenho-loja").onclick=()=>{window.cxQuerLoja=true;perfilRender();const b=$("lj-abre");if(b&&b.getAttribute("aria-expanded")!=="true")b.click();setTimeout(()=>$("lj-card")&&$("lj-card").scrollIntoView({behavior:"smooth",block:"start"}),100)};
 if($("pc-virar"))$("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo pra confirmar";return}
   safe(async()=>{await savePerfil({tipo:"entregador"});aplicaPapel(true)},"Pronto! Agora você também é entregador.")};
 
