@@ -71,11 +71,27 @@ async function safe(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){console.error
 
 /* ---------------- login ---------------- */
 let modo="entrar";
-function setModo(m){modo=m;$("a-nome-w").hidden=m!=="criar";$("a-tipo-w").hidden=m!=="criar";$("a-title").textContent=m==="criar"?"Criar conta":"Entrar";
+function auAba(n){const t=$("au-inicio"),e=$("au-entrar");if(!t||!e)return;t.hidden=n!=="inicio";e.hidden=n!=="entrar";
+  document.querySelectorAll(".au-tabs [data-aba]").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===n));
+  try{sessionStorage.setItem("cx-aba",n)}catch(x){}window.scrollTo({top:0,behavior:"smooth"})}
+window.auAba=auAba;
+document.addEventListener("click",ev=>{const a=ev.target.closest("#s-auth [data-aba]");if(a){auAba(a.dataset.aba);if(a.dataset.aba==="entrar"&&modo!=="entrar")setModo("entrar");return}
+  const c=ev.target.closest("#s-auth [data-cta]");if(!c)return;
+  $("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo===c.dataset.cta));setModo("criar");setTimeout(()=>{try{$("a-nome").focus({preventScroll:true})}catch(x){}},350)});
+{let ab="inicio";try{ab=sessionStorage.getItem("cx-aba")||ab}catch(x){}if(location.search||/pedir|entrar/.test(location.hash))ab="entrar";auAba(ab)}
+{const car=$("hx-car");if(car){const tr=car.querySelector(".hx-trilho"),ds=[...car.querySelectorAll(".hx-dots button")];let i=0,t=null;
+  const vai=n=>{i=(n+ds.length)%ds.length;tr.scrollTo({left:tr.clientWidth*i+10*i,behavior:"smooth"})};
+  const marca=()=>{const n=Math.round(tr.scrollLeft/(tr.clientWidth+10));ds.forEach((d,k)=>d.setAttribute("aria-current",k===n));i=n};
+  tr.addEventListener("scroll",()=>{clearTimeout(tr._t);tr._t=setTimeout(marca,80)},{passive:true});
+  ds.forEach((d,k)=>d.onclick=()=>{vai(k);roda()});
+  const roda=()=>{clearInterval(t);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)t=setInterval(()=>{if(!$("au-inicio").hidden&&!document.hidden)vai(i+1)},5000)};
+  tr.addEventListener("touchstart",roda,{passive:true});roda()}}
+function setModo(m){if(m==="criar")auAba("entrar");modo=m;$("a-nome-w").hidden=m!=="criar";$("a-tipo-w").hidden=m!=="criar";$("a-title").textContent=m==="criar"?"Criar conta":"Entrar";
   $("a-btn").textContent=m==="criar"?"Criar minha conta":"Entrar";$("a-swap").textContent=m==="criar"?"Já tenho conta":"Não tenho conta ainda";$("a-msg").textContent=""}
 $("a-tipo").addEventListener("click",e=>{const b=e.target.closest("[data-tipo]");if(!b)return;$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x===b))});
 if(/pedir/.test(location.hash)){$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="cliente"));document.querySelector("#s-auth .lead").textContent="Peça entregas rápidas com entregadores da sua região.";setTimeout(()=>setModo("criar"),0)}
 $("a-swap").onclick=()=>setModo(modo==="criar"?"entrar":"criar");
+{const lj=$("lj-criar");if(lj)lj.onclick=()=>{$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="cliente"));setModo("criar");setTimeout(()=>{try{$("a-nome").focus({preventScroll:true})}catch(e){}},400)}}
 $("a-reset").onclick=async()=>{const email=$("a-email").value.trim();if(!email){$("a-msg").textContent="Digite seu e-mail acima e toque de novo.";return}
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
   $("a-msg").textContent=error?"Não deu pra enviar agora. Tente mais tarde.":"Se o e-mail tiver conta, chegou um link pra criar senha nova."};

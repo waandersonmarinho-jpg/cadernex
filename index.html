@@ -447,6 +447,71 @@ label.check{min-height:40px;align-items:center}
 .mpi-passos b{font-size:15px}.mpi-passos span{font-size:13px;color:var(--muted)}
 .mpi-classe{margin:0;font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
 .mpi-rodape{display:flex;justify-content:space-between;gap:10px}
+.au-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.au-tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:10px;border-radius:999px;cursor:pointer}
+.au-tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.au-pane{gap:16px}
+.hero{display:flex;flex-direction:column;gap:14px;padding:22px 18px;border-radius:20px;background:linear-gradient(160deg,var(--accent-soft),var(--surface) 70%);border:1px solid var(--line)}
+.hero-t{font-size:clamp(26px,7.4vw,34px);line-height:1.12;margin:4px 0 0;letter-spacing:-.02em}
+.hero-t span{color:var(--accent)}
+.hero-s{margin:0;color:var(--muted);font-size:16px}
+.hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hero-cta .btn{padding-inline:8px}
+.hero-ja{align-self:flex-start}
+.hero-art{width:100%;height:auto;max-height:170px}
+.hero-art .hr-rota{stroke:var(--accent);stroke-width:3;stroke-dasharray:7 7;animation:hrota 1.4s linear infinite}
+.hero-art .hr-pin circle,.hero-art .hr-moto circle:first-child{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.hero-art .hr-moto circle:first-child{fill:var(--accent);stroke:none}
+.hero-art path:not(.hr-rota),.hero-art .hr-moto circle+circle,.hero-art .hr-moto circle~circle{stroke:var(--fg);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.hero-art .hr-moto path,.hero-art .hr-moto circle~circle{stroke:var(--accent-ink)}
+.hero-art text{font-size:12px;font-weight:600;fill:var(--muted)}
+@keyframes hrota{to{stroke-dashoffset:-14}}
+@media (prefers-reduced-motion:reduce){.hero-art .hr-rota{animation:none}}
+.lj-flyer{display:block;padding:0;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--surface);cursor:pointer}
+.lj-flyer img{display:block;width:100%;height:auto}
+.hx{position:relative;overflow:hidden;margin-inline:-16px;padding:28px 20px 0;display:flex;flex-direction:column;color:#fff;background:radial-gradient(120% 70% at 90% 0%,#22408a 0%,#0f1f45 45%,#0a1530 100%)}
+@media (min-width:560px){.hx{margin-inline:0;border-radius:20px}}
+.hx-foto{position:relative;margin:6px -20px 0;aspect-ratio:447/470;background:url(hero-moto.jpg) center/cover no-repeat}
+.hx-foto::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0f1f45 0%,rgba(15,31,69,0) 30%,rgba(15,31,69,0) 70%,rgba(10,21,48,.6) 100%)}
+.hx-bg i{position:absolute;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#f3ba2f);opacity:.3;animation:hxs 2.6s linear infinite}
+.hx-bg i:nth-child(1){top:22%;left:-40%;width:60%}.hx-bg i:nth-child(2){top:48%;left:-60%;width:45%;animation-delay:.7s}.hx-bg i:nth-child(3){top:70%;left:-50%;width:70%;animation-delay:1.3s;opacity:.35}.hx-bg i:nth-child(4){top:86%;left:-30%;width:40%;animation-delay:1.9s}
+@keyframes hxs{to{transform:translateX(260%)}}
+.hx-txt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.hx-eb{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f3ba2f}
+.hx-t{margin:0;font-size:clamp(40px,12vw,56px);line-height:.98;font-weight:800;letter-spacing:-.03em;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.35)}
+.hx-t span{color:#f3ba2f}
+.hx-s{margin:0;font-size:17px;color:#d5dcec}
+.hx-cta{border:0;cursor:pointer;font:inherit;font-size:21px;font-weight:800;color:#0b1633;padding:16px 28px;border-radius:6px;background:linear-gradient(135deg,#ffd257,#f3ba2f 55%,#e09a00);box-shadow:0 10px 26px rgba(243,186,47,.35)}
+.hx-ja{border:0;background:none;color:#d5dcec;font:inherit;font-size:14px;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.hx-ja b{color:#fff}
+.hx-art{position:relative;display:block;width:100%;height:auto;margin-top:14px}
+.hx-mot{animation:hxm .5s ease-in-out infinite alternate}.hx-vel{animation:hxl 1s linear infinite}
+@keyframes hxm{to{transform:translateY(-1.5px)}}@keyframes hxl{to{transform:translateX(-24px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.hx-bg i,.hx-mot,.hx-vel{animation:none}}
+.hx-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:-48px;position:relative;z-index:2}
+.hx-tile{display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:104px;padding:12px;border:0;border-radius:6px;text-align:left;font:inherit;cursor:pointer;text-decoration:none;color:#0b1633;background:linear-gradient(160deg,#ffd257,#f3ba2f 60%,#e5a400);box-shadow:0 8px 20px rgba(11,22,51,.18)}
+.hx-tile svg{width:34px;height:34px;fill:none;stroke:#0b1633;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hx-tile b{font-size:16px;line-height:1.15}
+.hx-car{display:flex;flex-direction:column;gap:10px}
+.hx-trilho{display:flex;align-items:center;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:14px}.hx-trilho::-webkit-scrollbar{display:none}
+.hx-sl{flex:0 0 100%;scroll-snap-align:center;padding:0;border:0;border-radius:14px;overflow:hidden;background:#0f1f45;cursor:pointer;display:block}
+.hx-sl img{display:block;width:100%;height:auto}
+.hx-dots{display:flex;justify-content:center;gap:10px}
+.hx-dots button{width:10px;height:10px;padding:0;border:0;border-radius:50%;background:var(--accent-soft);cursor:pointer}
+.hx-dots button[aria-current="true"]{background:var(--accent);width:24px;border-radius:5px}
+.promo-l{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
+.promo-l span{color:var(--muted);font-size:14px}
+@media (max-width:360px){.hero-cta{grid-template-columns:1fr}}
+.lj{display:flex;flex-direction:column;gap:12px}
+.lj h2{margin:0;font-size:21px;line-height:1.25}
+.lj-lead{margin:0;color:var(--muted)}
+.lj-passos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:lj}
+.lj-passos li{counter-increment:lj;display:grid;grid-template-columns:30px 1fr;column-gap:10px;align-items:start}
+.lj-passos li::before{content:counter(lj);grid-row:span 2;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.lj-passos span,.lj-vant span{color:var(--muted);font-size:14px}
+.lj-vant{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lj-vant li{display:flex;flex-direction:column;gap:2px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+@media (max-width:380px){.lj-vant{grid-template-columns:1fr}}
+.cx-cnpj{text-align:center;margin:6px 0 0;font-size:12px}
 .auth-selo{margin:0 0 14px;font-size:17px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}.auth-selo b{color:var(--fg)}
 
 .marca{display:flex;align-items:center;gap:12px;min-width:0}
@@ -575,32 +640,94 @@ label.check{min-height:40px;align-items:center}
   </section>
 
   <section id="s-auth" class="auth" hidden>
-    <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>
-    <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
-    <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
-    <div class="card">
-      <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
-      <form id="fAuth">
-        <div id="a-tipo-w" hidden><div class="eyebrow" style="margin-bottom:6px">Você quer</div><div class="tipo-op" id="a-tipo" role="radiogroup">
-          <button type="button" role="radio" data-tipo="entregador" aria-checked="true"><b>Rodar</b><span>Sou entregador de bike, moto ou carro de frete</span></button>
-          <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Enviar</b><span>Comida, documentos, encomendas e fretes</span></button>
-          <button type="button" role="radio" data-tipo="promotor" aria-checked="false" class="tipo-largo"><b>Promover</b><span>Cadastro lojas no Cadernex, em qualquer cidade, e ganho 2% da taxa delas por 24 meses a partir da 2ª entrega, com saque toda semana no Pix</span></button></div></div>
-        <label id="a-nome-w" hidden>Seu nome<input type="text" id="a-nome" autocomplete="name" placeholder="como quer ser chamado"></label>
-        <label>E-mail<input type="email" id="a-email" autocomplete="email" required></label>
-        <label>Senha<input type="password" id="a-senha" autocomplete="current-password" minlength="6" required></label>
-        <p class="msg" id="a-msg" role="status"></p>
-        <button class="btn full" id="a-btn" type="submit">Entrar</button>
-      </form>
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px">
-        <button class="link" id="a-swap" type="button">Não tenho conta ainda</button>
-        <button class="link" id="a-reset" type="button">Esqueci a senha</button>
-      </div>
+    <div class="au-tabs" role="tablist" aria-label="Cadernex">
+      <button type="button" role="tab" data-aba="inicio" aria-selected="true">Início</button>
+      <button type="button" role="tab" data-aba="entrar" aria-selected="false">Entrar</button>
     </div>
-    <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
-    <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
-    <div class="seg" role="group" aria-label="Tema do app" style="max-width:200px;margin:14px auto 0;background:var(--surface);border:1px solid var(--line)">
-      <button type="button" data-tema="light" aria-pressed="false">Claro</button>
-      <button type="button" data-tema="dark" aria-pressed="false">Escuro</button>
+    <div class="au-pane stack" id="au-inicio" role="tabpanel">
+      <div class="hx">
+        <div class="hx-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="hx-txt">
+          <div class="hx-eb">Cadernex Entregas · Goiânia</div>
+          <h1 class="hx-t">Soluções<br>em <span>Entregas</span></h1>
+          <p class="hx-s">Motoboy, bike e frete na hora, direto pelo app.</p>
+          <button class="hx-cta" type="button" data-cta="cliente">Começar agora!</button>
+          <button class="hx-ja" type="button" data-aba="entrar">Já tenho conta · <b>Entrar</b></button>
+        </div>
+        <div class="hx-foto" role="img" aria-label="Motoqueiro Cadernex Entregas com a bag de entrega, em Goiânia"></div>
+      </div>
+      <nav class="hx-tiles" aria-label="Escolha como usar">
+        <a class="hx-tile" href="#lj-info"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg><b>Para lojas</b></a>
+        <button class="hx-tile" type="button" data-cta="cliente"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg><b>Para você</b></button>
+        <button class="hx-tile" type="button" data-cta="entregador"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-6h5l3 6M14 7h3l1 4"/></svg><b>Seja entregador</b></button>
+      </nav>
+      <div class="hx-car" id="hx-car">
+        <div class="hx-trilho">
+          <button class="hx-sl" type="button" data-cta="cliente"><img src="motoqueiros-flyer.jpg" alt="Motoqueiros disponíveis em Goiânia: cadastre seu comércio na Cadernex Entregas." width="900" height="900" loading="lazy" decoding="async"></button>
+          <button class="hx-sl" type="button" data-cta="cliente"><img src="lojistas-flyer.jpg" alt="Cadastre sua loja no app da Cadernex Entregas: cadastro em segundos, acompanhamento em tempo real e entregas rastreadas." width="717" height="960" loading="lazy" decoding="async"></button>
+          <a class="hx-sl" href="promotores.html"><img src="promotor-flyer-1.jpg" alt="Torne-se um promotor de cadastramento Cadernex e ganhe 2% por 24 meses." width="796" height="1024" loading="lazy" decoding="async"></a>
+          <a class="hx-sl" href="promotores.html"><img src="promotor-flyer-2.jpg" alt="Cadastre lojas e ganhe como promotor Cadernex." width="796" height="1024" loading="lazy" decoding="async"></a>
+        </div>
+        <div class="hx-dots" role="tablist" aria-label="Destaques"><button type="button" aria-label="Destaque 1" aria-current="true"></button><button type="button" aria-label="Destaque 2"></button><button type="button" aria-label="Destaque 3"></button><button type="button" aria-label="Destaque 4"></button></div>
+      </div>
+      <section class="lj card" id="lj-info" aria-labelledby="lj-t">
+        <div class="eyebrow">Para lojistas</div>
+        <h2 id="lj-t">Sua loja vende. O motoboy coleta e entrega.</h2>
+        <p class="lj-lead">Peça um entregador pelo app em poucos toques. Ele vai até a sua loja, retira o pedido e leva até a porta do seu cliente, aqui em Goiânia.</p>
+        <ol class="lj-passos">
+          <li><b>Peça pelo app</b><span>Coloque o endereço de coleta e o de entrega. O valor aparece antes de confirmar.</span></li>
+          <li><b>Um entregador aceita</b><span>Você vê o primeiro nome dele e a foto do veículo pra reconhecer na porta.</span></li>
+          <li><b>Coleta com código</b><span>Ele só retira o pedido na loja depois de informar o código de coleta.</span></li>
+          <li><b>Entrega com código</b><span>O app gera uma mensagem de WhatsApp pro seu cliente com o código. A entrega só conclui com ele, e você acompanha tudo no mapa ao vivo.</span></li>
+        </ol>
+        <ul class="lj-vant">
+          <li><b>Pix pelo app ou dinheiro</b><span>No Pix, a parte do entregador cai direto no Pix dele.</span></li>
+          <li><b>Cliente ausente?</b><span>O entregador espera até 10 min. Se precisar voltar com o pedido, a volta é grátis.</span></li>
+          <li><b>Moto, bike ou frete</b><span>Do lanche ao volume grande, com carro de frete ou picape.</span></li>
+          <li><b>Aviso a cada etapa</b><span>Notificação quando aceitar, coletar e entregar.</span></li>
+        </ul>
+        <button class="btn full" type="button" id="lj-criar">Cadastrar minha loja grátis</button>
+        <a class="btn ghost full" href="apresentacao-lojistas.pdf" target="_blank" rel="noopener">Ver a apresentação (PDF)</a>
+      </section>
+      <section class="lj card" aria-labelledby="en-t">
+        <div class="eyebrow">Para entregadores</div>
+        <h2 id="en-t">Rode quando quiser e receba no Pix.</h2>
+        <ul class="lj-vant">
+          <li><b>Você escolhe</b><span>Fica disponível quando quiser e aceita só as corridas que fazem sentido.</span></li>
+          <li><b>94% é seu</b><span>Nas corridas pagas pelo app, o Cadernex fica com 6%. Em dinheiro, 100% é seu.</span></li>
+          <li><b>Pix no seu CPF</b><span>Quando o cliente paga pelo app, sua parte cai direto no seu Pix.</span></li>
+          <li><b>Moto, bike ou carro</b><span>Também tem corrida de frete pra quem tem carro, picape ou caminhão.</span></li>
+        </ul>
+        <button class="btn ghost full" type="button" data-cta="entregador">Quero ser entregador</button>
+      </section>
+      <a class="card promo-l" href="promotores.html"><b>Seja promotor</b><span>Cadastre lojas, em qualquer cidade, e ganhe 2% da taxa delas por 24 meses. Saiba mais →</span></a>
+      <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
+      <p class="hint cx-cnpj">Cadernex Labs · CNPJ 70.019.938/0001-39 · Goiânia, GO</p>
+    </div>
+    <div class="au-pane stack" id="au-entrar" role="tabpanel" hidden>
+      <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>
+      <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
+      <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
+      <div class="card">
+        <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
+        <form id="fAuth">
+          <div id="a-tipo-w" hidden><div class="eyebrow" style="margin-bottom:6px">Você quer</div><div class="tipo-op" id="a-tipo" role="radiogroup">
+            <button type="button" role="radio" data-tipo="entregador" aria-checked="true"><b>Rodar</b><span>Sou entregador de bike, moto ou carro de frete</span></button>
+            <button type="button" role="radio" data-tipo="cliente" aria-checked="false"><b>Enviar</b><span>Comida, documentos, encomendas e fretes</span></button>
+            <button type="button" role="radio" data-tipo="promotor" aria-checked="false" class="tipo-largo"><b>Promover</b><span>Cadastro lojas no Cadernex, em qualquer cidade, e ganho 2% da taxa delas por 24 meses a partir da 2ª entrega, com saque toda semana no Pix</span></button></div></div>
+          <label id="a-nome-w" hidden>Seu nome<input type="text" id="a-nome" autocomplete="name" placeholder="como quer ser chamado"></label>
+          <label>E-mail<input type="email" id="a-email" autocomplete="email" required></label>
+          <label>Senha<input type="password" id="a-senha" autocomplete="current-password" minlength="6" required></label>
+          <p class="msg" id="a-msg" role="status"></p>
+          <button class="btn full" id="a-btn" type="submit">Entrar</button>
+        </form>
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <button class="link" id="a-swap" type="button">Não tenho conta ainda</button>
+          <button class="link" id="a-reset" type="button">Esqueci a senha</button>
+        </div>
+      </div>
+      <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
+      <p class="hint" style="text-align:center;margin:0"><button class="link" type="button" data-aba="inicio">← Conhecer o Cadernex</button></p>
     </div>
   </section>
 
@@ -1199,7 +1326,7 @@ label.check{min-height:40px;align-items:center}
         <p class="hint" id="cf-mp-st" style="margin:0">Carregando…</p>
         <button class="btn full" id="cf-mp-btn" type="button">Conectar Mercado Pago</button>
         <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
-        <p class="hint" style="margin:0;font-size:12px">O pagamento acontece no Mercado Pago. O Cadernex nunca vê sua senha e não guarda seu dinheiro: a taxa de serviço é paga pelo cliente.</p>
+        <p class="hint" style="margin:0;font-size:12px">Só para as vendas da loja pelo app. O Cadernex nunca vê sua senha do Mercado Pago.</p>
       </div>
       <div class="card stack" id="cf-push">
         <h2>Notificações</h2>
@@ -1314,7 +1441,7 @@ label.check{min-height:40px;align-items:center}
       <div id="co-andam-w" hidden><h2 style="margin-bottom:8px">Em andamento</h2><div class="stack" id="co-andam"></div></div>
       <div><h2 style="margin-bottom:8px">Pedidos abertos</h2><div class="stack" id="co-abertas"></div></div>
       <div id="co-feitas-w" hidden><h2 style="margin-bottom:8px">Feitas recentemente</h2><div class="stack" id="co-feitas"></div></div>
-      <p class="hint" style="margin:0">O cliente paga pelo app (Pix pelo Mercado Pago), que cai na sua conta Mercado Pago, ou em dinheiro na entrega. Confira a encomenda na coleta e não leve nada ilegal.</p>
+      <p class="hint" style="margin:0">O cliente paga pelo app (Pix), e sua parte cai no Pix do seu CPF, ou em dinheiro na entrega. Confira a encomenda na coleta e não leve nada ilegal.</p>
     </div>
   </section>
 

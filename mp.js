@@ -1,8 +1,10 @@
-/* Cadernex — pagamento pelo app com Mercado Pago (10% pro Cadernex, pago pelo cliente) */
+/* Cadernex — pagamento pelo app: corridas por Pix na Woovi (divisão automática); Mercado Pago só nas vendas das lojas */
 (function(){
-const CFG=window.CORRE_CONFIG||{},CID=CFG.MP_CLIENT_ID,MP_TAXA=CFG.MP_TAXA||0.0099,TAXA_APP=0.10;
+const CFG=window.CORRE_CONFIG||{},CID=CFG.MP_CLIENT_ID,MP_TAXA=CFG.WOOVI_TAXA||0.008,TAXA_APP=0.10;
 const ST_KEY="cx-mp-state";
-let conectado=null; // entregador logado tem conta MP ligada?
+let conectado=null; // loja logada tem conta MP ligada? (vendas da loja)
+let euRecebo=null; // entregador logado recebe pelo app (Pix ativo com CPF)?
+const ehLoja=()=>!!(perfil.loja&&String(perfil.loja_nome||"").trim());
 const recebe={},pags={};// entregador_id -> bool ; corrida_id -> pagamento
 const retorno=()=>location.origin+"/";
 // mesma conta do servidor: o entregador recebe o valor inteiro
@@ -36,15 +38,16 @@ async function voltouDoMP(){ // o Mercado Pago devolve ?code=...&state=...
 window.mpConectar=conectar;
 async function statusLoad(){
   if(!sb||!uid||perfil.tipo==="cliente")return;
-  const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;cfgRender();introRender();pintar();
+  const r=await sb.rpc("mp_conectado");conectado=r.error?null:!!r.data;
+  const w=await sb.rpc("woovi_recebe",{uid});euRecebo=w.error?null:!!w.data;cfgRender();introRender();pintar();
 }
 function cfgRender(){
-  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente";window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
+  const card=$("cf-mp");if(!card)return;card.hidden=perfil.tipo==="cliente"||!ehLoja();window.mpConectado=conectado;document.dispatchEvent(new Event("cx-mp"));if(card.hidden)return;
   const st=$("cf-mp-st"),b=$("cf-mp-btn"),d=$("cf-mp-off");
   if(conectado===null){st.textContent="O pagamento pelo app está indisponível no momento.";b.hidden=true;d.hidden=true;return}
   b.hidden=!!conectado;d.hidden=!conectado;
-  st.innerHTML=conectado?`<b class="pix-on">Conectado ✓</b> Quando o cliente paga pelo app, o valor da corrida cai inteiro na sua conta Mercado Pago.`
-    :`Conecte sua conta Mercado Pago pra receber pelo app. O cliente paga por Pix e o dinheiro cai direto na sua conta. Você recebe o valor inteiro da corrida.`;
+  st.innerHTML=conectado?`<b class="pix-on">Conectado ✓</b> As vendas da sua loja pelo app caem na sua conta Mercado Pago.`
+    :`Conecte sua conta Mercado Pago pra receber as vendas da sua loja pelo app. As corridas não precisam disso: caem no seu Pix (CPF).`;
 }
 $("cf-mp-btn").onclick=conectar;
 
@@ -53,7 +56,7 @@ const INTRO_KEY="cx-mpi-depois";
 function introRender(){
   const el=$("mp-intro");if(!el)return;
   let adiado=0;try{adiado=Number(localStorage.getItem(INTRO_KEY))||0}catch(e){}
-  el.hidden=!(perfil.tipo==="entregador"&&conectado===false&&Date.now()-adiado>3*864e5);
+  el.hidden=true; // corridas agora caem no Pix (CPF) pela Woovi: não precisa mais conectar o Mercado Pago
 }
 $("mpi-con").onclick=conectar;
 $("mpi-depois").onclick=()=>{try{localStorage.setItem(INTRO_KEY,String(Date.now()))}catch(e){}introRender();toast("Tudo bem. O botão de conectar fica em Configurações.")};
@@ -66,7 +69,7 @@ async function dadosLoad(){
   const ids=minhas.filter(c=>c.entregador_id&&["aceita","coletada","entregue"].includes(c.status)).map(c=>c.id);
   if(ids.length){const r=await sb.from("pagamentos").select("*").in("corrida_id",ids);if(!r.error)r.data.forEach(p=>pags[p.corrida_id]=p)}
   const ents=[...new Set(minhas.filter(c=>c.cliente_id===uid&&c.entregador_id).map(c=>c.entregador_id))].filter(e=>recebe[e]===undefined);
-  for(const e of ents){const r=await sb.rpc("mp_recebe",{uid:e});recebe[e]=!r.error&&!!r.data}
+  for(const e of ents){const r=await sb.rpc("woovi_recebe",{uid:e});recebe[e]=!r.error&&!!r.data}
   pintar();
 }
 function pintar(){
@@ -74,24 +77,44 @@ function pintar(){
     const c=minhas.find(x=>x.id===el.dataset.mp);if(!c)return;const p=pags[c.id];
     if(el.dataset.papel==="ent"){
       const liq=Number(p&&p.valor)-Number(p&&p.comissao||0);
-      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} na sua conta Mercado Pago${Number(p.comissao)>0?` (${brl(Number(p.valor))} − 6% do Cadernex)`:""}</div>`
-        :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o pagamento pelo app. Aguardando o Pix cair…</p>`
-        :conectado===false?`<div class="mp-box"><b>Conecte seu Mercado Pago pra receber pelo app</b><p class="hint" style="margin:0">Sem isso, o cliente só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Conectar Mercado Pago</button></div>`:"";
+      const onde=p&&p.provedor==="woovi"?(p.repasse_status==="enviado"?"Pix enviado pro seu CPF ✓":p.repasse_status==="erro"?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"na sua conta Mercado Pago";
+      el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − 6% do Cadernex)</span>`:""}</div>`
+        :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair…</p>`
+        :euRecebo===false?`<div class="mp-box"><b>Ative seu Pix pra receber pelo app</b><p class="hint" style="margin:0">Quando o cliente paga pelo app, sua parte cai direto no Pix do seu CPF. Sem isso, ele só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Ativar meu Pix</button></div>`:"";
       return}
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ Pago pelo app · ${brl(Number(p.total))}</div>`;return}
     if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">Esse entregador ainda não recebe pelo app. Pague ${brl(Number(c.valor))} em dinheiro na entrega.</p>`;return}
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
     el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxa de serviço (Cadernex 10% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
-      <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último pagamento não passou. Tente de novo. ":""}Abre o Mercado Pago, você paga no Pix e volta pro Cadernex. O valor da corrida cai direto na conta do entregador.</p></div>`;
+      <div class="wv-pix" data-wv="${c.id}"></div>
+      <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último Pix venceu ou não passou. Gere outro. ":""}Você paga um Pix só. A parte do entregador cai direto no Pix dele, na hora.</p></div>`;
+    if(p&&p.provedor==="woovi"&&p.status==="pendente"&&p.brcode&&new Date(p.expira_em)>Date.now())mostraPix(c.id,{brcode:p.brcode,qrcode:p.qrcode,url:p.link});
   });
 }
 document.addEventListener("click",async e=>{
   const b=e.target.closest("[data-mppagar]");if(!b)return;
-  b.disabled=true;const t=b.textContent;b.textContent="Abrindo o Mercado Pago…";
-  const{data,error}=await sb.functions.invoke("mp-pagar",{body:{corrida_id:b.dataset.mppagar}});
-  if(error||!data||!data.url){b.disabled=false;b.textContent=t;toast(await erroDe(error,data));return}
-  location.href=data.url;
+  b.disabled=true;const t=b.textContent;b.textContent="Gerando o Pix…";
+  const{data,error}=await sb.functions.invoke("woovi-pagar",{body:{corrida_id:b.dataset.mppagar}});
+  b.disabled=false;b.textContent=t;
+  if(error||!data||!data.brcode){toast(await erroDe(error,data));return}
+  mostraPix(b.dataset.mppagar,data);
+});
+// mostra o QR e o copia e cola do Pix dentro do pedido
+function mostraPix(cid,d){
+  const w=document.querySelector(`.wv-pix[data-wv="${cid}"]`);if(!w)return;
+  const esc=x=>String(x||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  const qr=/^https:\/\//.test(d.qrcode||"")?`<img src="${esc(d.qrcode)}" alt="QR Code do Pix" width="200" height="200" style="display:block;margin:6px auto;background:#fff;border-radius:8px">`:"";
+  w.innerHTML=`${qr}<button class="btn full" type="button" data-wvcopia="${cid}">Copiar Pix copia e cola</button>
+    ${/^https:\/\//.test(d.url||"")?`<a class="link" href="${esc(d.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:6px">Abrir página do Pix</a>`:""}
+    <p class="hint" style="margin:4px 0 0;font-size:12px;text-align:center">Cole no app do seu banco, em Pix → Copia e cola. Vale 30 minutos.</p>`;
+  w.dataset.code=d.brcode;
+}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-wvcopia]");if(!b)return;
+  const w=b.closest(".wv-pix"),code=w&&w.dataset.code;if(!code)return;
+  try{await navigator.clipboard.writeText(code);toast("Pix copiado ✓ Cole no app do seu banco.")}
+  catch(_){prompt("Copie o código do Pix:",code)}
 });
 // volta do Mercado Pago
 if(/#pago/.test(location.hash)){history.replaceState(null,"",location.pathname);setTimeout(()=>{toast("Pagamento enviado! Assim que o Pix cair, aparece Pago ✓ no pedido.");if(typeof go==="function")go("pedidos")},800)}
