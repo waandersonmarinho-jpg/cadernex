@@ -27,7 +27,7 @@
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Cadernex Entregas: motoboy, delivery e fretes em Goiânia</title>
+<title>Cadernex Entregas e Delivery: motoboy, fretes e lojas em Goiânia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://pwmnczoiybktyxavjbjl.supabase.co">
@@ -459,7 +459,7 @@ label.check{min-height:40px;align-items:center}
 .mpi-passos b{font-size:15px}.mpi-passos span{font-size:13px;color:var(--muted)}
 .mpi-classe{margin:0;font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
 .mpi-rodape{display:flex;justify-content:space-between;gap:10px}
-.au-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.au-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.06)}
 .au-tabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:10px;border-radius:999px;cursor:pointer}
 .au-tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .au-pane{gap:16px}
@@ -492,6 +492,11 @@ label.check{min-height:40px;align-items:center}
 .hx-eb{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f3ba2f}
 .hx-t{margin:0;font-size:clamp(40px,12vw,56px);line-height:.98;font-weight:800;letter-spacing:-.03em;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.35)}
 .hx-t span{color:#f3ba2f}
+.hd-entrar{display:none;border:0;cursor:pointer;font:700 15px var(--body,inherit);padding:10px 22px;border-radius:999px;background:var(--accent);color:var(--accent-ink);align-self:center}
+html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none}
+.hx-duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.hx-duo div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.hx-duo b{color:#fff;font-size:15px}.hx-duo span{color:#c9d2e6;font-size:13px;line-height:1.25}
 .hx-s{margin:0;font-size:17px;color:#d5dcec}
 .hx-cta{border:0;cursor:pointer;font:inherit;font-size:21px;font-weight:800;color:#0b1633;padding:16px 28px;border-radius:6px;background:linear-gradient(135deg,#ffd257,#f3ba2f 55%,#e09a00);box-shadow:0 10px 26px rgba(243,186,47,.35)}
 .hx-ja{border:0;background:none;color:#d5dcec;font:inherit;font-size:14px;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.hx-ja b{color:#fff}
@@ -746,8 +751,9 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 <body>
 <div class="wrap">
   <header>
-    <div class="marca"><img src="marca.svg" alt="" width="70" height="35"><div><div class="eyebrow" id="ola">Envios e entregas</div><h1>Cadernex</h1></div></div>
+    <div class="marca"><img src="marca.svg" alt="" width="70" height="35"><div><div class="eyebrow" id="ola">Entregas e Delivery</div><h1>Cadernex</h1></div></div>
     <div class="sync" id="sync"></div>
+    <button class="hd-entrar" type="button" data-aba="entrar">Entrar</button>
   </header>
   
   <section id="s-setup" class="card stack" data-nosnippet hidden>
@@ -756,21 +762,20 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
   </section>
 
   <section id="s-auth" class="auth" hidden>
-    <div class="au-tabs" role="tablist" aria-label="Cadernex">
-      <button type="button" role="tab" data-aba="inicio" aria-selected="true">Início</button>
-      <button type="button" role="tab" data-aba="entrar" aria-selected="false">Entrar</button>
-    </div>
     <div class="au-pane stack" id="au-inicio" role="tabpanel">
       <div class="hx">
         <div class="hx-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <div class="hx-txt">
-          <div class="hx-eb">Cadernex Entregas · Goiânia</div>
-          <h1 class="hx-t">Soluções<br>em <span>Entregas</span></h1>
-          <p class="hx-s">Motoboy, bike e frete na hora, direto pelo app.</p>
+          <div class="hx-eb">Goiânia · direto pelo app</div>
+          <h1 class="hx-t">Cadernex<br><span>Entregas</span><br>e <span>Delivery</span></h1>
+          <div class="hx-duo">
+            <div><b>🛵 Entregas</b><span>Motoboy, bike e frete na hora</span></div>
+            <div><b>🍔 Delivery</b><span>Peça das lojas daqui no Pix</span></div>
+          </div>
           <button class="hx-cta" type="button" data-cta="cliente">Começar agora!</button>
           <button class="hx-ja" type="button" data-aba="entrar">Já tenho conta · <b>Entrar</b></button>
         </div>
-        <div class="hx-foto" role="img" aria-label="Motoqueiro Cadernex Entregas com a bag de entrega, em Goiânia"></div>
+        <div class="hx-foto" role="img" aria-label="Motoqueiro Cadernex Entregas e Delivery com a bag de entrega, em Goiânia"></div>
       </div>
       <nav class="hx-tiles" aria-label="Escolha como usar">
         <a class="hx-tile" href="#mk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg><b>Para lojas</b></a>
@@ -829,6 +834,10 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <a class="card promo-l" href="promotores.html"><b>Seja promotor</b><span>Cadastre lojas, em qualquer cidade, e ganhe 2% da taxa delas por 24 meses. Saiba mais →</span></a>
       <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
       <p class="hint cx-cnpj">Cadernex Labs · CNPJ 70.019.938/0001-39 · Goiânia, GO</p>
+    </div>
+    <div class="au-tabs" role="tablist" aria-label="Cadernex">
+      <button type="button" role="tab" data-aba="inicio" aria-selected="true">Início</button>
+      <button type="button" role="tab" data-aba="entrar" aria-selected="false">Entrar</button>
     </div>
     <div class="au-pane stack" id="au-entrar" role="tabpanel" data-nosnippet hidden>
       <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>

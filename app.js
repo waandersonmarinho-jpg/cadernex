@@ -18,7 +18,8 @@ let sb=null,uid=null,turnos=[],gastos=[],perfil={meta:0,nome:"",turno_inicio:nul
 function show(which){ // "setup" | "auth" | "app"
   $("s-setup").hidden=which!=="setup";$("s-auth").hidden=which!=="auth";if($("s-dados"))$("s-dados").hidden=which!=="dados";
   $("s-app").hidden=which!=="app";$("nav").hidden=which!=="app";
-  if(which==="auth"){$("ola").textContent="Envios e entregas";$("sync").textContent="";document.documentElement.classList.remove("area-loja")}
+  document.documentElement.classList.toggle("na-inicio",which==="auth"&&!!$("au-inicio")&&!$("au-inicio").hidden);
+  if(which==="auth"){$("ola").textContent="Entregas e Delivery";$("sync").textContent="";document.documentElement.classList.remove("area-loja")}
 }
 
 /* ---------------- início ---------------- */
@@ -72,10 +73,11 @@ async function safe(fn,ok){try{await fn();if(ok)toast(ok)}catch(e){console.error
 /* ---------------- login ---------------- */
 let modo="entrar";
 function auAba(n){const t=$("au-inicio"),e=$("au-entrar");if(!t||!e)return;t.hidden=n!=="inicio";e.hidden=n!=="entrar";
+  document.documentElement.classList.toggle("na-inicio",n==="inicio"&&!$("s-auth").hidden);
   document.querySelectorAll(".au-tabs [data-aba]").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===n));
   try{sessionStorage.setItem("cx-aba",n)}catch(x){}window.scrollTo({top:0,behavior:"smooth"})}
 window.auAba=auAba;
-document.addEventListener("click",ev=>{const a=ev.target.closest("#s-auth [data-aba]");if(a){auAba(a.dataset.aba);if(a.dataset.aba==="entrar"&&modo!=="entrar")setModo("entrar");return}
+document.addEventListener("click",ev=>{const a=ev.target.closest("#s-auth [data-aba],.hd-entrar");if(a){auAba(a.dataset.aba);if(a.dataset.aba==="entrar"&&modo!=="entrar")setModo("entrar");return}
   const c=ev.target.closest("#s-auth [data-cta]");if(!c)return;
   $("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo===c.dataset.cta));setModo("criar");setTimeout(()=>{try{$("a-nome").focus({preventScroll:true})}catch(x){}},350)});
 {let ab="inicio";try{ab=sessionStorage.getItem("cx-aba")||ab}catch(x){}if(location.search||/pedir|entrar/.test(location.hash))ab="entrar";auAba(ab)}
@@ -121,7 +123,7 @@ function range(p){const n=new Date();const e=ymd(n);if(p==="hoje")return[e,e];
 const inR=(d,[a,b])=>d>=a&&d<=b;
 
 function render(){
-  $("ola").textContent=perfil.nome?"Oi, "+perfil.nome.split(" ")[0]:"Envios e entregas";
+  $("ola").textContent=perfil.nome?"Oi, "+perfil.nome.split(" ")[0]:"Entregas e Delivery";
   const r=range(periodo);
   const T=turnos.filter(t=>inR(t.data,r)),G=gastos.filter(g=>inR(g.data,r));
   const bruto=T.reduce((s,t)=>s+t.ganho+t.gorjeta,0),desp=G.reduce((s,g)=>s+g.valor,0);
