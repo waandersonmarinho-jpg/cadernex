@@ -204,7 +204,7 @@ $("exportar").onclick=()=>{
   a.href=URL.createObjectURL(blob);a.download="caderno-do-corre-"+ymd(new Date())+".csv";document.body.appendChild(a);a.click();a.remove();toast("Planilha baixada")};
 
 /* ---------------- navegação e formulários ---------------- */
-const TAB_DE={config:"mais",hist:"mais",aprender:"mais",corpo:"mais",negocio:"mais",promotor:"mais",pedir:"mais",pedidos:"mais",gasto:"turno"};
+const TAB_DE={config:"mais",hist:"mais",aprender:"mais",corpo:"mais",negocio:"mais",promotor:"mais",pedir:"mais",pedidos:"mais",gasto:"resumo",turno:"resumo"};
 function go(v){document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!=="v-"+v);const t0=document.body.classList.contains("cli")?(v==="config"?"perfilc":v==="pedir"&&document.documentElement.classList.contains("area-loja")?"loja":v):(TAB_DE[v]||v);document.querySelectorAll(".tab").forEach(t=>{if(t.dataset.v===t0)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});scrollTo(0,0)}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b){window.cxNavUser=Date.now();go(b.dataset.go)}});
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{window.cxNavUser=Date.now();go(t.dataset.v)});
@@ -232,13 +232,13 @@ $("fTurno").onsubmit=e=>{e.preventDefault();const ganho=num($("t-ganho").value),
     if(fechando){if(off){perfil={...perfil,turno_inicio:null};await cxOff.fila.add({tab:"perfil",row:{turno_inicio:null}})}
       else await savePerfil({turno_inicio:null}).catch(async x=>{if(!cxOff.semRede(x))throw x;perfil={...perfil,turno_inicio:null};await cxOff.fila.add({tab:"perfil",row:{turno_inicio:null}});off=true})}
     if(window.cxTurnoFim)cxTurnoFim();
-    resetTurno();render();go("turno");toast(off?"Sem internet: turno salvo no celular. Sobe sozinho quando a internet voltar.":"Turno salvo")})};
+    resetTurno();render();go("resumo");toast(off?"Sem internet: turno salvo no celular. Sobe sozinho quando a internet voltar.":"Turno salvo")})};
 
 $("fGasto").onsubmit=e=>{e.preventDefault();const v=num($("g-valor").value);if(v<=0){toast("Coloque o valor");return}
   const row={data:$("g-data").value,categoria:picked($("g-cats")),valor:v,nota:$("g-nota").value.trim()};if(window.cxOff)row.id=cxOff.novoId();
   safe(async()=>{let off=false;const {data,error}=await sb.from("despesas").insert(row).select().single();
     if(error){if(!window.cxOff||!cxOff.semRede(error))throw error;await cxOff.fila.add({tab:"despesas",row});off=true}
-    const d=off?row:data;gastos.unshift({...d,valor:N(d.valor),...(off?{_off:1}:{})});$("g-valor").value="";$("g-nota").value="";render();go("turno");
+    const d=off?row:data;gastos.unshift({...d,valor:N(d.valor),...(off?{_off:1}:{})});$("g-valor").value="";$("g-nota").value="";render();go("resumo");
     toast(off?"Sem internet: despesa salva no celular. Sobe sozinha quando a internet voltar.":"Despesa salva")})};
 
 $("fCfg").onsubmit=e=>{e.preventDefault();safe(()=>savePerfil({meta:num($("c-meta").value),nome:$("c-nome").value.trim()}),"Ajustes salvos")};
