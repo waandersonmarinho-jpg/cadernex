@@ -5,18 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0c0e11">
 <script>(function(){var t;try{t=localStorage.getItem("cx-tema")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
-<meta name="description" content="Peça entregas de moto e bike, coletas e fretes com picape. Entregadores e freteiros perto de você, rastreio por GPS e pagamento por Pix. Comida, documentos e encomendas, uma ou várias entregas de uma vez. Seja promotor e ganhe cadastrando lojas.">
+<meta name="description" content="Cadernex Entregas em Goiânia: peça motoboy, bike ou frete na hora pelo app. Coleta e entrega com código, rastreio ao vivo por GPS e pagamento por Pix. Lojas têm delivery com cardápio e link próprio. Seja entregador ou promotor.">
 <link rel="canonical" href="https://cadernex.com.br/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cadernex">
-<meta property="og:title" content="Cadernex: entregas, coletas e fretes">
-<meta property="og:description" content="Peça um entregador de moto ou bike, ou um frete com picape. Rastreio por GPS e pagamento por Pix.">
+<meta property="og:title" content="Cadernex Entregas: motoboy, delivery e fretes em Goiânia">
+<meta property="og:description" content="Peça motoboy, bike ou frete pelo app. Coleta e entrega com código, GPS ao vivo e Pix. Delivery das lojas com cardápio e link próprio.">
 <meta property="og:url" content="https://cadernex.com.br/">
-<meta property="og:image" content="https://cadernex.com.br/icon-512.png">
+<meta property="og:image" content="https://cadernex.com.br/motoqueiros-flyer.jpg">
+<meta property="og:image:width" content="900">
+<meta property="og:image:height" content="900">
+<meta property="og:image:alt" content="Motoqueiro Cadernex Entregas em Goiânia">
 <meta property="og:locale" content="pt_BR">
-<meta name="twitter:card" content="summary">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://cadernex.com.br/#org","name":"Cadernex","url":"https://cadernex.com.br/","logo":"https://cadernex.com.br/icon-512.png","email":"suporte@cadernex.com.br"}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App brasileiro para enviar comida, documentos e encomendas com entregadores de moto e bike, e fretes com picape. Rastreio por GPS e pagamento por Pix. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro. Promotores autônomos ganham 2% da taxa de cada loja que cadastram, por 24 meses, com saque semanal por Pix.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"Country","name":"Brasil"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://cadernex.com.br/#org","name":"Cadernex Entregas","alternateName":"Cadernex","taxID":"70.019.938/0001-39","url":"https://cadernex.com.br/","logo":"https://cadernex.com.br/icon-512.png","image":"https://cadernex.com.br/motoqueiros-flyer.jpg","email":"suporte@cadernex.com.br","address":{"@type":"PostalAddress","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},"areaServed":{"@type":"City","name":"Goiânia"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cadernex Entregas","url":"https://cadernex.com.br/","applicationCategory":"BusinessApplication","operatingSystem":"Android, iOS, Web","description":"App de entregas de Goiânia: peça motoboy, bike ou frete na hora. O entregador coleta com código e entrega com código, com rastreio ao vivo por GPS e pagamento por Pix ou dinheiro. Lojas têm delivery com cardápio, fotos e link próprio pra mandar aos clientes. O entregador fica com 94% da corrida paga pelo app e 100% da paga em dinheiro. Promotores ganham 2% da taxa de cada loja que cadastram, por 24 meses.","publisher":{"@id":"https://cadernex.com.br/#org"},"areaServed":{"@type":"City","name":"Goiânia"},"inLanguage":"pt-BR","offers":{"@type":"Offer","price":"0","priceCurrency":"BRL"}}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -24,7 +27,7 @@
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Cadernex: entregas, coletas e fretes</title>
+<title>Cadernex Entregas: motoboy, delivery e fretes em Goiânia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://pwmnczoiybktyxavjbjl.supabase.co">
@@ -679,7 +682,7 @@ label.check{min-height:40px;align-items:center}
     <div class="sync" id="sync"></div>
   </header>
   
-  <section id="s-setup" class="card stack" hidden>
+  <section id="s-setup" class="card stack" data-nosnippet hidden>
     <h2>Falta configurar</h2>
     <p class="hint">O Cadernex está em manutenção rápida. Tente de novo em alguns minutos.</p>
   </section>
@@ -749,7 +752,7 @@ label.check{min-height:40px;align-items:center}
       <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
       <p class="hint cx-cnpj">Cadernex Labs · CNPJ 70.019.938/0001-39 · Goiânia, GO</p>
     </div>
-    <div class="au-pane stack" id="au-entrar" role="tabpanel" hidden>
+    <div class="au-pane stack" id="au-entrar" role="tabpanel" data-nosnippet hidden>
       <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>
       <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
       <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
@@ -776,7 +779,7 @@ label.check{min-height:40px;align-items:center}
     </div>
   </section>
 
-  <section id="s-dados" class="auth" hidden>
+  <section id="s-dados" class="auth" data-nosnippet hidden>
     <div class="card">
       <h2 style="margin-bottom:4px">Complete seu cadastro</h2>
       <p class="hint" style="margin:0 0 12px">Pedido uma vez só. Serve pra segurança de quem pede e de quem entrega nas corridas.</p>
@@ -817,7 +820,7 @@ label.check{min-height:40px;align-items:center}
     <button class="link" type="button" id="dd-depois" style="align-self:center">Fazer depois (sem corridas por enquanto)</button>
   </section>
 
-  <div id="s-app" hidden style="display:contents">
+  <div id="s-app" data-nosnippet hidden style="display:contents">
 
   <!-- RESUMO -->
   <section id="v-resumo" class="view" style="display:flex;flex-direction:column;gap:18px">
