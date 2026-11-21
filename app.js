@@ -32,7 +32,12 @@ async function boot(){
   if(session&&session.user)enter(session.user);else show("auth");
 }
 async function enter(user){
-  uid=user.id;document.body.classList.toggle("promo",!!user.user_metadata?.promotor);show("app");go("resumo");$("sync").textContent="Carregando…";
+  uid=user.id;document.body.classList.toggle("promo",!!user.user_metadata?.promotor);show("app");
+  // já abre na tela certa: o tipo vem do cadastro (não espera o perfil chegar da internet)
+  if(!perfil.tipo){const md=user.user_metadata||{};perfil.tipo=md.tipo==="cliente"?"cliente":"entregador";if(md.nome&&!perfil.nome)perfil.nome=md.nome}
+  if(typeof aplicaPapel==="function"){try{aplicaPapel()}catch(x){go(perfil.tipo==="cliente"?"pedir":"resumo")}}else go(perfil.tipo==="cliente"?"pedir":"resumo");
+  if(window.cxLinkPend&&cxLinkPend()){window.cxNavUser=Date.now();go("lojas")}
+  $("sync").textContent="Carregando…";
   // mostra na hora o que estava salvo no celular, enquanto busca o novo
   if(window.cxOff){const c=await cxOff.get("base:"+uid);if(c&&uid===user.id){turnos=c.turnos||[];gastos=c.gastos||[];perfil={...perfil,...(c.perfil||{})};await cxOff.juntarFila();render();if(perfil.tipo&&typeof aplicaPapel==="function")try{aplicaPapel()}catch(x){}$("sync").textContent="Atualizando…"}}
   await loadAll();

@@ -27,6 +27,7 @@ const IC={
 const SLUG=/^[a-z0-9]+(-[a-z0-9]+)*$/i,valeLink=v=>!!v&&(UUID.test(v)||(SLUG.test(v)&&v.length>=3&&v.length<=40));
 try{const q=new URLSearchParams(location.search).get("loja");if(valeLink(q)){localStorage.setItem(LINK_KEY,q.toLowerCase());history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
 const linkPend=()=>{try{const v=localStorage.getItem(LINK_KEY);return valeLink(v)?v:null}catch(e){return null}};
+window.cxLinkPend=linkPend;
 // o link pode ter o id ou o nome da loja (cadernex.com.br/?loja=nome-da-loja)
 async function idDoLink(v){if(!v)return null;if(UUID.test(v))return v.toLowerCase();
   for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return null;
