@@ -37,13 +37,13 @@ let publico=false,cliCasa=null;
 function vitrineAbrir(id){
   const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv||!cli)return;
   if(!cliCasa)cliCasa={pai:cli.parentNode,depois:cli.nextSibling};
-  $("vt-slot").appendChild(cli);publico=true;
+  $("vt-slot").appendChild(cli);publico=true;document.documentElement.classList.add("vitrine");document.title="Cadernex Delivery";
   ["s-setup","s-auth","s-dados","s-app"].forEach(k=>{const x=$(k);if(x)x.hidden=true});sv.hidden=false;
   abrirLoja(id);
 }
 function vitrineFechar(){
   const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv)return;sv.hidden=true;
-  if(publico&&cliCasa&&cli){cliCasa.pai.insertBefore(cli,cliCasa.depois);publico=false;loja=null}
+  if(publico&&cliCasa&&cli){cliCasa.pai.insertBefore(cli,cliCasa.depois);publico=false;loja=null;document.documentElement.classList.remove("vitrine");document.title="Cadernex Entregas: motoboy, delivery e fretes em Goiânia"}
 }
 async function vitrineCheca(){
   const id=linkPend();if(!id)return;
@@ -203,6 +203,7 @@ async function abrirLoja(id){
   if(!l&&uid){if(!lojas)await lojasLoad();l=(lojas||[]).find(x=>x.id===id)}
   if(!l){if(publico)$("dl-cli").innerHTML=`<div class="card"><p class="hint" style="margin:0">Essa loja não está disponível agora.</p></div>`;else toast("Essa loja não está disponível agora");return}
   loja=l;cardapio=null;if(cart.loja!==id)cart={loja:id,q:{}};cardRender();
+  if(publico)document.title=`${l.nome} · Cadernex Delivery`;
   const r=await sb.rpc("cardapio_publico",{lid:id});
   cardapio=r.error?[]:r.data;Object.keys(cart.q).forEach(k=>{if(!cardapio.some(p=>p.id===k))delete cart.q[k]});cardRender();scrollTo(0,0);
   let ck=false;try{ck=sessionStorage.getItem("cx-dl-ck")==="1";if(ck)sessionStorage.removeItem("cx-dl-ck")}catch(e){}

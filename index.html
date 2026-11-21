@@ -548,7 +548,8 @@ label.check{min-height:40px;align-items:center}
 .vt-pub{display:flex;flex-direction:column;gap:14px;padding-bottom:30px}
 .vt-pub[hidden]{display:none}
 .vt-top{display:flex;align-items:center;gap:10px}.vt-top img{border-radius:10px}.vt-top div{flex:1;display:flex;flex-direction:column;line-height:1.1}
-.vt-top small{color:var(--muted);font-size:13px}.vt-top b{font-size:16px}
+.vt-top small{color:var(--muted);font-size:13px}.vt-top b{font-size:20px}.vt-marca span{color:var(--accent)}
+html.vitrine .wrap>header{display:none}
 .vt-top .btn{padding:8px 14px;font-size:14px}
 .vt-pub .dl-bar{bottom:14px}
 .vt-rod{text-align:center;font-size:12px;margin:0}
@@ -852,7 +853,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
   </section>
 
   <section id="s-vitrine" class="vt-pub" hidden>
-    <div class="vt-top"><div><b>Cardápio da loja</b><small>Peça sem criar conta</small></div><button class="btn ghost" type="button" id="vt-entrar">Já tenho conta</button></div>
+    <div class="vt-top"><img src="marca.svg" alt="" width="56" height="28"><div><b class="vt-marca">Cadernex <span>Delivery</span></b><small>Cardápio da loja</small></div><button class="btn ghost" type="button" id="vt-entrar">Entrar</button></div>
     <div id="vt-slot" class="stack" style="gap:14px"></div>
     <p class="hint vt-rod">Pedido enviado direto pro WhatsApp da loja. Não precisa criar conta.<br><a href="./">Conheça o Cadernex</a> · Cadernex Labs · CNPJ 70.019.938/0001-39</p>
   </section>
@@ -1679,7 +1680,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
   <!-- PERFIL DO CLIENTE -->
   <section id="v-lojas" class="view" hidden>
     <div class="stack" style="gap:18px">
-      <div><div class="eyebrow">Peça das lojas daqui</div><h2 style="font-size:28px">Delivery</h2></div>
+      <div><div class="eyebrow">Peça das lojas daqui</div><h2 style="font-size:28px">Cadernex <span style="color:var(--accent)">Delivery</span></h2></div>
       <div id="dl-adm" class="stack" style="gap:18px" hidden></div>
       <div id="dl-cli" class="stack" style="gap:14px"></div>
     </div>
