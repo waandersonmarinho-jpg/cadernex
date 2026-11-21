@@ -91,7 +91,7 @@ document.addEventListener("click",ev=>{const a=ev.target.closest("#s-auth [data-
 function setModo(m){if(m==="criar")auAba("entrar");modo=m;$("a-nome-w").hidden=m!=="criar";$("a-tipo-w").hidden=m!=="criar";$("a-title").textContent=m==="criar"?"Criar conta":"Entrar";
   $("a-btn").textContent=m==="criar"?"Criar minha conta":"Entrar";$("a-swap").textContent=m==="criar"?"Já tenho conta":"Não tenho conta ainda";$("a-msg").textContent=""}
 $("a-tipo").addEventListener("click",e=>{const b=e.target.closest("[data-tipo]");if(!b)return;$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x===b))});
-if(/pedir/.test(location.hash)){$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="cliente"));document.querySelector("#s-auth .lead").textContent="Peça entregas rápidas com entregadores da sua região.";setTimeout(()=>setModo("criar"),0)}
+if(/pedir/.test(location.hash)){$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="enviar"));document.querySelector("#s-auth .lead").textContent="Peça entregas rápidas com entregadores da sua região.";setTimeout(()=>setModo("criar"),0)}
 $("a-swap").onclick=()=>setModo(modo==="criar"?"entrar":"criar");
 {const lj=$("lj-criar");if(lj)lj.onclick=()=>{$("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo==="cliente"));setModo("criar");setTimeout(()=>{try{$("a-nome").focus({preventScroll:true})}catch(e){}},400)}}
 $("a-reset").onclick=async()=>{const email=$("a-email").value.trim();if(!email){$("a-msg").textContent="Digite seu e-mail acima e toque de novo.";return}
@@ -102,7 +102,8 @@ $("fAuth").onsubmit=async e=>{e.preventDefault();const email=$("a-email").value.
   $("a-btn").disabled=true;$("a-msg").textContent="";
   try{
     if(modo==="criar"){const nome=$("a-nome").value.trim();
-      const tipo=document.querySelector('#a-tipo [aria-checked="true"]')?.dataset.tipo||"entregador";
+      let tipo=document.querySelector('#a-tipo [aria-checked="true"]')?.dataset.tipo||"entregador";
+      if(tipo==="comprar"||tipo==="enviar")tipo="cliente"; // por dentro é a mesma conta de quem pede
       const promo=tipo==="promotor";const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:promo?{nome,tipo:"cliente",promotor:true}:{nome,tipo}}});
       if(error)throw error;if(!data.session)$("a-msg").textContent="Conta criada! Abra seu e-mail e confirme pra entrar.";}
     else{const {error}=await sb.auth.signInWithPassword({email,password:senha});if(error)throw error}
