@@ -12,7 +12,7 @@ const so=v=>String(v||"").replace(/\D/g,"");
 const ehLoja=()=>!!(perfil&&perfil.loja&&String(perfil.loja_nome||"").trim());
 const aberta=()=>perfil.loja_aberta!==false;
 const fotoUrl=(loja,p)=>p.foto_v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${loja}/${p.id}.jpg?v=${p.foto_v}`:"";
-const linkDa=id=>`${SITE}?loja=${id}`;
+const linkDa=id=>`${SITE}?loja=${id===uid&&perfil.loja_slug?perfil.loja_slug:id}`;
 const imgLoja=(id,tipo,v)=>v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${id}/${tipo}.jpg?v=${v}`:"";
 const iniciais=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
 const logoHtml=(id,nome,v,cls)=>v?`<img class="${cls}" src="${esc(imgLoja(id,"logo",v))}" alt="" loading="lazy">`:`<span class="${cls} dl-ini">${esc(iniciais(nome))}</span>`;
@@ -24,8 +24,14 @@ const IC={
   zap:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.9A8 8 0 1121 12z"/></svg>'};
 
 /* ---------- link da loja: guarda e abre depois de entrar ---------- */
-try{const q=new URLSearchParams(location.search).get("loja");if(q&&UUID.test(q)){localStorage.setItem(LINK_KEY,q.toLowerCase());history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
-const linkPend=()=>{try{const v=localStorage.getItem(LINK_KEY);return v&&UUID.test(v)?v:null}catch(e){return null}};
+const SLUG=/^[a-z0-9]+(-[a-z0-9]+)*$/i,valeLink=v=>!!v&&(UUID.test(v)||(SLUG.test(v)&&v.length>=3&&v.length<=40));
+try{const q=new URLSearchParams(location.search).get("loja");if(valeLink(q)){localStorage.setItem(LINK_KEY,q.toLowerCase());history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
+const linkPend=()=>{try{const v=localStorage.getItem(LINK_KEY);return valeLink(v)?v:null}catch(e){return null}};
+// o link pode ter o id ou o nome da loja (cadernex.com.br/?loja=nome-da-loja)
+async function idDoLink(v){if(!v)return null;if(UUID.test(v))return v.toLowerCase();
+  for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return null;
+  const r=await sb.rpc("loja_id_por_slug",{s:v});return r.error?null:r.data||null}
+const slugDe=n=>String(n||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40).replace(/-+$/,"");
 // quem abre o link sem estar logado vê o cardápio direto (vitrine pública), sem criar conta
 let publico=false,cliCasa=null;
 function vitrineAbrir(id){
@@ -73,7 +79,10 @@ async function subirFoto(pid,file){
 
 /* ================= LOJISTA ================= */
 let meus=[],fotoNova=null;
-async function meusLoad(){if(!sb||!uid||!ehLoja())return;const r=await sb.from("produtos").select("*").eq("loja_id",uid).order("criado_em");meus=r.error?[]:r.data;admRender()}
+let slugTentou=false;
+async function slugAuto(){if(slugTentou||perfil.loja_slug||!ehLoja())return;slugTentou=true;const v=slugDe(perfil.loja_nome);if(v.length<3)return;
+  const r=await sb.rpc("loja_slug_definir",{desejado:v});if(!r.error&&r.data){perfil.loja_slug=r.data;admRender()}}
+async function meusLoad(){if(!sb||!uid||!ehLoja())return;slugAuto();const r=await sb.from("produtos").select("*").eq("loja_id",uid).order("criado_em");meus=r.error?[]:r.data;admRender()}
 const grupos=lista=>{const m=new Map();lista.forEach(p=>{const c=String(p.categoria||"").trim()||"Outros";if(!m.has(c))m.set(c,[]);m.get(c).push(p)});
   const o=m.get("Outros");if(o){m.delete("Outros");m.set("Outros",o)}return[...m.entries()]};
 function admRender(){
@@ -99,6 +108,7 @@ function admRender(){
   <div class="card stack">
     <div><div class="eyebrow">Mande pros seus clientes</div><h2 style="margin:2px 0 0">Link da sua loja</h2></div>
     <div class="dl-link"><span>${esc(linkDa(uid))}</span></div>
+    <button class="link" type="button" data-dlslug style="align-self:flex-start;padding:0;font-size:14px">${perfil.loja_slug?"Mudar o nome do link":"Usar o nome da loja no link"}</button>
     <div class="grid2"><button class="btn ghost" type="button" data-dlcopia>Copiar link</button><button class="btn" type="button" data-dlenvia>${IC.zap}Enviar</button></div>
     <p class="hint" style="margin:0;font-size:12px">Ponha na bio do Instagram e no status do WhatsApp. Quem abre cai direto no seu cardápio.</p>
   </div>
@@ -152,6 +162,10 @@ V.addEventListener("click",e=>{
   if(e.target.closest("[data-dlend]")){salvaEnd();return}
   if(e.target.closest("[data-dlpick]")){$("dl-file").click();return}
   const ab=e.target.closest("[data-dlab]");if(ab){const novo=!aberta();safe(async()=>{await savePerfil({loja_aberta:novo});admRender()},novo?"Loja aberta ✓":"Loja fechada");return}
+  if(e.target.closest("[data-dlslug]")){const atual=perfil.loja_slug||slugDe(perfil.loja_nome);
+    const n=prompt("Nome do link da loja (só letras, números e hífen):\ncadernex.com.br/?loja=",atual);if(n===null)return;
+    const v=slugDe(n);if(v.length<3){toast("Use pelo menos 3 letras ou números");return}
+    safe(async()=>{const r=await sb.rpc("loja_slug_definir",{desejado:v});if(r.error)throw Object.assign(r.error,{cxMsg:r.error.message});perfil.loja_slug=r.data;admRender()},"Link atualizado ✓");return}
   if(e.target.closest("[data-dlcopia]")){const l=linkDa(uid);(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado ✓"),()=>prompt("Copie o link:",l));return}
   if(e.target.closest("[data-dlenvia]")){const l=linkDa(uid),t=`Peça na ${perfil.loja_nome} pelo Cadernex: veja o cardápio e faça seu pedido aqui 👉 ${l}`;
     if(navigator.share)navigator.share({title:perfil.loja_nome,text:t}).catch(()=>{});else open("https://wa.me/?text="+encodeURIComponent(t),"_blank","noopener");return}
@@ -184,6 +198,7 @@ function cliRender(){
 }
 async function abrirLoja(id){
   for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return;
+  if(!UUID.test(id)){id=await idDoLink(id);if(!id){if(publico)$("dl-cli").innerHTML=`<div class="card"><p class="hint" style="margin:0">Não achamos essa loja. Confira o link com a loja.</p></div>`;else toast("Não achamos essa loja");return}}
   const v=await sb.rpc("loja_vitrine",{lid:id});let l=!v.error&&v.data&&v.data[0];
   if(!l&&uid){if(!lojas)await lojasLoad();l=(lojas||[]).find(x=>x.id===id)}
   if(!l){if(publico)$("dl-cli").innerHTML=`<div class="card"><p class="hint" style="margin:0">Essa loja não está disponível agora.</p></div>`;else toast("Essa loja não está disponível agora");return}
@@ -340,7 +355,8 @@ document.addEventListener("click",e=>{
 });
 
 /* ---------- ligações com o resto do app ---------- */
-function abrirDoLink(){const id=linkPend();if(!id||!uid)return;try{localStorage.removeItem(LINK_KEY)}catch(e){}
+async function abrirDoLink(){const v=linkPend();if(!v||!uid)return;try{localStorage.removeItem(LINK_KEY)}catch(e){}
+  const id=await idDoLink(v);if(!id)return;
   window.cxNavUser=Date.now(); // não deixa o app puxar de volta pro início
   if(id===uid){go("lojas");return}go("lojas");abrirLoja(id)}
 function entrar(){admRender();if(!loja)lojasLoad();if(ehLoja()&&!meus.length)meusLoad()}
