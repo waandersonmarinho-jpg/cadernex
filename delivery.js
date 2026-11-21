@@ -13,6 +13,11 @@ const ehLoja=()=>!!(perfil&&perfil.loja&&String(perfil.loja_nome||"").trim());
 const aberta=()=>perfil.loja_aberta!==false;
 const fotoUrl=(loja,p)=>p.foto_v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${loja}/${p.id}.jpg?v=${p.foto_v}`:"";
 const linkDa=id=>`${SITE}?loja=${id}`;
+const imgLoja=(id,tipo,v)=>v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${id}/${tipo}.jpg?v=${v}`:"";
+const iniciais=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
+const logoHtml=(id,nome,v,cls)=>v?`<img class="${cls}" src="${esc(imgLoja(id,"logo",v))}" alt="" loading="lazy">`:`<span class="${cls} dl-ini">${esc(iniciais(nome))}</span>`;
+// taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 10% do app, arredondada pra 50 centavos
+const freteDe=k=>{const base=typeof justo==="function"?justo(k):Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2);return Math.ceil(base*1.1*2)/2};
 const IC={
   loja:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>',
   foto:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
@@ -38,6 +43,12 @@ async function comprimir(file){
   c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
   return await new Promise(ok=>c.toBlob(ok,"image/jpeg",0.8));
 }
+async function subirImgLoja(tipo,file){
+  const blob=await comprimir(file);if(!blob)throw Object.assign(new Error("foto"),{cxMsg:"Não deu pra ler essa foto. Tente outra."});
+  const{error}=await sb.storage.from("produtos").upload(`${uid}/${tipo}.jpg`,blob,{upsert:true,contentType:"image/jpeg"});
+  if(error)throw Object.assign(error,{cxMsg:"A foto não subiu. Confira a internet e tente de novo."});
+  const v=Date.now();await savePerfil(tipo==="logo"?{loja_logo_v:v}:{loja_capa_v:v});return v;
+}
 async function subirFoto(pid,file){
   const blob=await comprimir(file);if(!blob)throw Object.assign(new Error("foto"),{cxMsg:"Não deu pra ler essa foto. Tente outra."});
   const{error}=await sb.storage.from("produtos").upload(`${uid}/${pid}.jpg`,blob,{upsert:true,contentType:"image/jpeg"});
@@ -60,6 +71,15 @@ function admRender(){
     <p class="hint" style="margin:0">${ab?"Os clientes estão vendo seu cardápio e podem fazer pedidos.":"Os clientes veem seu cardápio, mas não conseguem pedir até você abrir."}</p>
     <button class="btn full${ab?" ghost":""}" type="button" data-dlab>${ab?"Fechar a loja agora":"Abrir a loja"}</button>
     ${z?"":`<p class="dl-aviso">Coloque o <b>WhatsApp da loja</b> em Perfil → Informações da loja. É por ele que chegam os pedidos. <button class="link" type="button" data-go="perfilc">Colocar agora</button></p>`}
+  </div>
+  <div class="card stack">
+    <div><div class="eyebrow">A cara da sua loja</div><h2 style="margin:2px 0 0">Logo, capa e endereço</h2></div>
+    <div class="dl-capa-ed" data-dlimg="capa" role="button" tabindex="0" aria-label="Trocar a capa">${perfil.loja_capa_v?`<img src="${esc(imgLoja(uid,"capa",perfil.loja_capa_v))}" alt="">`:`<span>${IC.foto}<b>Foto de capa</b><small>a fachada, o balcão ou seu prato mais bonito</small></span>`}
+      <button class="dl-logo-ed" type="button" data-dlimg="logo" aria-label="Trocar o logo">${logoHtml(uid,perfil.loja_nome,perfil.loja_logo_v,"dl-logo")}<em>Logo</em></button></div>
+    <input type="file" id="dl-file3" accept="image/*" hidden>
+    <label>Endereço da loja<input id="dl-lend" maxlength="140" placeholder="Rua, número, quadra e lote" value="${esc(perfil.loja_end||"")}"></label>
+    <button class="btn ghost full" type="button" data-dlend>${perfil.loja_lat!=null?"Atualizar endereço":"Salvar endereço"}</button>
+    <p class="hint" style="margin:0;font-size:12px">${perfil.loja_lat!=null?"✓ Loja no mapa. O cliente já vê a taxa de entrega estimada no carrinho.":"Com o endereço, o cliente vê a taxa de entrega estimada antes de pedir."}</p>
   </div>
   <div class="card stack">
     <div><div class="eyebrow">Mande pros seus clientes</div><h2 style="margin:2px 0 0">Link da sua loja</h2></div>
@@ -103,8 +123,18 @@ function addProd(e){e.preventDefault();const nome=$("dl-nome").value.trim(),prec
     meus.push(data);fotoNova=null;admRender();$("dl-nome").focus();
   }finally{b.disabled=false}},"Produto no cardápio ✓");
 }
-let fotoAlvo=null;
+let fotoAlvo=null,imgAlvo=null;
+async function salvaEnd(){
+  const end=$("dl-lend").value.trim();if(end.length<5){toast("Coloque o endereço da loja");$("dl-lend").focus();return}
+  safe(async()=>{toast("Achando sua loja no mapa…");
+    const q=[end,perfil.loja_bairro,"Goiânia","GO"].filter(Boolean).join(", ");
+    const p=window.cxGeo?await cxGeo.ponto(q):null;
+    await savePerfil(p?{loja_end:end,loja_lat:p.lat,loja_lng:p.lng}:{loja_end:end,loja_lat:null,loja_lng:null});admRender();
+    if(!p)toast("Endereço salvo, mas não achamos no mapa. Confira o número e o bairro.")},"Endereço salvo ✓");
+}
 V.addEventListener("click",e=>{
+  const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
+  if(e.target.closest("[data-dlend]")){salvaEnd();return}
   if(e.target.closest("[data-dlpick]")){$("dl-file").click();return}
   const ab=e.target.closest("[data-dlab]");if(ab){const novo=!aberta();safe(async()=>{await savePerfil({loja_aberta:novo});admRender()},novo?"Loja aberta ✓":"Loja fechada");return}
   if(e.target.closest("[data-dlcopia]")){const l=linkDa(uid);(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Link copiado ✓"),()=>prompt("Copie o link:",l));return}
@@ -117,6 +147,8 @@ V.addEventListener("click",e=>{
   const d=e.target.closest("[data-dldel]");if(d){if(d.dataset.ok!=="1"){d.dataset.ok="1";d.textContent="Apagar?";return}
     const id=d.dataset.dldel;safe(async()=>{const{error}=await sb.from("produtos").delete().eq("id",id);if(error)throw error;sb.storage.from("produtos").remove([`${uid}/${id}.jpg`]).catch(()=>{});meus=meus.filter(x=>x.id!==id);admRender()},"Produto apagado")}
 });
+V.addEventListener("change",e=>{if(e.target.id!=="dl-file3")return;const x=e.target.files[0];e.target.value="";if(!x||!imgAlvo)return;const t=imgAlvo;imgAlvo=null;
+  safe(async()=>{toast("Enviando a foto…");await subirImgLoja(t,x);admRender()},t==="logo"?"Logo salvo ✓":"Capa salva ✓")});
 V.addEventListener("change",e=>{if(e.target.id!=="dl-file2")return;const x=e.target.files[0];e.target.value="";if(!x||!fotoAlvo)return;const id=fotoAlvo;fotoAlvo=null;
   safe(async()=>{toast("Enviando a foto…");const v=await subirFoto(id,x);const p=meus.find(y=>y.id===id);if(p)p.foto_v=v;admRender()},"Foto salva ✓")});
 
@@ -130,7 +162,7 @@ function cliRender(){
   if(loja)return cardRender();
   if(lojas==null){w.innerHTML=`<p class="hint">Carregando as lojas…</p>`;return}
   w.innerHTML=`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
-    ${lojas.length?lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}"><span class="dl-lj-i">${IC.loja}</span>
+    ${lojas.length?lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}">${l.logo_v?logoHtml(l.id,l.nome,l.logo_v,"dl-lj-i dl-lj-logo"):`<span class="dl-lj-i">${IC.loja}</span>`}
       <span class="dl-lj-t"><b>${esc(l.nome)}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")
     :`<p class="hint" style="margin:0">Ainda não tem lojas com delivery. Tem uma loja? Cadastre em Perfil → Informações da loja.</p>`}</div>`;
@@ -148,7 +180,7 @@ function cardRender(){
   const w=$("dl-cli"),l=loja,pode=l.aberta&&!!so(l.whats);
   const gs=cardapio?grupos(cardapio):[];
   w.innerHTML=`<button class="link dl-volta" type="button" data-dlvolta>← Todas as lojas</button>
-  <div class="card stack dl-head"><div class="row" style="align-items:center;gap:10px"><div><div class="eyebrow">${esc([l.ramo,l.bairro].filter(Boolean).join(" · ")||"Delivery")}</div><h2 style="margin:2px 0 0">${esc(l.nome)}</h2></div><span class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</span></div>
+  <div class="card stack dl-head">${l.capa_v?`<div class="dl-capa"><img src="${esc(imgLoja(l.id,"capa",l.capa_v))}" alt=""></div>`:""}<div class="row" style="align-items:center;gap:10px">${logoHtml(l.id,l.nome,l.logo_v,"dl-logo dl-logo-h")}<div style="flex:1;min-width:0"><div class="eyebrow">${esc([l.ramo,l.bairro].filter(Boolean).join(" · ")||"Delivery")}</div><h2 style="margin:2px 0 0">${esc(l.nome)}</h2></div><span class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</span></div>
     ${l.horario?`<small class="hint" style="margin:0">Horário: ${esc(l.horario)}</small>`:""}
     ${!l.aberta?`<p class="dl-aviso">A loja está fechada agora. Você pode olhar o cardápio, e o pedido libera quando ela abrir.</p>`:!so(l.whats)?`<p class="dl-aviso">Essa loja ainda não colocou o WhatsApp pra receber pedidos.</p>`:""}
   </div>
@@ -166,7 +198,9 @@ function ckRender(){
   w.innerHTML=`<div class="card stack dl-ckc"><div><div class="eyebrow">Seu pedido</div><h2 style="margin:2px 0 0">${esc(loja.nome)}</h2></div>
     ${its.map(x=>`<div class="row"><span>${x.n}× ${esc(x.p.nome)}</span><b class="num">${brl(x.n*Number(x.p.preco))}</b></div>`).join("")}
     <div class="row" style="border-top:1px solid var(--line);padding-top:8px"><b>Produtos</b><b class="num">${brl(total())}</b></div>
-    <p class="hint" style="margin:0;font-size:12px">A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação.</p>
+    <div class="row" id="dl-fr-r"><span>Entrega</span><b class="num" id="dl-fr">${loja.lat!=null?"coloque o endereço":"a loja informa"}</b></div>
+    <div class="row dl-tot" id="dl-tot-r" hidden><b>Total estimado</b><b class="num" id="dl-tot"></b></div>
+    <p class="hint" style="margin:0;font-size:12px" id="dl-fr-h">${loja.lat!=null?"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.":"A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação."}</p>
     <label>Endereço de entrega<input id="dl-end" maxlength="140" placeholder="Rua, número, quadra, lote, referência" value="${esc(perfil.end_padrao||"")}"></label>
     <label>Bairro<input id="dl-bairro" maxlength="40"></label>
     <label>Pagamento<select id="dl-pag"><option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
@@ -175,14 +209,32 @@ function ckRender(){
     <button class="btn full" type="button" data-dlenviar>${IC.zap}Enviar pedido no WhatsApp da loja</button>
     <p class="hint" style="margin:0;font-size:12px">A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.</p></div>`;
   $("dl-pag").onchange=()=>$("dl-troco-w").hidden=$("dl-pag").value!=="Dinheiro";
+  frete=null;let t=null;const calc=()=>{clearTimeout(t);t=setTimeout(calcFrete,700)};
+  $("dl-end").addEventListener("input",calc);$("dl-bairro").addEventListener("input",calc);
+  if(String(perfil.end_padrao||"").length>=5)calc();
   w.scrollIntoView({behavior:"smooth",block:"start"});
+}
+let frete=null,freteN=0;
+async function calcFrete(){
+  if(!loja||loja.lat==null||!$("dl-fr"))return;
+  const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),n=++freteN;frete=null;
+  if(end.length<5){$("dl-fr").textContent="coloque o endereço";$("dl-tot-r").hidden=true;return}
+  $("dl-fr").textContent="calculando…";
+  const pt=window.cxGeo?await cxGeo.ponto([end,bairro,"Goiânia","GO"].filter(Boolean).join(", ")):null;if(n!==freteN)return;
+  if(!pt){$("dl-fr").textContent="a loja informa";$("dl-tot-r").hidden=true;return}
+  const a={lat:loja.lat,lng:loja.lng};let m=window.cxGeo?await cxGeo.rotaMetros(a,pt):null;if(n!==freteN)return;
+  if(!m){const R=6371e3,r=x=>x*Math.PI/180,dl=r(pt.lat-a.lat),dn=r(pt.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(pt.lat))*Math.sin(dn/2)**2;m=2*R*Math.asin(Math.sqrt(h))*1.3}
+  const k=Math.round(m/100)/10;
+  if(k>40){$("dl-fr").textContent="fora da área: a loja informa";$("dl-tot-r").hidden=true;return}
+  frete={v:freteDe(k),km:k};
+  $("dl-fr").textContent=`${brl(frete.v)} · ${String(k).replace(".",",")} km`;$("dl-tot").textContent=brl(total()+frete.v);$("dl-tot-r").hidden=false;
 }
 function enviar(){
   const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),pag=$("dl-pag").value,troco=$("dl-troco").value.trim(),obs=$("dl-obs").value.trim();
   if(end.length<5){toast("Coloque o endereço de entrega");$("dl-end").focus();return}
   if(bairro.length<2){toast("Coloque o bairro");$("dl-bairro").focus();return}
   const its=itens(),nome=String(perfil.nome||"").trim().split(" ")[0];
-  const t=[`*Pedido pelo Cadernex* 🛵`,`${loja.nome}`,``,...its.map(x=>`${x.n}x ${x.p.nome} — ${brl(x.n*Number(x.p.preco))}`),``,`*Produtos: ${brl(total())}*`,`(falta somar a entrega)`,``,
+  const t=[`*Pedido pelo Cadernex* 🛵`,`${loja.nome}`,``,...its.map(x=>`${x.n}x ${x.p.nome} — ${brl(x.n*Number(x.p.preco))}`),``,`*Produtos: ${brl(total())}*`,...(frete?[`Entrega estimada pelo Cadernex: ${brl(frete.v)} (${String(frete.km).replace(".",",")} km)`,`*Total estimado: ${brl(total()+frete.v)}*`]:[`(falta somar a entrega)`]),``,
     `*Entregar em:* ${end} — ${bairro}`,`*Pagamento:* ${pag}${pag==="Dinheiro"&&troco?` (troco pra R$ ${troco})`:""}`,obs?`*Obs.:* ${obs}`:"",nome?`*Cliente:* ${nome}`:""].filter((x,i,a)=>x!==""||a[i-1]!=="").join("\n");
   if(!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
   open(`https://wa.me/55${so(loja.whats)}?text=${encodeURIComponent(t)}`,"_blank","noopener");
