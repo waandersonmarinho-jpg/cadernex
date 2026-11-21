@@ -498,6 +498,40 @@ label.check{min-height:40px;align-items:center}
 .hx-dots{display:flex;justify-content:center;gap:10px}
 .hx-dots button{width:10px;height:10px;padding:0;border:0;border-radius:50%;background:var(--accent-soft);cursor:pointer}
 .hx-dots button[aria-current="true"]{background:var(--accent);width:24px;border-radius:5px}
+/* delivery das lojas */
+#v-lojas{padding-bottom:90px}
+.dl-pill{font-style:normal;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--line);color:var(--muted);white-space:nowrap;margin-left:auto}
+.dl-pill.on{background:color-mix(in srgb,var(--good,#2ebd85) 18%,transparent);color:var(--good,#1f9d6a)}
+.dl-st.on{border-color:var(--good,#2ebd85)}
+.dl-aviso{margin:0;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px}
+.dl-link{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;font:13px ui-monospace,monospace;overflow-wrap:anywhere;color:var(--muted)}
+.btn svg,.dl-lj-i svg,.dl-th svg,.dl-foto-in svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-4px;margin-right:6px}
+.dl-foto-in{display:block;width:100%;padding:0;border:2px dashed var(--line);border-radius:14px;background:var(--bg);color:var(--muted);cursor:pointer;overflow:hidden;font:inherit}
+.dl-foto-in span{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px}
+.dl-foto-in svg{width:30px;height:30px;margin:0}
+.dl-foto-in img{width:100%;max-height:220px;object-fit:cover;border-radius:10px}
+.dl-cat-t{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-top:6px}
+.dl-p,.dl-item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.dl-p.off{opacity:.5}
+.dl-th{flex:0 0 64px;height:64px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--muted);display:grid;place-items:center;overflow:hidden;cursor:pointer}
+.dl-th svg{margin:0}.dl-th img,.dl-img{width:100%;height:100%;object-fit:cover}
+.dl-img{flex:0 0 84px;width:84px;height:84px;border-radius:12px}
+.dl-pt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dl-pt b{overflow-wrap:anywhere}.dl-pt small{color:var(--muted);font-size:12px}
+.dl-pt .num{color:var(--accent);font-weight:800}
+.dl-pa{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.dl-pa .link{padding:0;font-size:13px}
+.dl-lj{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:center;width:100%;padding:12px;border:1px solid var(--line);border-radius:14px;cursor:pointer;background:var(--surface)}
+.dl-lj:focus-visible{outline:2px solid var(--accent)}
+.dl-lj-i{flex:0 0 44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}.dl-lj-i svg{margin:0;width:24px;height:24px}
+.dl-lj-t{flex:1;min-width:0;display:flex;flex-direction:column}.dl-lj-t small{color:var(--muted);font-size:12px}
+.dl-lj-s{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.dl-lj-s small{color:var(--muted);font-size:11px}
+.dl-volta{align-self:flex-start;padding:0}
+.dl-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0}.dl-chips::-webkit-scrollbar{display:none}
+.dl-sec{display:flex;flex-direction:column;gap:10px;scroll-margin-top:56px}
+.dl-qt{display:flex;align-items:center;gap:8px}
+.dl-qt button{width:36px;height:36px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font:700 20px/1 var(--body,inherit);cursor:pointer}
+.dl-qt button[data-dlmenos]{background:var(--line);color:var(--fg)}
+.dl-bar{position:sticky;bottom:84px;z-index:4;filter:drop-shadow(0 8px 18px rgba(0,0,0,.2))}
+.dl-ckc .row{display:flex;justify-content:space-between;gap:10px}
 .promo-l{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
 .promo-l span{color:var(--muted);font-size:14px}
 @media (max-width:360px){.hero-cta{grid-template-columns:1fr}}
@@ -1536,6 +1570,14 @@ label.check{min-height:40px;align-items:center}
   </section>
 
   <!-- PERFIL DO CLIENTE -->
+  <section id="v-lojas" class="view" hidden>
+    <div class="stack" style="gap:18px">
+      <div><div class="eyebrow">Peça das lojas daqui</div><h2 style="font-size:28px">Delivery</h2></div>
+      <div id="dl-adm" class="stack" style="gap:18px" hidden></div>
+      <div id="dl-cli" class="stack" style="gap:14px"></div>
+    </div>
+  </section>
+
   <section id="v-perfilc" class="view" hidden>
     <div class="stack">
       <h2 style="font-size:28px">Perfil</h2>
@@ -1599,6 +1641,7 @@ label.check{min-height:40px;align-items:center}
   <button class="tab so-cli" data-v="pedidos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>Pedidos</button>
   <button class="tab so-promo" data-v="promotor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Lojas</button>
   <button class="tab so-promo" data-v="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Conta</button>
+  <button class="tab so-cli" data-v="lojas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>Delivery</button>
   <button class="tab so-cli" data-v="perfilc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button>
 </div></nav>
 <div class="toast" id="toast" hidden></div>
@@ -1637,5 +1680,6 @@ label.check{min-height:40px;align-items:center}
 <script src="odometro.js"></script>
 <script src="comissao.js"></script>
 <script src="promotor.js"></script>
+<script src="delivery.js"></script>
 </body>
 </html>
