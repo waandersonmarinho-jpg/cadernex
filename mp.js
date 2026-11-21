@@ -79,11 +79,12 @@ function pintar(){
       const liq=Number(p&&p.valor)-Number(p&&p.comissao||0);
       const onde=p&&p.provedor==="woovi"?(p.repasse_status==="enviado"?"Pix enviado pro seu CPF ✓":p.repasse_status==="erro"?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"na sua conta Mercado Pago";
       el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ Cliente pagou pelo app · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − ${Math.round(Number(p.comissao)/Number(p.valor)*100)}% do Cadernex)</span>`:""}</div>`
-        :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair…</p>`
-        :euRecebo===false?`<div class="mp-box"><b>Ative seu Pix pra receber pelo app</b><p class="hint" style="margin:0">Quando o cliente paga pelo app, sua parte cai direto no Pix do seu CPF. Sem isso, ele só consegue te pagar em dinheiro na entrega.</p><button class="btn full" type="button" data-go="config">Ativar meu Pix</button></div>`:"";
+        :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair… <b>Só colete depois que aparecer "Cliente pagou".</b></p>`
+        :c.status==="aceita"?`<p class="hint" style="margin:0">⏳ Aguardando o cliente pagar o Pix pelo app. <b>Só colete depois que aparecer "Cliente pagou".</b></p>`
+        :euRecebo===false?`<div class="mp-box"><b>Ative seu Pix pra receber pelo app</b><p class="hint" style="margin:0">O pagamento é só pelo app: sua parte cai direto no Pix do seu CPF. Sem o Pix ativo, você não consegue aceitar corridas.</p><button class="btn full" type="button" data-go="resumo">Ativar meu Pix</button></div>`:"";
       return}
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ Pago pelo app · ${brl(Number(p.total))}</div>`;return}
-    if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">Esse entregador ainda não recebe pelo app. Pague ${brl(Number(c.valor))} em dinheiro na entrega.</p>`;return}
+    if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">O Pix desse entregador ainda não está pronto. Fale com ele pela conversa da corrida, ou cancele e peça de novo.</p>`;return}
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
     el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxa de serviço (Cadernex 10% + Pix)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>

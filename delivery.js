@@ -102,7 +102,8 @@ function admRender(){
     ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora no Pix da loja (o CNPJ ou CPF do seu cadastro).</p>
       <button class="link" type="button" data-dlpixoff style="align-self:flex-start;padding:0">Desligar</button>`
     :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> no Pix da loja (CNPJ ou CPF do seu cadastro). O pedido chega pra você já pago.</p>
-      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega. Pagamento na entrega (pelo WhatsApp) continua sem taxa.</p>
+      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega.</p>
+      <p class="dl-aviso" style="margin:0"><b>Os clientes só conseguem pedir da sua loja depois que você ativar.</b> O pagamento no Cadernex é só por Pix pelo app.</p>
       <button class="btn full" type="button" data-dlpixon>Ativar recebimento pelo app</button>`}
   </div>
   <div class="card stack">
@@ -168,7 +169,7 @@ async function salvaEnd(){
 }
 V.addEventListener("click",e=>{
   if(e.target.closest("[data-dlpixon]")){pixLigar(true);return}
-  if(e.target.closest("[data-dlpixoff]")){if(confirm("Parar de receber pedidos pagos pelo app?"))pixLigar(false);return}
+  if(e.target.closest("[data-dlpixoff]")){if(confirm("Desligar? Os clientes não vão conseguir pedir da sua loja até você ativar de novo."))pixLigar(false);return}
   const ps=e.target.closest("[data-pdst]");if(ps){pedStatus(ps.dataset.pdid,ps.dataset.pdst,ps);return}
   if(e.target.closest("[data-pdmoto]")){window.cxNavUser=Date.now();go("pedir");toast("Coloque a coleta na sua loja e a entrega no endereço do cliente.");return}
   const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
@@ -225,12 +226,12 @@ async function abrirLoja(id){
 const itens=()=>Object.entries(cart.q).filter(([,n])=>n>0).map(([id,n])=>({p:(cardapio||[]).find(x=>x.id===id),n})).filter(x=>x.p);
 const total=()=>itens().reduce((s,x)=>s+x.n*Number(x.p.preco),0);
 function cardRender(){if(!loja)return;
-  const w=$("dl-cli"),l=loja,pode=l.aberta&&!!so(l.whats);
+  const w=$("dl-cli"),l=loja,pode=l.aberta&&!!l.pix;
   const gs=cardapio?grupos(cardapio):[];
   w.innerHTML=`${publico?"":`<button class="link dl-volta" type="button" data-dlvolta>← Todas as lojas</button>`}
   <div class="card stack dl-head">${l.capa_v?`<div class="dl-capa"><img src="${esc(imgLoja(l.id,"capa",l.capa_v))}" alt=""></div>`:""}<div class="row" style="align-items:center;gap:10px">${logoHtml(l.id,l.nome,l.logo_v,"dl-logo dl-logo-h")}<div style="flex:1;min-width:0"><div class="eyebrow">${esc([l.ramo,l.bairro].filter(Boolean).join(" · ")||"Delivery")}</div><h2 style="margin:2px 0 0">${esc(l.nome)}</h2></div><span class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</span></div>
     ${l.horario?`<small class="hint" style="margin:0">Horário: ${esc(l.horario)}</small>`:""}
-    ${!l.aberta?`<p class="dl-aviso">A loja está fechada agora. Você pode olhar o cardápio, e o pedido libera quando ela abrir.</p>`:!so(l.whats)?`<p class="dl-aviso">Essa loja ainda não colocou o WhatsApp pra receber pedidos.</p>`:""}
+    ${!l.aberta?`<p class="dl-aviso">A loja está fechada agora. Você pode olhar o cardápio, e o pedido libera quando ela abrir.</p>`:!l.pix?`<p class="dl-aviso">Essa loja ainda está preparando os pedidos pelo app. Você pode olhar o cardápio, e o pedido libera em breve.</p>`:""}
   </div>
   ${gs.length>1?`<div class="dl-chips">${gs.map(([c],i)=>`<button type="button" class="chip" data-dlir="${i}">${esc(c)}</button>`).join("")}</div>`:""}
   ${cardapio==null?`<p class="hint">Carregando o cardápio…</p>`:!cardapio.length?`<p class="hint">Essa loja ainda não colocou produtos.</p>`:gs.map(([c,ps],i)=>`<div class="dl-sec" id="dl-sec-${i}"><div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>{const n=cart.q[p.id]||0;return`
@@ -316,21 +317,19 @@ function ckRender(){
     ${loja.pix?`<div class="row" id="dl-sv-r"><span>Taxa de serviço (10%)</span><b class="num">${brl(servicoDe())}</b></div>`:""}
     <div class="row dl-tot" id="dl-tot-r" hidden><b>Total estimado</b><b class="num" id="dl-tot"></b></div>
     <p class="hint" style="margin:0;font-size:12px" id="dl-fr-h">${loja.lat!=null?"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.":"A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação."}</p>
-    ${uid&&String(perfil.nome||"").trim()?"":`<label>Seu nome<input id="dl-nome-c" maxlength="40" autocomplete="name" placeholder="Como a loja te chama"></label>`}
     <label>Endereço de entrega<input id="dl-end" maxlength="140" placeholder="Rua, número, quadra, lote, referência" value="${esc(perfil.end_padrao||"")}"></label>
     <label>Bairro<input id="dl-bairro" maxlength="40"></label>
-    <label>Pagamento<select id="dl-pag">${loja.pix?`<option value="app">Pix pelo app (paga agora)</option>`:""}<option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
-    <label id="dl-troco-w" hidden>Troco pra quanto?<input id="dl-troco" inputmode="decimal" placeholder="opcional"></label>
+    <input type="hidden" id="dl-pag" value="app"><p class="hint dl-so-pix" style="margin:0">💳 Pagamento: <b>Pix pelo app</b>, na hora. O dinheiro vai direto pra loja.</p>
     <label>Observação<input id="dl-obs" maxlength="140" placeholder="opcional: sem cebola, ponto da carne…"></label>
     <button class="btn full" type="button" data-dlenviar id="dl-env-b">${IC.zap}Enviar pedido no WhatsApp da loja</button>
     <p class="hint" style="margin:0;font-size:12px" id="dl-env-h">A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.</p>
     <div id="dl-pix"></div></div>`;
-  const modo=()=>{const app=$("dl-pag").value==="app";$("dl-troco-w").hidden=$("dl-pag").value!=="Dinheiro";
+  const modo=()=>{const app=true;
     if($("dl-sv-r"))$("dl-sv-r").hidden=!app;
     if($("dl-fr-h")&&loja.lat!=null)$("dl-fr-h").textContent=app?"A entrega já vai junto no Pix e fica com a loja, que chama o motoboy.":"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.";
     $("dl-env-b").innerHTML=app?"Pagar com Pix":`${IC.zap}Enviar pedido no WhatsApp da loja`;
     $("dl-env-h").textContent=app?"Você paga agora pelo app. O dinheiro vai direto pra loja, que já recebe o pedido pago.":"A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.";totAtual()};
-  $("dl-pag").onchange=modo;modo();
+  modo();
   frete=null;let t=null;const calc=()=>{clearTimeout(t);t=setTimeout(calcFrete,700)};
   $("dl-end").addEventListener("input",calc);$("dl-bairro").addEventListener("input",calc);
   if(String(perfil.end_padrao||"").length>=5)calc();
@@ -338,7 +337,7 @@ function ckRender(){
 }
 let frete=null,freteN=0;
 const servicoDe=()=>Math.round(total()*10)/100;
-function totAtual(){const r=$("dl-tot-r");if(!r)return;const app=$("dl-pag")&&$("dl-pag").value==="app";
+function totAtual(){const r=$("dl-tot-r");if(!r)return;const app=true;
   if(!frete&&!app){r.hidden=true;return}
   $("dl-tot").textContent=brl(total()+(frete?frete.v:0)+(app?servicoDe():0));r.hidden=false}
 async function calcFrete(){
@@ -356,18 +355,11 @@ async function calcFrete(){
   $("dl-fr").textContent=`${brl(frete.v)} · ${String(k).replace(".",",")} km`;totAtual();
 }
 function enviar(){
-  const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),pag=$("dl-pag").value,troco=$("dl-troco").value.trim(),obs=$("dl-obs").value.trim();
+  const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),obs=$("dl-obs").value.trim();
   if(end.length<5){toast("Coloque o endereço de entrega");$("dl-end").focus();return}
   if(bairro.length<2){toast("Coloque o bairro");$("dl-bairro").focus();return}
-  if(pag==="app")return pagarApp(end,bairro,obs);
-  const nc=$("dl-nome-c"),nome=(nc?nc.value.trim():String(perfil.nome||"").trim().split(" ")[0]);
-  if(nc&&nome.length<2){toast("Coloque seu nome");nc.focus();return}
-  const its=itens();
-  const t=[`*Pedido pelo Cadernex* 🛵`,`${loja.nome}`,``,...its.map(x=>`${x.n}x ${x.p.nome} — ${brl(x.n*Number(x.p.preco))}`),``,`*Produtos: ${brl(total())}*`,...(frete?[`Entrega estimada pelo Cadernex: ${brl(frete.v)} (${String(frete.km).replace(".",",")} km)`,`*Total estimado: ${brl(total()+frete.v)}*`]:[`(falta somar a entrega)`]),``,
-    `*Entregar em:* ${end} — ${bairro}`,`*Pagamento:* ${pag}${pag==="Dinheiro"&&troco?` (troco pra R$ ${troco})`:""}`,obs?`*Obs.:* ${obs}`:"",nome?`*Cliente:* ${nome}`:""].filter((x,i,a)=>x!==""||a[i-1]!=="").join("\n");
-  if(uid&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
-  open(`https://wa.me/55${so(loja.whats)}?text=${encodeURIComponent(t)}`,"_blank","noopener");
-  cart={loja:loja.id,q:{}};salvaCart();setTimeout(()=>{cardRender();toast("Pedido enviado no WhatsApp ✓ Aguarde a loja confirmar.")},600);
+  if(!loja.pix){toast("Essa loja ainda não recebe pedidos pelo app");return}
+  return pagarApp(end,bairro,obs);
 }
 document.addEventListener("click",e=>{
   if(!e.target.closest("#dl-cli"))return;
@@ -421,7 +413,7 @@ function meusPedHtml(){if(!meusPed.length)return"";const nome=id=>((lojas||[]).f
 async function pixLigar(on){
   if(on){const r=await sb.from("dados_pessoais").select("cpf,cnpj").eq("user_id",uid).maybeSingle();
     if(!r.data||!(r.data.cnpj||r.data.cpf)){toast("Complete seu cadastro com CPF ou CNPJ primeiro");if(typeof abrirDados==="function")abrirDados();return}}
-  safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Sua loja recebe pelo app ✓":"Recebimento pelo app desligado");
+  safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Sua loja recebe pelo app ✓":"Desligado: os clientes não conseguem pedir até você ativar de novo");
 }
 let pedLoja=[],pedLojaCanal=null;
 async function pedLojaLoad(){if(!sb||!uid||!ehLoja())return;

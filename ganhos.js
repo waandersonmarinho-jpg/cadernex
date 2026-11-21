@@ -44,7 +44,7 @@ function pixRender(semColuna){
 document.addEventListener("click",e=>{
   const on=e.target.closest("#gn-pix-on"),off=e.target.closest("#gn-pix-off");if(!on&&!off)return;
   const v=!!on;
-  safe(async()=>{const{error}=await sb.from("dados_pessoais").update({saque_pix:v}).eq("user_id",uid);if(error)throw error;pix.saque_pix=v;pixRender()},v?"Pronto! O saque vai para o Pix do seu CPF ✓":"Pix de saque removido");
+  safe(async()=>{const{error}=await sb.from("dados_pessoais").update({saque_pix:v,pix_ativo:v}).eq("user_id",uid);if(error)throw error;pix.saque_pix=v;pixRender()},v?"Pronto! O saque vai para o Pix do seu CPF ✓":"Pix de saque removido");
 });
 window.ganhosLoad=carregar;
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="resumo"||v==="corridas")carregar()}}

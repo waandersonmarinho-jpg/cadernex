@@ -146,7 +146,7 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   // antes de alguém aceitar: o cliente já sabe como vai pagar
   if(papel==="cli"&&c.status==="aberta"){const min=Math.floor((Date.now()-new Date(c.created_at))/60000);
     if(min>=10&&!(c.agendado_para&&new Date(c.agendado_para)-Date.now()>36e5))h+=`<div class="mp-box parado"><b>⏳ Procurando entregador há ${min} min</b><p class="hint" style="margin:0">Os entregadores já foram avisados de novo. Pedido parado costuma ser valor baixo para a distância. Você pode aumentar o valor ou continuar esperando.</p><div class="parado-ac"><button class="btn ghost" type="button" data-mais="${c.id}" data-v="2">+ R$ 2</button><button class="btn ghost" type="button" data-mais="${c.id}" data-v="5">+ R$ 5</button></div></div>`}
-  if(papel==="cli"&&c.status==="aberta")h+=`<div class="mp-box pg-info"><b>💳 Como pagar</b><p class="hint" style="margin:0">Você só paga depois que um entregador aceitar: <b>pelo app no Pix</b> (${brl(Number(c.valor))} + taxa de serviço) ou <b>em dinheiro</b> na entrega (${brl(Number(c.valor))}). Aparece aqui qual dá pra usar.</p></div>`;
+  if(papel==="cli"&&c.status==="aberta")h+=`<div class="mp-box pg-info"><b>💳 Como pagar</b><p class="hint" style="margin:0">Quando um entregador aceitar, você paga <b>pelo app no Pix</b> (${brl(Number(c.valor))} + 10% de taxa de serviço). O entregador só coleta depois do pagamento.</p></div>`;
   if(c.entregador_id&&(ativo||(c.status==="entregue"&&Date.now()-new Date(c.entregue_em||c.created_at)<3*864e5)))h+=`<div class="mpbox" data-mp="${c.id}" data-papel="${papel}"></div><div class="pixbox" data-pix="${c.id}" data-papel="${papel}"></div>`;
   // ações
   let ac="",mais="";
@@ -237,7 +237,7 @@ function onCorrClick(e){
       (async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});
         if(error){x.disabled=false;toast(/P0001|Espere|Primeiro|Você já/.test(error.message||"")?error.message.replace(/^.*?: /,""):"Não salvou. Confira a internet e tente de novo.");return}
         toast({ausente:"Quem pediu foi avisado. Espere até 10 minutos.",retornar:"Pode voltar. Quem pediu foi avisado.",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);await corrLoad()})();return}
-    safe(async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});if(error)throw error;await corrLoad()},{coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolver:"Corrida devolvida",cancelar:"Pedido cancelado",ausente:"Quem pediu foi avisado. Espere até 10 minutos.",retornar:"Pode voltar. Quem pediu foi avisado.",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);return}
+    safe(async()=>{const{error}=await sb.rpc("mudar_corrida",{cid:x.dataset.id,acao});if(error){if(/pagou/.test(error.message||""))error.cxMsg=error.message.replace(/^.*?: /,"");throw error}await corrLoad()},{coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolver:"Corrida devolvida",cancelar:"Pedido cancelado",ausente:"Quem pediu foi avisado. Espere até 10 minutos.",retornar:"Pode voltar. Quem pediu foi avisado.",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);return}
   const n=e.target.closest("[data-nota]");if(n){safe(async()=>{const{error}=await sb.rpc("avaliar_corrida",{cid:n.dataset.id,n:+n.dataset.nota});if(error)throw error;await corrLoad()},"Obrigado pela avaliação!");return}
   const rf=e.target.closest("[data-relform]");if(rf){relForm=rf.dataset.relform;corrRender();return}
   if(e.target.closest("[data-relcancel]")){relForm=null;corrRender();return}
@@ -259,7 +259,7 @@ function onCorrSubmit(e){
 // ficar disponível
 chips($("dp-vei"),Object.values(VEIC).map(v=>v.n),"Bike");
 $("fDisp").onsubmit=e=>{e.preventDefault();const o={veiculo:veiCod(picked($("dp-vei"))),regiao:$("dp-reg").value.trim()||null};
-  safe(async()=>{if((FRETE_VEIC.includes(o.veiculo)||o.veiculo==="moto")&&typeof salvarPlaca==="function")await salvarPlaca(o.veiculo,"dp");const{error}=await sb.from("disponiveis").upsert(o);if(error)throw error;try{localStorage.setItem("cadernex_disp",JSON.stringify(o))}catch(e){}await corrLoad()},"Você está disponível")};
+  safe(async()=>{const pr=await sb.rpc("woovi_recebe",{uid});if(!pr.error&&pr.data===false){const g=$("gn-pix");if(g)g.scrollIntoView({behavior:"smooth",block:"center"});throw Object.assign(new Error("sem pix"),{cxMsg:"Ative o Pix de saque (seu CPF), aqui em cima, pra ficar disponível. O pagamento das corridas é só pelo app."})}if((FRETE_VEIC.includes(o.veiculo)||o.veiculo==="moto")&&typeof salvarPlaca==="function")await salvarPlaca(o.veiculo,"dp");const{error}=await sb.from("disponiveis").upsert(o);if(error)throw error;try{localStorage.setItem("cadernex_disp",JSON.stringify(o))}catch(e){}await corrLoad()},"Você está disponível")};
 $("co-off").onclick=()=>safe(async()=>{const{error}=await sb.from("disponiveis").delete().eq("user_id",uid);if(error)throw error;await corrLoad()},"Você saiu do modo disponível");
 try{const s=JSON.parse(localStorage.getItem("cadernex_disp"));if(s){$("dp-reg").value=s.regiao||"";$("dp-vei").querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",veiCod(c.textContent)===s.veiculo))}}catch(e){}
 
@@ -363,7 +363,7 @@ window.aceitarCorrida=async function(id){
     const{error}=await sb.rpc("aceitar_corrida",{cid:id});
     if(error){const m=String(error.message||"");
       if(/já foi pega|cancelada/i.test(m)){toast("Outro entregador aceitou primeiro. Fica pra próxima! 🏍️");if(typeof alertaSumir==="function")alertaSumir(id,true);await corrLoad();return false}
-      if(/Termine|veículo|bloqueada|cadastro|entregador/i.test(m)){toast(m);return false}
+      if(/Termine|veículo|bloqueada|cadastro|entregador|Pix/i.test(m)){toast(m.replace(/^.*?: /,""));if(/Pix/.test(m)&&typeof go==="function")go("resumo");return false}
       throw error}
     corrAberta=id;if(typeof go==="function")go("corridas");await corrLoad();toast("Corrida aceita! Veja o endereço de coleta.");return true;
   }catch(e){console.error(e);toast("Não deu para aceitar. Confira a internet e tente de novo.");return false}
@@ -384,7 +384,7 @@ async function codEnviar(f){
   let{data,error}=await sb.rpc("mudar_corrida",{cid,acao,codigo});
   if(error&&(error.code==="PGRST202"||/codigo/.test(error.message||"")))({data,error}=await sb.rpc("mudar_corrida",{cid,acao})); // banco ainda sem códigos
   b.disabled=false;
-  if(error){toast(/Muitos|Espere|Você já|não é possível/.test(error.message||"")?error.message:"Não salvou. Confira a internet e tente de novo.");return}
+  if(error){toast(/Muitos|Espere|Você já|não é possível|pagou/.test(error.message||"")?error.message.replace(/^.*?: /,""):"Não salvou. Confira a internet e tente de novo.");return}
   if(!data||!data.id){inp.value="";inp.focus();toast("Código errado. Confira o código com a pessoa. Depois de 5 erros, trava por 10 minutos.");return}
   toast({coletada:"Encomenda coletada",entregue:"Entrega concluída!",devolvida:"Encomenda devolvida. Corrida encerrada."}[acao]);await corrLoad();
 }

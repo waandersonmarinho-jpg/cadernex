@@ -67,11 +67,11 @@ Deno.serve(async (req) => {
       return json({ url: pg.link, brcode: pg.brcode, qrcode: pg.qrcode, total: Number(pg.total), expira_em: pg.expira_em });
     }
 
-    const { data: d } = await admin.from("dados_pessoais").select("cpf,pix_ativo,nome_completo")
+    const { data: d } = await admin.from("dados_pessoais").select("cpf,pix_ativo,saque_pix,nome_completo")
       .eq("user_id", c.entregador_id).maybeSingle();
     const cpf = String(d?.cpf || "").replace(/\D/g, "");
-    if (!d?.pix_ativo || cpf.length !== 11) {
-      return json({ erro: "Esse entregador ainda não ativou o Pix no app. Pague em dinheiro na entrega." }, 400);
+    if (!(d?.pix_ativo || d?.saque_pix) || cpf.length !== 11) {
+      return json({ erro: "O Pix desse entregador ainda não está pronto. Fale com ele pela conversa da corrida." }, 400);
     }
     if (!(await subconta(admin, c.entregador_id, cpf, d.nome_completo || "Entregador Cadernex"))) {
       return json({ erro: "Não deu pra preparar o Pix do entregador agora. Tente de novo em instantes." }, 502);
