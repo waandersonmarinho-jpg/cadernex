@@ -36,7 +36,11 @@ function pinta(){
       ${p.docs_veiculo?`<div class="s">${esc(p.docs_veiculo)}</div>`:""}
       <div class="s">${ehMoto(p)?`${p.entregas} entrega${p.entregas==1?"":"s"}`:`${p.pedidos} pedido${p.pedidos==1?"":"s"}`} · Último acesso ${data(p.ultimo_acesso)}</div>
       ${tags.trim()?`<div class="cad-tags">${tags}</div>`:""}
-      <div class="cad-ac">${w?`<a href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp ${esc(fone(w))}</a>`:'<span class="s">Sem WhatsApp</span>'}<span class="s">${esc(p.email)}</span></div></div>`}).join("")
+      <div class="cad-ac">${w?`<a href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp ${esc(fone(w))}</a>`:'<span class="s">Sem WhatsApp</span>'}<span class="s">${esc(p.email)}</span></div>
+      ${p.user_id!==uid?`<div class="cad-ex"><button class="link cad-ex-b" type="button" data-cadex="${p.user_id}">Excluir conta</button>
+        <div class="cad-ex-f" hidden><p class="s" style="margin:0"><b>Isso apaga a conta e todos os dados de ${esc(p.loja&&p.loja_nome?p.loja_nome:p.nome||"(sem nome)")} para sempre.</b> Se for por fraude ou mau uso, prefira <b>bloquear</b>: excluída, a pessoa pode criar outra conta com o mesmo CPF.</p>
+        <input type="password" autocomplete="current-password" placeholder="Sua senha de moderador" data-cadexs>
+        <div class="row" style="gap:8px"><button class="btn ghost" type="button" data-cadexno>Cancelar</button><button class="btn ex-btn" type="button" data-cadexok="${p.user_id}" disabled>Excluir para sempre</button></div></div></div>`:""}</div>`}).join("")
     :`<p class="empty">${lista.length?"Ninguém com essa busca.":"Ainda ninguém cadastrado."}</p>`;
   el("cad-mais").hidden=f.length<=mostrar;
   el("cad-mais").textContent=`Ver mais (${f.length-mostrar})`;
@@ -64,9 +68,23 @@ document.addEventListener("click",e=>{
   const c=e.target.closest("[data-cf]");if(c&&c.closest("#cad-chips")){filtro=c.dataset.cf;mostrar=PAG;pinta();return}
   if(e.target.closest("#cad-mais")){mostrar+=PAG;pinta();return}
   if(e.target.closest("#cad-csv")){if(!lista.length){toast("Ainda não tem cadastro pra baixar");return}planilha();return}
-  if(e.target.closest("#cad-atual")){carregar().then(()=>toast("Lista atualizada"))}
+  if(e.target.closest("#cad-atual")){carregar().then(()=>toast("Lista atualizada"));return}
+  const xb=e.target.closest("[data-cadex]");if(xb){const f=xb.parentElement.querySelector(".cad-ex-f");f.hidden=!f.hidden;if(!f.hidden)f.querySelector("[data-cadexs]").focus();return}
+  if(e.target.closest("[data-cadexno]")){const f=e.target.closest(".cad-ex-f");f.hidden=true;f.querySelector("[data-cadexs]").value="";return}
+  const ok=e.target.closest("[data-cadexok]");if(ok){excluir(ok)}
 });
-document.addEventListener("input",e=>{if(e.target.id==="cad-busca"){busca=e.target.value;mostrar=PAG;pinta()}});
+document.addEventListener("input",e=>{if(e.target.id==="cad-busca"){busca=e.target.value;mostrar=PAG;pinta();return}
+  if(e.target.matches("[data-cadexs]")){const b=e.target.closest(".cad-ex-f").querySelector("[data-cadexok]");b.disabled=e.target.value.length<6}});
+async function excluir(b){
+  const f=b.closest(".cad-ex-f"),inp=f.querySelector("[data-cadexs]"),id=b.dataset.cadexok,p=lista.find(x=>x.user_id===id);
+  if(!p||inp.value.length<6)return;
+  if(!confirm(`Excluir a conta de ${p.loja&&p.loja_nome?p.loja_nome:p.nome||"(sem nome)"} para sempre?`))return;
+  b.disabled=true;const t=b.textContent;b.textContent="Excluindo…";
+  const{data,error}=await sb.functions.invoke("excluir-conta",{body:{senha:inp.value,alvo:id}});
+  if(error||!data||!data.ok){b.disabled=false;b.textContent=t;let m="";if(data&&data.erro)m=data.erro;else{try{const j=await error.context.json();m=j&&j.erro}catch(x){}}
+    toast(m||"Não deu pra excluir agora. Tente de novo.");if(/Senha/.test(m||"")){inp.value="";inp.focus()}return}
+  lista=lista.filter(x=>x.user_id!==id);pinta();toast("Conta excluída");
+}
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="mais")carregar()}}
 const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();carregar()};
 if(uid)setTimeout(carregar,0);
