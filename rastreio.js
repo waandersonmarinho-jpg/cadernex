@@ -158,7 +158,7 @@ function dispLigar(){
   },e=>{if(e.code===1){dNegado=true;dispDesligar();pintarDisp()}},{enableHighAccuracy:true,maximumAge:10000,timeout:30000});
 }
 let dAuto=false;
-function dispDesligar(){if(dWatch!=null)navigator.geolocation.clearWatch(dWatch);dWatch=null;dEu=null;dEnviado=null;dCentrou=false}
+function dispDesligar(){const w=$("co-dmap-w");if(w&&w.classList.contains("cheio")){w.classList.remove("cheio");document.body.style.overflow="";const b=w.querySelector(".rfull");if(b)b.textContent="⤢ Tela cheia"}if(dWatch!=null)navigator.geolocation.clearWatch(dWatch);dWatch=null;dEu=null;dEnviado=null;dCentrou=false}
 function pintarDisp(){
   if(typeof meuDisp!=="function")return;
   // entregador: ele mesmo no mapa, ponto exato (só no celular dele)
@@ -170,7 +170,11 @@ function pintarDisp(){
     else if(!window.L){leaflet().then(pintarDisp).catch(()=>{tx.textContent="Não deu pra carregar o mapa. Verifique a internet."});}
     else{el.hidden=false;const ll=[dEu.lat,dEu.lng],ic=icV(md.veiculo);
       if(!el.offsetWidth)return; // tela não visível ainda
-      if(!dMapEnt){dMapEnt=novoMapa(el,ll,16);dSeg=seguidor(el,()=>{if(dEu&&dMapEnt)dMapEnt.setView([dEu.lat,dEu.lng],Math.max(dMapEnt.getZoom(),15))},"◎ Centralizar em mim");dSeg.el=el}else dMapEnt.invalidateSize();
+      if(!dMapEnt){dMapEnt=novoMapa(el,ll,16);dSeg=seguidor(el,()=>{if(dEu&&dMapEnt)dMapEnt.setView([dEu.lat,dEu.lng],Math.max(dMapEnt.getZoom(),15))},"◎ Centralizar em mim");dSeg.el=el;
+        const fb=document.createElement("button");fb.type="button";fb.className="rfull";fb.textContent="⤢ Tela cheia";el.appendChild(fb);
+        if(L.DomEvent){L.DomEvent.disableClickPropagation(fb);L.DomEvent.disableScrollPropagation(fb)}
+        fb.addEventListener("click",()=>{const on=w.classList.toggle("cheio");fb.textContent=on?"✕ Fechar":"⤢ Tela cheia";document.body.style.overflow=on?"hidden":"";
+          setTimeout(()=>{dMapEnt.invalidateSize();if(dEu&&(!dSeg||dSeg.livre()))dMapEnt.setView([dEu.lat,dEu.lng],dMapEnt.getZoom())},60)})}else dMapEnt.invalidateSize();
       if(dMarkEnt&&dMarkVei!==ic){dMarkEnt.remove();dMarkEnt=null}
       if(!dMarkEnt){dMarkEnt=L.marker(ll,{icon:pino(ic,"mot on"),title:"Você"}).addTo(dMapEnt);dMarkVei=ic}else dMarkEnt.setLatLng(ll);
       if(!dSeg||dSeg.livre()){dAuto=true;dMapEnt.setView(ll,dCentrou?dMapEnt.getZoom():16);dAuto=false;dCentrou=true}
