@@ -26,15 +26,30 @@ const IC={
 /* ---------- link da loja: guarda e abre depois de entrar ---------- */
 try{const q=new URLSearchParams(location.search).get("loja");if(q&&UUID.test(q)){localStorage.setItem(LINK_KEY,q.toLowerCase());history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
 const linkPend=()=>{try{const v=localStorage.getItem(LINK_KEY);return v&&UUID.test(v)?v:null}catch(e){return null}};
-async function leadDoLink(){ // tela de entrar: mostra o nome da loja do link
-  const id=linkPend();if(!id||uid)return;
-  for(let i=0;i<20&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb||uid)return;
-  const r=await sb.rpc("loja_do_link",{lid:id});const l=!r.error&&r.data&&r.data[0];
-  const el=document.querySelector("#s-auth .lead");if(!el)return;
-  el.textContent=l?`Entre ou crie sua conta grátis pra ver o cardápio de ${l.nome}${l.bairro?" ("+l.bairro+")":""} e fazer seu pedido.`:"Entre ou crie sua conta pra ver o cardápio da loja.";
-  if(window.auAba)auAba("entrar");
+// quem abre o link sem estar logado vê o cardápio direto (vitrine pública), sem criar conta
+let publico=false,cliCasa=null;
+function vitrineAbrir(id){
+  const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv||!cli)return;
+  if(!cliCasa)cliCasa={pai:cli.parentNode,depois:cli.nextSibling};
+  $("vt-slot").appendChild(cli);publico=true;
+  ["s-setup","s-auth","s-dados","s-app"].forEach(k=>{const x=$(k);if(x)x.hidden=true});sv.hidden=false;
+  abrirLoja(id);
 }
-leadDoLink();
+function vitrineFechar(){
+  const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv)return;sv.hidden=true;
+  if(publico&&cliCasa&&cli){cliCasa.pai.insertBefore(cli,cliCasa.depois);publico=false;loja=null}
+}
+async function vitrineCheca(){
+  const id=linkPend();if(!id)return;
+  for(let i=0;i<60;i++){ // espera o app decidir: logado (abre na aba Delivery) ou não (vitrine pública)
+    if(uid)return;
+    if(sb&&$("s-auth")&&!$("s-auth").hidden){vitrineAbrir(id);return}
+    await new Promise(r=>setTimeout(r,150));
+  }
+}
+vitrineCheca();
+if(typeof show==="function"){const sh=show;show=function(w){if(publico&&w==="auth")return;sh(w)}}
+document.addEventListener("click",e=>{if(!e.target.closest("#vt-entrar"))return;vitrineFechar();show("auth");if(window.auAba)auAba("entrar")});
 
 /* ---------- foto: reduz pra no máximo 900 px ---------- */
 async function comprimir(file){
@@ -168,18 +183,20 @@ function cliRender(){
     :`<p class="hint" style="margin:0">Ainda não tem lojas com delivery. Tem uma loja? Cadastre em Perfil → Informações da loja.</p>`}</div>`;
 }
 async function abrirLoja(id){
-  if(!lojas)await lojasLoad();let l=(lojas||[]).find(x=>x.id===id);
-  if(!l){toast("Essa loja não está disponível agora");return}
+  for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return;
+  const v=await sb.rpc("loja_vitrine",{lid:id});let l=!v.error&&v.data&&v.data[0];
+  if(!l&&uid){if(!lojas)await lojasLoad();l=(lojas||[]).find(x=>x.id===id)}
+  if(!l){if(publico)$("dl-cli").innerHTML=`<div class="card"><p class="hint" style="margin:0">Essa loja não está disponível agora.</p></div>`;else toast("Essa loja não está disponível agora");return}
   loja=l;cardapio=null;if(cart.loja!==id)cart={loja:id,q:{}};cardRender();
-  const r=await sb.from("produtos").select("id,nome,preco,descricao,categoria,foto_v").eq("loja_id",id).eq("ativo",true).order("criado_em");
+  const r=await sb.rpc("cardapio_publico",{lid:id});
   cardapio=r.error?[]:r.data;Object.keys(cart.q).forEach(k=>{if(!cardapio.some(p=>p.id===k))delete cart.q[k]});cardRender();scrollTo(0,0);
 }
 const itens=()=>Object.entries(cart.q).filter(([,n])=>n>0).map(([id,n])=>({p:(cardapio||[]).find(x=>x.id===id),n})).filter(x=>x.p);
 const total=()=>itens().reduce((s,x)=>s+x.n*Number(x.p.preco),0);
-function cardRender(){
+function cardRender(){if(!loja)return;
   const w=$("dl-cli"),l=loja,pode=l.aberta&&!!so(l.whats);
   const gs=cardapio?grupos(cardapio):[];
-  w.innerHTML=`<button class="link dl-volta" type="button" data-dlvolta>← Todas as lojas</button>
+  w.innerHTML=`${publico?"":`<button class="link dl-volta" type="button" data-dlvolta>← Todas as lojas</button>`}
   <div class="card stack dl-head">${l.capa_v?`<div class="dl-capa"><img src="${esc(imgLoja(l.id,"capa",l.capa_v))}" alt=""></div>`:""}<div class="row" style="align-items:center;gap:10px">${logoHtml(l.id,l.nome,l.logo_v,"dl-logo dl-logo-h")}<div style="flex:1;min-width:0"><div class="eyebrow">${esc([l.ramo,l.bairro].filter(Boolean).join(" · ")||"Delivery")}</div><h2 style="margin:2px 0 0">${esc(l.nome)}</h2></div><span class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</span></div>
     ${l.horario?`<small class="hint" style="margin:0">Horário: ${esc(l.horario)}</small>`:""}
     ${!l.aberta?`<p class="dl-aviso">A loja está fechada agora. Você pode olhar o cardápio, e o pedido libera quando ela abrir.</p>`:!so(l.whats)?`<p class="dl-aviso">Essa loja ainda não colocou o WhatsApp pra receber pedidos.</p>`:""}
@@ -201,6 +218,7 @@ function ckRender(){
     <div class="row" id="dl-fr-r"><span>Entrega</span><b class="num" id="dl-fr">${loja.lat!=null?"coloque o endereço":"a loja informa"}</b></div>
     <div class="row dl-tot" id="dl-tot-r" hidden><b>Total estimado</b><b class="num" id="dl-tot"></b></div>
     <p class="hint" style="margin:0;font-size:12px" id="dl-fr-h">${loja.lat!=null?"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.":"A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação."}</p>
+    ${uid&&String(perfil.nome||"").trim()?"":`<label>Seu nome<input id="dl-nome-c" maxlength="40" autocomplete="name" placeholder="Como a loja te chama"></label>`}
     <label>Endereço de entrega<input id="dl-end" maxlength="140" placeholder="Rua, número, quadra, lote, referência" value="${esc(perfil.end_padrao||"")}"></label>
     <label>Bairro<input id="dl-bairro" maxlength="40"></label>
     <label>Pagamento<select id="dl-pag"><option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
@@ -233,14 +251,17 @@ function enviar(){
   const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),pag=$("dl-pag").value,troco=$("dl-troco").value.trim(),obs=$("dl-obs").value.trim();
   if(end.length<5){toast("Coloque o endereço de entrega");$("dl-end").focus();return}
   if(bairro.length<2){toast("Coloque o bairro");$("dl-bairro").focus();return}
-  const its=itens(),nome=String(perfil.nome||"").trim().split(" ")[0];
+  const nc=$("dl-nome-c"),nome=(nc?nc.value.trim():String(perfil.nome||"").trim().split(" ")[0]);
+  if(nc&&nome.length<2){toast("Coloque seu nome");nc.focus();return}
+  const its=itens();
   const t=[`*Pedido pelo Cadernex* 🛵`,`${loja.nome}`,``,...its.map(x=>`${x.n}x ${x.p.nome} — ${brl(x.n*Number(x.p.preco))}`),``,`*Produtos: ${brl(total())}*`,...(frete?[`Entrega estimada pelo Cadernex: ${brl(frete.v)} (${String(frete.km).replace(".",",")} km)`,`*Total estimado: ${brl(total()+frete.v)}*`]:[`(falta somar a entrega)`]),``,
     `*Entregar em:* ${end} — ${bairro}`,`*Pagamento:* ${pag}${pag==="Dinheiro"&&troco?` (troco pra R$ ${troco})`:""}`,obs?`*Obs.:* ${obs}`:"",nome?`*Cliente:* ${nome}`:""].filter((x,i,a)=>x!==""||a[i-1]!=="").join("\n");
-  if(!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
+  if(uid&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
   open(`https://wa.me/55${so(loja.whats)}?text=${encodeURIComponent(t)}`,"_blank","noopener");
   cart={loja:loja.id,q:{}};salvaCart();setTimeout(()=>{cardRender();toast("Pedido enviado no WhatsApp ✓ Aguarde a loja confirmar.")},600);
 }
-V.addEventListener("click",e=>{
+document.addEventListener("click",e=>{
+  if(!e.target.closest("#dl-cli"))return;
   const lj=e.target.closest("[data-dlloja]");if(lj){abrirLoja(lj.dataset.dlloja);return}
   if(e.target.closest("[data-dlvolta]")){loja=null;cliRender();scrollTo(0,0);return}
   const ir=e.target.closest("[data-dlir]");if(ir){$("dl-sec-"+ir.dataset.dlir)?.scrollIntoView({behavior:"smooth",block:"start"});return}
@@ -252,10 +273,11 @@ V.addEventListener("click",e=>{
 
 /* ---------- ligações com o resto do app ---------- */
 function abrirDoLink(){const id=linkPend();if(!id||!uid)return;try{localStorage.removeItem(LINK_KEY)}catch(e){}
+  window.cxNavUser=Date.now(); // não deixa o app puxar de volta pro início
   if(id===uid){go("lojas");return}go("lojas");abrirLoja(id)}
 function entrar(){admRender();if(!loja)lojasLoad();if(ehLoja()&&!meus.length)meusLoad()}
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="lojas")entrar()}}
-const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();meusLoad();abrirDoLink()};
+const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();vitrineFechar();meusLoad();abrirDoLink()};
 if(uid)setTimeout(()=>{meusLoad();abrirDoLink()},0);
 window.cxDelivery={abrir:abrirLoja};
 })();

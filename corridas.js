@@ -327,7 +327,7 @@ if($("pc-virar"))$("pc-virar").onclick=()=>{const b=$("pc-virar");if(b.dataset.o
 let papelAplicado=null;
 function aplicaPapel(forcar){const cli=perfil.tipo==="cliente";document.body.classList.toggle("cli",cli);
   $("ola").textContent=perfil.nome?"Oi, "+perfil.nome.split(" ")[0]:(cli?"Envios e entregas":"Envios e entregas");
-  if(forcar||papelAplicado!==perfil.tipo){const primeira=papelAplicado===null;papelAplicado=perfil.tipo;
+  if(forcar||papelAplicado!==perfil.tipo){const primeira=!papelAplicado;papelAplicado=perfil.tipo;
     // na abertura do app: se a pessoa já trocou de tela, não puxa ela de volta pro início (só se a tela não for do papel dela)
     const vis=(document.querySelector(".view:not([hidden])")||{}).id||"",tab=vis&&document.querySelector(`.tab[data-v="${vis.slice(2)}"]`);
     const serve=!tab||!tab.classList.contains(cli?"so-ent":"so-cli");

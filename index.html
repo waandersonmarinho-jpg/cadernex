@@ -544,6 +544,13 @@ label.check{min-height:40px;align-items:center}
 .dl-qt button[data-dlmenos]{background:var(--line);color:var(--fg)}
 .dl-bar{position:sticky;bottom:84px;z-index:4;filter:drop-shadow(0 8px 18px rgba(0,0,0,.2))}
 .dl-ckc .row{display:flex;justify-content:space-between;gap:10px}
+.vt-pub{display:flex;flex-direction:column;gap:14px;padding-bottom:30px}
+.vt-pub[hidden]{display:none}
+.vt-top{display:flex;align-items:center;gap:10px}.vt-top img{border-radius:10px}.vt-top div{flex:1;display:flex;flex-direction:column;line-height:1.1}
+.vt-top small{color:var(--muted);font-size:13px}.vt-top b{font-size:16px}
+.vt-top .btn{padding:8px 14px;font-size:14px}
+.vt-pub .dl-bar{bottom:14px}
+.vt-rod{text-align:center;font-size:12px;margin:0}
 .dl-tot b{font-size:17px}.dl-tot b.num{color:var(--accent)}
 .dl-capa-ed{position:relative;height:130px;border-radius:14px;border:2px dashed var(--line);background:var(--bg);overflow:visible;cursor:pointer;margin-bottom:26px;color:var(--muted)}
 .dl-capa-ed>img{width:100%;height:100%;object-fit:cover;border-radius:12px;display:block}
@@ -841,6 +848,12 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <p class="hint">Cada pessoa tem a própria conta. Seus dados ficam só com você.</p>
       <p class="hint" style="text-align:center;margin:0"><button class="link" type="button" data-aba="inicio">← Conhecer o Cadernex</button></p>
     </div>
+  </section>
+
+  <section id="s-vitrine" class="vt-pub" hidden>
+    <div class="vt-top"><div><b>Cardápio da loja</b><small>Peça sem criar conta</small></div><button class="btn ghost" type="button" id="vt-entrar">Já tenho conta</button></div>
+    <div id="vt-slot" class="stack" style="gap:14px"></div>
+    <p class="hint vt-rod">Pedido enviado direto pro WhatsApp da loja. Não precisa criar conta.<br><a href="./">Conheça o Cadernex</a> · Cadernex Labs · CNPJ 70.019.938/0001-39</p>
   </section>
 
   <section id="s-dados" class="auth" data-nosnippet hidden>
