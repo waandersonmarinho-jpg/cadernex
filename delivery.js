@@ -16,8 +16,8 @@ const linkDa=id=>`${SITE}?loja=${id===uid&&perfil.loja_slug?perfil.loja_slug:id}
 const imgLoja=(id,tipo,v)=>v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${id}/${tipo}.jpg?v=${v}`:"";
 const iniciais=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
 const logoHtml=(id,nome,v,cls)=>v?`<img class="${cls}" src="${esc(imgLoja(id,"logo",v))}" alt="" loading="lazy">`:`<span class="${cls} dl-ini">${esc(iniciais(nome))}</span>`;
-// taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 10% do app, arredondada pra 50 centavos
-const freteDe=k=>{const base=typeof justo==="function"?justo(k):Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2);return Math.ceil(base*1.1*2)/2};
+// taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 14% de serviço + R$ 1,99 do app, arredondada pra 50 centavos
+const freteDe=k=>{const base=typeof justo==="function"?justo(k):Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2);return Math.ceil((base*1.14+1.99)*2)/2};
 const IC={
   loja:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>',
   foto:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
@@ -103,7 +103,7 @@ function admRender(){
     ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora no Pix da loja (o CNPJ ou CPF do seu cadastro).</p>
       <button class="link" type="button" data-dlpixoff style="align-self:flex-start;padding:0">Desligar</button>`
     :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> no Pix da loja (CNPJ ou CPF do seu cadastro). O pedido chega pra você já pago.</p>
-      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega.</p>
+      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega. Quando você chama o motoboy do Cadernex, a corrida tem 14% de serviço + R$ 1,99 de taxa do app.</p>
       <p class="dl-aviso" style="margin:0"><b>Os clientes só conseguem pedir da sua loja depois que você ativar.</b> O pagamento no Cadernex é só por Pix pelo app.</p>
       <button class="btn full" type="button" data-dlpixon>Ativar recebimento pelo app</button>`}
   </div>
@@ -172,7 +172,7 @@ V.addEventListener("click",e=>{
   if(e.target.closest("[data-dlpixon]")){pixLigar(true);return}
   if(e.target.closest("[data-dlpixoff]")){if(confirm("Desligar? Os clientes não vão conseguir pedir da sua loja até você ativar de novo."))pixLigar(false);return}
   const ps=e.target.closest("[data-pdst]");if(ps){pedStatus(ps.dataset.pdid,ps.dataset.pdst,ps);return}
-  if(e.target.closest("[data-pdmoto]")){window.cxNavUser=Date.now();go("pedir");toast("Coloque a coleta na sua loja e a entrega no endereço do cliente.");return}
+  const pm=e.target.closest("[data-pdmoto]");if(pm){chamarMoto(pm.dataset.pdmoto,pm);return}
   const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
   if(e.target.closest("[data-dlend]")){salvaEnd();return}
   if(e.target.closest("[data-dlpick]")){$("dl-file").click();return}
@@ -433,10 +433,29 @@ function pedLojaHtml(){
     <small class="hint">Entregar em: ${esc(p.endereco)}${p.bairro?" — "+esc(p.bairro):""}${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>
     <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex + entrega ${brl(Number(p.entrega))} = <b>você recebe ${brl(Number(p.repasse))}</b>${["enviado","manual"].includes(p.repasse_status)?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}</small>
     ${w?`<a class="link" href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp do cliente</a>`:""}
-    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?`<div class="grid2"><button class="btn ghost" type="button" data-pdmoto>Chamar motoboy</button><button class="btn" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega</button></div>`:p.status==="saiu"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="entregue">Marcar entregue</button>`:""}</div>`};
+    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?(p.corrida_id?`<div class="dl-moto">🛵 Motoboy chamado · ${esc(motoSt(p.corrida_id))}<br><small class="hint">Quando ele coletar, o cliente é avisado que saiu pra entrega. Pague a corrida em Pedidos quando ele aceitar.</small></div><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (sem o app)</button>`:`<button class="btn full" type="button" data-pdmoto="${p.id}">🛵 Chamar motoboy do Cadernex</button><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (motoboy próprio)</button>`):p.status==="saiu"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="entregue">Marcar entregue</button>`:""}</div>`};
   return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Pedidos da loja</h2></div>
     ${ativos.length?ativos.map(um).join(""):`<p class="hint" style="margin:0">Nenhum pedido em andamento. Quando um cliente pagar, ele aparece aqui na hora.</p>`}
     ${feitos.length?`<details><summary class="hint">Entregues (${feitos.length})</summary>${feitos.map(um).join("")}</details>`:""}</div>`;
+}
+/* chamar motoboy: a corrida já sai pronta com a coleta na loja e a entrega no endereço do pedido */
+function motoSt(cid){const c=(typeof minhas!=="undefined"&&Array.isArray(minhas)?minhas:[]).find(x=>x.id===cid);
+  return!c?"procurando":c.status==="aberta"?"procurando motoboy":c.status==="aceita"?"a caminho da loja":c.status==="coletada"?"levando até o cliente":c.status==="entregue"?"entregue ✓":c.status==="cancelada"?"cancelada":"procurando"}
+async function chamarMoto(pid,b){
+  const p=pedLoja.find(x=>x.id===pid);if(!p||p.corrida_id)return;
+  if(!String(perfil.loja_end||"").trim()){toast("Coloque o endereço da loja primeiro (em Logo, capa e endereço)");return}
+  const sug=Math.max(8,Number(p.entrega)||0);
+  const v=prompt(`Valor da corrida pro motoboy (mínimo R$ 8). O cliente pagou ${brl(Number(p.entrega)||0)} de entrega.`,sug.toFixed(2).replace(".",","));
+  if(v===null)return;const valor=Math.round(Number(String(v).replace(/\./g,"").replace(",","."))*100)/100;
+  if(!(valor>=8)){toast("O mínimo da corrida é R$ 8");return}
+  const item=("Pedido de "+(p.cliente_nome||"cliente")+": "+(p.itens||[]).map(i=>i.n+"× "+i.nome).join(", ")).slice(0,120);
+  b.disabled=true;b.textContent="Chamando…";
+  safe(async()=>{
+    const{data,error}=await sb.from("corridas").insert({coleta_bairro:perfil.loja_bairro||"Loja",entrega_bairro:p.bairro||"Cliente",item,valor,veiculo:"qualquer",distancia_km:null}).select().single();if(error)throw error;
+    const r=await sb.from("corridas_det").insert({corrida_id:data.id,coleta_end:perfil.loja_end,entrega_end:p.endereco+(p.bairro?" — "+p.bairro:""),contato:so(p.cliente_whats)||perfil.telefone||null,obs:p.obs||null});
+    if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
+    const l=await sb.rpc("pedido_loja_corrida",{pid,cid:data.id});if(l.error)throw l.error;
+    if(typeof corrLoad==="function")await corrLoad();await pedLojaLoad()},"Motoboy chamado! Avisamos quando alguém aceitar.").finally(()=>{b.disabled=false});
 }
 function pedStatus(id,novo,b){b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_status",{pid:id,novo});b.disabled=false;if(r.error)throw Object.assign(r.error,{cxMsg:r.error.message});await pedLojaLoad()},novo==="aceito"?"Pedido aceito ✓":novo==="saiu"?"Cliente avisado: saiu pra entrega":"Pedido entregue ✓")}
 

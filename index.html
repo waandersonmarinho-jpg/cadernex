@@ -561,6 +561,7 @@ html.vitrine .wrap>header{display:none}
 .vt-rod{text-align:center;font-size:12px;margin:0}
 .dl-pixbox{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);text-align:center}
 .dl-pixbox.ok{border-color:var(--good,#2ebd85);background:color-mix(in srgb,var(--good,#2ebd85) 12%,var(--surface))}
+.dl-moto{padding:10px 12px;border-radius:12px;background:rgba(34,197,94,.12);font-weight:600}
 .dl-ped{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .dl-ped .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dl-ped .dl-pill{margin-left:0}
@@ -1440,7 +1441,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
         <button class="link" type="button" id="sd-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card stack" id="pma-card" hidden><button type="button" class="cad-h" id="pma-abre" aria-expanded="false" aria-controls="pma-corpo"><span class="cad-ht"><h2>Promotores</h2><span id="pma-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="stack" id="pma-corpo" hidden><p class="hint" style="margin:0">Os promotores pedem o saque uma vez por semana. Faça o Pix pelo seu banco e toque em “Já fiz o Pix”.</p><div class="stack" id="pma-lista" style="gap:8px"></div><button class="link" type="button" id="pma-atual" style="align-self:center">Atualizar lista</button></div></div>
-      <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxa de serviço (10%) dos pagamentos pelo app, por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
+      <div class="card" id="adm-mp" hidden><h2>Ganhos do Cadernex</h2><p class="hint" style="margin:4px 0 10px">Taxas dos pagamentos pelo app (serviço 14% + R$ 1,99 do app), por mês.</p><div class="stack" id="adm-mp-lista" style="gap:6px"></div></div>
       <div class="card" id="adm-card" hidden><h2>Moderação</h2><p class="hint" style="margin:4px 0 10px">Contas bloqueadas por 3 relatos, esperando sua análise.</p><div class="stack" id="adm-lista"></div></div>
       <button class="card maisbtn inst-box" type="button" data-instalar hidden><b>Baixar o app</b><span>Coloque o Cadernex na tela do celular, como um app</span></button>
       <button class="card maisbtn" type="button" data-go="config"><b>Configurações</b><span>Sua conta, modo claro ou escuro, trocar senha e sair</span></button>
@@ -1600,12 +1601,12 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <div class="card mpi" id="mp-intro" hidden>
         <div class="eyebrow">Cadernex Labs</div>
         <h2 class="mpi-t">Receba <span>92%</span> da sua corrida</h2>
-        <p class="mpi-lead">A taxa de serviço é paga por quem pede. O cliente paga pelo app, o Cadernex fica com 8%, e o resto cai no Pix do seu CPF na hora.</p>
+        <p class="mpi-lead">A taxa de serviço é paga por quem pede. O cliente paga pelo app, o Cadernex fica com 8% (a partir de 01/12; até 30/11, 6%), e o resto cai no Pix do seu CPF na hora.</p>
         <div class="mpi-ex" aria-label="Exemplo de corrida de 15 reais">
           <div><small>Corrida aceita</small><b class="num">R$ 15,00</b></div>
           <div class="mpi-seta">→</div>
           <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 13,80</b></div>
-          <p>O cliente paga R$ 16,67 pelo app (corrida + 10% + taxa do Pix). Dos R$ 15,00, o Cadernex fica com 8% (R$ 1,20). Vale a partir de 01/12/2026.</p>
+          <p>O cliente paga R$ 19,09 pelo app (corrida + 14% de serviço + R$ 1,99 do app). Dos R$ 15,00, o Cadernex fica com 8% (R$ 1,20).</p>
         </div>
         <ol class="mpi-passos">
           <li><b>Tenha uma conta no Mercado Pago</b><span>É grátis e abre pelo celular, com seu CPF. Se já tem, pule este passo.</span></li>

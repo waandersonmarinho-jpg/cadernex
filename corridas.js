@@ -154,7 +154,7 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   // antes de alguém aceitar: o cliente já sabe como vai pagar
   if(papel==="cli"&&c.status==="aberta"){const min=Math.floor((Date.now()-new Date(c.created_at))/60000);
     if(min>=10&&!(c.agendado_para&&new Date(c.agendado_para)-Date.now()>36e5))h+=`<div class="mp-box parado"><b>⏳ Procurando entregador há ${min} min</b><p class="hint" style="margin:0">Os entregadores já foram avisados de novo. Pedido parado costuma ser valor baixo para a distância. Você pode aumentar o valor ou continuar esperando.</p><div class="parado-ac"><button class="btn ghost" type="button" data-mais="${c.id}" data-v="2">+ R$ 2</button><button class="btn ghost" type="button" data-mais="${c.id}" data-v="5">+ R$ 5</button></div></div>`}
-  if(papel==="cli"&&c.status==="aberta")h+=`<div class="mp-box pg-info"><b>💳 Como pagar</b><p class="hint" style="margin:0">Quando um entregador aceitar, você paga <b>pelo app no Pix</b> (${brl(Number(c.valor))} + 10% de taxa de serviço). O entregador só coleta depois do pagamento.</p></div>`;
+  if(papel==="cli"&&c.status==="aberta")h+=`<div class="mp-box pg-info"><b>💳 Como pagar</b><p class="hint" style="margin:0">Quando um entregador aceitar, você paga <b>pelo app no Pix</b> (${brl(Number(c.valor))} + 14% de serviço + R$ 1,99 de taxa do app). O entregador só coleta depois do pagamento.</p></div>`;
   if(c.entregador_id&&(ativo||(c.status==="entregue"&&Date.now()-new Date(c.entregue_em||c.created_at)<3*864e5)))h+=`<div class="mpbox" data-mp="${c.id}" data-papel="${papel}"></div><div class="pixbox" data-pix="${c.id}" data-papel="${papel}"></div>`;
   // ações
   let ac="",mais="";

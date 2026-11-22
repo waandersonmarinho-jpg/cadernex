@@ -6,7 +6,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 const TAXA_APP = 0.10; // 10% do Cadernex, pago por quem pede
 const COMISSAO = 0.06; // até 30/11/2026
-const COMISSAO_NOVA = 0.08; // a partir de 01/12/2026
+const COMISSAO_NOVA = 0.08; // 8% a partir de 01/12/2026
 const COMISSAO_NOVA_INICIO = Date.parse("2026-12-01T03:00:00Z"); // 01/12/2026 00h em Brasília
 const COMISSAO_INICIO = Date.parse("2026-10-21T03:00:00Z"); // 21/10/2026 00h em Brasília
 const SITE = "https://cadernex.com.br";

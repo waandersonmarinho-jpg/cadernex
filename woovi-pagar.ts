@@ -1,14 +1,16 @@
 // Cadernex — woovi-pagar: cria o Pix da corrida na Woovi já com a divisão
-// Cliente paga corrida + 10% (+ taxa do Pix). A parte do entregador (corrida − comissão: 6%, e 8% a partir de 01/12/2026) vai
+// Quem pede paga corrida + 14% de serviço + R$ 1,99 de taxa do app. A parte do entregador (corrida − 8% de comissão; 6% até 30/11) vai
 // direto pra subconta dele (chave = CPF) e o webhook manda pro Pix dele quando o pagamento cai.
 // Segredo necessário (Supabase → Edge Functions → Secrets): WOOVI_APP_ID
 // Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const API = "https://api.woovi.com/api/v1";
-const TAXA_APP = 0.10;
+const TAXA_APP = 0.14;   // serviço, pago por quem pede (cliente ou loja)
+const TAXA_LOJA = 0.14;
+const TAXA_FIXA = 1.99;  // taxa do app por corrida (cobre o Pix)
 const COMISSAO = 0.06; // até 30/11/2026
-const COMISSAO_NOVA = 0.08; // a partir de 01/12/2026
+const COMISSAO_NOVA = 0.08; // 8% a partir de 01/12/2026
 const COMISSAO_NOVA_INICIO = Date.parse("2026-12-01T03:00:00Z"); // 01/12/2026 00h em Brasília
 const COMISSAO_INICIO = Date.parse("2026-10-21T03:00:00Z");
 const VALIDADE = 30 * 60; // o Pix vale 30 minutos
@@ -80,8 +82,11 @@ Deno.serve(async (req) => {
     const taxaPix = Number(Deno.env.get("WOOVI_TAXA") || "0.008");
     const valor = Number(c.valor);
     const { data: enc } = await admin.from("encomendas").select("id").eq("corrida_id", c.id).maybeSingle();
-    const taxaApp = enc ? 0 : r2(valor * TAXA_APP);
-    const total = Math.ceil(((valor + taxaApp) / (1 - taxaPix)) * 100) / 100;
+    // serviço de 14% pra quem pede (cliente ou loja)
+    const { data: pc } = await admin.from("perfis").select("loja,loja_nome").eq("user_id", c.cliente_id).maybeSingle();
+    const taxaCli = pc?.loja && String(pc?.loja_nome || "").trim() ? TAXA_LOJA : TAXA_APP;
+    const taxaApp = enc ? 0 : r2(valor * taxaCli + TAXA_FIXA);
+    const total = enc ? Math.ceil((valor / (1 - taxaPix)) * 100) / 100 : r2(valor + taxaApp);
     const comissao = Date.now() >= COMISSAO_INICIO ? r2(valor * (Date.now() >= COMISSAO_NOVA_INICIO ? COMISSAO_NOVA : COMISSAO)) : 0;
     const repasse = r2(valor - comissao);
     const corr = `cx-${c.id}-${Date.now().toString(36)}`;
