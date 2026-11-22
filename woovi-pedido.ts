@@ -27,16 +27,32 @@ async function woovi(path: string, init: RequestInit = {}) {
   try { b = await r.json(); } catch (_) { /* sem corpo */ }
   return { ok: r.ok, status: r.status, b };
 }
-async function subconta(admin: SupabaseClient, uid: string, chave: string, nome: string) {
-  const { data: s } = await admin.from("woovi_subcontas").select("pix_key").eq("user_id", uid).maybeSingle();
-  if (s?.pix_key === chave) return true;
-  const c = await woovi("/subaccount", { method: "POST", body: JSON.stringify({ pixKey: chave, name: nome.slice(0, 60) }) });
-  if (!c.ok) {
-    const g = await woovi(`/subaccount/${encodeURIComponent(chave)}`);
-    if (!g.ok) { console.error("woovi-pedido subconta", c.status, JSON.stringify(c.b)); return false; }
+// chaves da loja, em ordem: a chave Pix que ela escolheu, depois CNPJ e CPF do cadastro
+function chavesDe(d: any): string[] {
+  const l: string[] = [];
+  const pc = String(d?.pix_chave || "").trim();
+  if (pc) l.push(pc);
+  for (const x of [d?.cnpj, d?.cpf]) {
+    const v = String(x || "").replace(/\D/g, "");
+    if ((v.length === 14 || v.length === 11) && !l.includes(v)) l.push(v);
   }
-  await admin.from("woovi_subcontas").upsert({ user_id: uid, pix_key: chave });
-  return true;
+  return l;
+}
+// tenta as chaves da loja em ordem (CNPJ, depois CPF) e devolve a que a Woovi aceitou
+async function subconta(admin: SupabaseClient, uid: string, chaves: string[], nome: string): Promise<string | null> {
+  const { data: s } = await admin.from("woovi_subcontas").select("pix_key").eq("user_id", uid).maybeSingle();
+  if (s?.pix_key && s.pix_key === chaves[0]) return s.pix_key;
+  for (const chave of chaves) {
+    const c = await woovi("/subaccount", { method: "POST", body: JSON.stringify({ pixKey: chave, name: nome.slice(0, 60) }) });
+    let ok = c.ok;
+    if (!ok) {
+      const g = await woovi(`/subaccount/${encodeURIComponent(chave)}`);
+      ok = g.ok;
+      if (!ok) console.error("woovi-pedido subconta", chave.length === 14 ? "CNPJ" : "CPF", c.status, JSON.stringify(c.b));
+    }
+    if (ok) { await admin.from("woovi_subcontas").upsert({ user_id: uid, pix_key: chave }); return chave; }
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -49,6 +65,18 @@ Deno.serve(async (req) => {
     if (!user) return json({ erro: "Entre na sua conta de novo." }, 401);
 
     const b = await req.json().catch(() => ({}));
+
+    // teste da chave Pix da própria loja (na hora de ativar ou trocar a chave)
+    if (b.teste) {
+      const { data: me } = await admin.from("perfis").select("loja,loja_nome").eq("user_id", user.id).maybeSingle();
+      const { data: d } = await admin.from("dados_pessoais").select("pix_chave,cnpj,cpf,nome_completo,empresa_nome").eq("user_id", user.id).maybeSingle();
+      const ch = chavesDe(d);
+      if (!ch.length) return json({ erro: "Cadastre uma chave Pix ou complete o CPF/CNPJ do seu cadastro." }, 400);
+      const ok = await subconta(admin, user.id, ch, d?.empresa_nome || me?.loja_nome || d?.nome_completo || "Loja Cadernex");
+      if (!ok) return json({ erro: "O banco não encontrou essa chave Pix. Confira se ela está cadastrada no app do seu banco." }, 400);
+      return json({ ok: true, chave: ok });
+    }
+
     const lojaId = String(b.loja_id || "");
     const itensPed: { id: string; n: number }[] = Array.isArray(b.itens) ? b.itens : [];
     const endereco = String(b.endereco || "").trim().slice(0, 160);
@@ -66,9 +94,9 @@ Deno.serve(async (req) => {
     if (loja.loja_aberta === false) return json({ erro: "A loja está fechada agora." }, 400);
     if (!loja.loja_pix) return json({ erro: "Essa loja ainda não recebe pelo app. Pague na entrega pelo WhatsApp." }, 400);
 
-    const { data: dl } = await admin.from("dados_pessoais").select("cnpj,cpf,nome_completo,empresa_nome").eq("user_id", lojaId).maybeSingle();
-    const chave = String(dl?.cnpj || dl?.cpf || "").replace(/[^0-9A-Za-z]/g, "");
-    if (!chave) return json({ erro: "Essa loja ainda não recebe pelo app. Pague na entrega pelo WhatsApp." }, 400);
+    const { data: dl } = await admin.from("dados_pessoais").select("pix_chave,cnpj,cpf,nome_completo,empresa_nome").eq("user_id", lojaId).maybeSingle();
+    const chaves = chavesDe(dl);
+    if (!chaves.length) return json({ erro: "Essa loja ainda não recebe pelo app. Pague na entrega pelo WhatsApp." }, 400);
 
     // preços do banco, não do celular
     const ids = [...new Set(itensPed.map((x) => String(x.id)))];
@@ -89,8 +117,9 @@ Deno.serve(async (req) => {
     const taxaPix = Number(Deno.env.get("WOOVI_TAXA") || "0.008");
     const total = Math.ceil(((subtotal + servico + entrega) / (1 - taxaPix)) * 100) / 100;
 
-    if (!(await subconta(admin, lojaId, chave, dl?.empresa_nome || loja.loja_nome || dl?.nome_completo || "Loja Cadernex"))) {
-      return json({ erro: "Não deu pra preparar o Pix da loja agora. Tente de novo em instantes." }, 502);
+    const chave = await subconta(admin, lojaId, chaves, dl?.empresa_nome || loja.loja_nome || dl?.nome_completo || "Loja Cadernex");
+    if (!chave) {
+      return json({ erro: "O Pix dessa loja ainda não está pronto: o CPF/CNPJ dela precisa estar cadastrado como chave Pix no banco. Avise a loja." }, 502);
     }
     const { data: cli } = await admin.from("perfis").select("nome,telefone").eq("user_id", user.id).maybeSingle();
     const { data: ped, error: e1 } = await admin.from("pedidos_loja").insert({

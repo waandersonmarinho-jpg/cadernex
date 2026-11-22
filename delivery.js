@@ -98,14 +98,22 @@ function admRender(){
     ${z?"":`<p class="dl-aviso">Coloque o <b>WhatsApp da loja</b> em Perfil → Informações da loja. É por ele que chegam os pedidos. <button class="link" type="button" data-go="perfilc">Colocar agora</button></p>`}
   </div>
   ${pedLojaHtml()}
-  <div class="card stack">
-    <div><div class="eyebrow">Pix direto pra loja</div><h2 style="margin:2px 0 0">Receber pelo app</h2></div>
-    ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora no Pix da loja (o CNPJ ou CPF do seu cadastro).</p>
-      <button class="link" type="button" data-dlpixoff style="align-self:flex-start;padding:0">Desligar</button>`
-    :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> no Pix da loja (CNPJ ou CPF do seu cadastro). O pedido chega pra você já pago.</p>
+  <div class="card stack" id="dl-pixcard">
+    <div class="row" style="align-items:center;gap:12px"><div style="flex:1;min-width:0"><div class="eyebrow">Pix direto pra loja</div><h2 style="margin:2px 0 0">Receber pelo app</h2></div>
+      <button type="button" class="dl-sw${perfil.loja_pix?" on":""}" role="switch" aria-checked="${perfil.loja_pix?"true":"false"}" aria-label="Receber pelo app" data-dlpixsw><i></i></button></div>
+    ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora na chave Pix abaixo.</p>`
+    :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> na chave Pix da loja. O pedido chega pra você já pago.</p>
       <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega. Quando você chama o motoboy do Cadernex, a corrida tem 14% de serviço + R$ 1,99 de taxa do app.</p>
-      <p class="dl-aviso" style="margin:0"><b>Os clientes só conseguem pedir da sua loja depois que você ativar.</b> O pagamento no Cadernex é só por Pix pelo app.</p>
-      <button class="btn full" type="button" data-dlpixon>Ativar recebimento pelo app</button>`}
+      <p class="dl-aviso" style="margin:0"><b>Desligado: os clientes só conseguem pedir depois que você ligar.</b></p>`}
+    <div class="pix-chave"><small>Chave Pix da loja</small><b class="num" id="dl-pixk">${esc(chaveTxt())}</b></div>
+    <button class="link" type="button" data-dlpixed style="align-self:flex-start;padding:0">${pixInfo&&pixInfo.pix_chave?"Editar chave Pix":"Usar outra chave Pix"}</button>
+    <form id="dl-pixf" class="stack" hidden>
+      <label>Tipo de chave<select id="dl-pxt"><option value="cnpj">CNPJ</option><option value="cpf">CPF</option><option value="celular">Celular</option><option value="email">E-mail</option><option value="aleatoria">Chave aleatória</option></select></label>
+      <label>Chave Pix<input id="dl-pxv" maxlength="77" autocomplete="off" required></label>
+      <label>Sua senha do Cadernex<input id="dl-pxs" type="password" autocomplete="current-password" required></label>
+      <p class="hint" style="margin:0;font-size:12px">Use uma chave da loja ou sua, já cadastrada no app do seu banco. Por segurança, pedimos a senha, e o recebimento desliga até a nova chave ser conferida.</p>
+      <div class="grid2"><button class="btn ghost" type="button" data-dlpixcan>Cancelar</button><button class="btn" type="submit">Salvar chave</button></div>
+    </form>
   </div>
   <div class="card stack">
     <div><div class="eyebrow">A cara da sua loja</div><h2 style="margin:2px 0 0">Logo, capa e endereço</h2></div>
@@ -169,8 +177,9 @@ async function salvaEnd(){
     if(!p)toast("Endereço salvo, mas não achamos no mapa. Confira o número e o bairro.")},"Endereço salvo ✓");
 }
 V.addEventListener("click",e=>{
-  if(e.target.closest("[data-dlpixon]")){pixLigar(true);return}
-  if(e.target.closest("[data-dlpixoff]")){if(confirm("Desligar? Os clientes não vão conseguir pedir da sua loja até você ativar de novo."))pixLigar(false);return}
+  if(e.target.closest("[data-dlpixsw]")){if(perfil.loja_pix){if(confirm("Desligar? Os clientes não vão conseguir pedir da sua loja até você ligar de novo."))pixLigar(false)}else pixLigar(true);return}
+  if(e.target.closest("[data-dlpixed]")){const f=$("dl-pixf");f.hidden=!f.hidden;if(!f.hidden){$("dl-pxt").value=pixInfo&&pixInfo.pix_tipo||(pixInfo&&pixInfo.cnpj?"cnpj":"cpf");$("dl-pxv").value=pixInfo&&pixInfo.pix_chave?fmtChave(pixInfo.pix_tipo,pixInfo.pix_chave):"";pxPh();$("dl-pxv").focus()}return}
+  if(e.target.closest("[data-dlpixcan]")){$("dl-pixf").hidden=true;return}
   const ps=e.target.closest("[data-pdst]");if(ps){pedStatus(ps.dataset.pdid,ps.dataset.pdst,ps);return}
   const pm=e.target.closest("[data-pdmoto]");if(pm){chamarMoto(pm.dataset.pdmoto,pm);return}
   const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
@@ -441,14 +450,58 @@ function meusPedHtml(){if(!meusPed.length)return"";const nome=id=>((lojas||[]).f
   return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Seus pedidos</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(ST[p.status]||p.status)}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small></div>`).join("")}</div>`}
 
 /* lojista: receber pelo app + pedidos */
+/* ---------- chave Pix da loja ---------- */
+let pixInfo=null;
+async function pixLoad(){if(!sb||!uid)return;const r=await sb.from("dados_pessoais").select("cpf,cnpj,pix_tipo,pix_chave").eq("user_id",uid).maybeSingle();
+  if(r.error&&/pix_/.test(r.error.message||"")){const r2=await sb.from("dados_pessoais").select("cpf,cnpj").eq("user_id",uid).maybeSingle();pixInfo=r2.data||{}}else pixInfo=r.data||{};
+  const k=$("dl-pixk");if(k)k.textContent=chaveTxt()}
+const TIPOS={cpf:"CPF",cnpj:"CNPJ",celular:"Celular",email:"E-mail",aleatoria:"Aleatória"};
+function fmtChave(t,v){v=String(v||"");
+  if(t==="cpf")return v.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,"$1.$2.$3-$4");
+  if(t==="cnpj")return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5");
+  if(t==="celular")return v.replace(/^\+55(\d{2})(\d{4,5})(\d{4})$/,"($1) $2-$3");return v}
+function chaveTxt(){const p=pixInfo;if(!p)return"carregando…";
+  if(p.pix_chave){const t=p.pix_tipo,v=p.pix_chave;
+    return TIPOS[t]+" "+(t==="cpf"?"***."+v.slice(3,6)+"."+v.slice(6,9)+"-**":t==="celular"?fmtChave(t,v).replace(/\d{4}-/,"****-"):t==="email"?v.replace(/^(.{2}).*(@.*)$/,"$1***$2"):t==="aleatoria"?v.slice(0,8)+"…":fmtChave(t,v))}
+  const cn=so(p.cnpj),cp=so(p.cpf);
+  if(cn.length===14)return"CNPJ "+fmtChave("cnpj",cn)+" (do cadastro)";
+  if(cp.length===11)return"CPF ***."+cp.slice(3,6)+"."+cp.slice(6,9)+"-** (do cadastro)";
+  return"Nenhuma: complete o cadastro ou cadastre uma chave"}
+const PH={cnpj:"00.000.000/0000-00",cpf:"000.000.000-00",celular:"(62) 90000-0000",email:"loja@email.com",aleatoria:"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"};
+function pxPh(){const t=$("dl-pxt").value,i=$("dl-pxv");i.placeholder=PH[t];i.inputMode=t==="email"||t==="aleatoria"?"text":"numeric";i.type=t==="email"?"email":"text"}
+function normChave(t,v){v=String(v||"").trim();
+  if(t==="cpf"){v=so(v);return v.length===11?v:null}
+  if(t==="cnpj"){v=so(v);return v.length===14?v:null}
+  if(t==="celular"){v=so(v).replace(/^55(?=\d{10,11}$)/,"");return/^\d{10,11}$/.test(v)?"+55"+v:null}
+  if(t==="email"){v=v.toLowerCase();return/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)&&v.length<=77?v:null}
+  if(t==="aleatoria"){v=v.toLowerCase();return/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(v)?v:null}
+  return null}
+document.addEventListener("change",e=>{if(e.target.id==="dl-pxt")pxPh()});
+document.addEventListener("submit",async e=>{if(e.target.id!=="dl-pixf")return;e.preventDefault();
+  const t=$("dl-pxt").value,v=normChave(t,$("dl-pxv").value),senha=$("dl-pxs").value,b=e.target.querySelector("[type=submit]");
+  if(!v){toast("Essa chave não parece um "+TIPOS[t]+" válido. Confira.");$("dl-pxv").focus();return}
+  if(senha.length<6){toast("Digite sua senha do Cadernex");$("dl-pxs").focus();return}
+  b.disabled=true;b.textContent="Conferindo…";
+  try{const{data:{user}}=await sb.auth.getUser();
+    const a=await sb.auth.signInWithPassword({email:user.email,password:senha});if(a.error){toast("Senha errada.");$("dl-pxs").value="";$("dl-pxs").focus();return}
+    const{error}=await sb.rpc("pix_chave_definir",{tipo:t,chave:v});if(error)throw error;
+    perfil.loja_pix=false;await pixLoad();admRender();toast("Chave salva. Agora ligue o recebimento pra conferir a chave.")}
+  catch(err){console.error(err);toast(/pix_chave_definir/.test(String(err&&err.message))?"Falta atualizar o banco de dados (pix-chave.sql).":"Não salvou. Confira a internet e tente de novo.")}
+  finally{b.disabled=false;b.textContent="Salvar chave"}});
 async function pixLigar(on){
   if(on&&window.cxFotoGarante&&!(await cxFotoGarante())){admRender();return}
-  if(on){const r=await sb.from("dados_pessoais").select("cpf,cnpj").eq("user_id",uid).maybeSingle();
-    if(!r.data||!(r.data.cnpj||r.data.cpf)){toast("Complete seu cadastro com CPF ou CNPJ primeiro");if(typeof abrirDados==="function")abrirDados();return}}
-  safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Sua loja recebe pelo app ✓":"Desligado: os clientes não conseguem pedir até você ativar de novo");
+  if(on){if(!pixInfo)await pixLoad();
+    if(!pixInfo||!(pixInfo.pix_chave||pixInfo.cnpj||pixInfo.cpf)){toast("Complete seu cadastro com CPF ou CNPJ, ou cadastre uma chave Pix");if(typeof abrirDados==="function")abrirDados();return}
+    const sw=document.querySelector("[data-dlpixsw]");if(sw)sw.classList.add("busy");toast("Conferindo sua chave Pix…");
+    const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{teste:true}});
+    if(sw)sw.classList.remove("busy");
+    if(error||!data||!data.ok){let m=data&&data.erro;if(!m&&error){try{m=(await error.context.json()).erro}catch(x){}}
+      toast(m||"Não deu pra conferir a chave agora. Tente de novo.");return}}
+  safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Chave conferida, sua loja recebe pelo app ✓":"Desligado: os clientes não conseguem pedir até você ligar de novo");
 }
 let pedLoja=[],pedLojaCanal=null;
 async function pedLojaLoad(){if(!sb||!uid||!ehLoja())return;
+  if(!pixInfo)pixLoad();
   const r=await sb.from("pedidos_loja").select("*").eq("loja_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(30);
   pedLoja=r.error?[]:r.data||[];admRender();
   if(!pedLojaCanal){try{pedLojaCanal=sb.channel("pl-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"pedidos_loja",filter:`loja_id=eq.${uid}`},m=>{
