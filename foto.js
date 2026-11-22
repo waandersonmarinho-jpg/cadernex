@@ -10,15 +10,18 @@ async function comprimir(file){ // recorta quadrado no centro e reduz pra 512 px
   c.getContext("2d").drawImage(img,(img.naturalWidth-lado)/2,(img.naturalHeight-lado)/2,lado,lado,0,0,t,t);
   return await new Promise(ok=>c.toBlob(ok,"image/jpeg",0.82));
 }
+const ehLojista=()=>!!(perfil&&perfil.loja&&String(perfil.loja_nome||"").trim());
 function textos(){return ehEnt()
-  ?{t:"Sua foto",h:"Uma foto do seu rosto, de frente e com boa luz. O cliente vê quando você aceita a corrida: passa confiança e ajuda na coleta."}
-  :{t:"Foto do estabelecimento",h:"A fachada da sua loja, farmácia ou restaurante (ou uma foto sua). O entregador vê quando aceita a corrida e acha o lugar mais rápido."}}
+  ?{t:"Sua selfie (obrigatória)",h:"Uma foto do seu rosto, de frente e com boa luz. O cliente vê quando você aceita a corrida: passa confiança e ajuda na coleta.",cam:"user",loja:false}
+  :ehLojista()
+  ?{t:"Foto da fachada da loja (obrigatória)",h:"A frente da sua loja, com o nome aparecendo. Sem ela a loja não recebe pedidos pelo app. O entregador vê e acha o lugar mais rápido.",cam:"environment",loja:true}
+  :{t:"Sua selfie (obrigatória)",h:"Rosto de frente, sem óculos escuros nem boné, com boa luz. Precisa dela pra pedir entregas e delivery. O entregador da sua corrida vê na hora da entrega.",cam:"user",loja:false}}
 function cardRender(){
   document.querySelectorAll(".pf-foto").forEach(w=>{
     const so=w.dataset.para;w.hidden=!uid||(so==="ent"&&!ehEnt())||(so==="cli"&&ehEnt());if(w.hidden)return;
-    const x=textos();w.querySelector("[data-ft]").textContent=x.t;w.querySelector("[data-fh]").textContent=x.h;
-    const im=w.querySelector(".pf-av");im.innerHTML=minha?`<img src="${minha}" alt="">`:`<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${ehEnt()?'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>':'<path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>'}</svg>`;
-    w.querySelector("[data-fb]").textContent=minha?"Trocar foto":"Adicionar foto";
+    const x=textos();w.querySelector("[data-ft]").textContent=x.t;w.querySelector("[data-fh]").textContent=x.h;w.querySelector("input[type=file]").setAttribute("capture",x.cam);
+    const im=w.querySelector(".pf-av");im.innerHTML=minha?`<img src="${minha}" alt="">`:`<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${!x.loja?'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>':'<path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>'}</svg>`;
+    w.querySelector("[data-fb]").textContent=minha?"Trocar foto":(x.loja?"Tirar foto da fachada":"Tirar selfie");
   });
 }
 async function carregarMinha(){
@@ -52,5 +55,6 @@ function pintar(){
 if(typeof corrRender==="function"){const _r=corrRender;corrRender=function(){_r();pintar()}}
 if(typeof go==="function"){const g=go;go=function(v){g(v);if(v==="config"||v==="perfilc")cardRender()}}
 const _al=window.agendaLoad;window.agendaLoad=async()=>{await _al();carregarMinha()};
+window.cxFotoAtualiza=u=>{minha=u;if(uid)cache[uid]={url:u,ate:Date.now()+3e6};cardRender()};
 if(uid)setTimeout(carregarMinha,0);
 })();

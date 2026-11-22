@@ -376,6 +376,7 @@ document.addEventListener("click",e=>{
 /* ---------- pedido pago pelo app (Pix na Woovi): dinheiro vai direto pra loja ---------- */
 let pedCanal=null;
 async function pagarApp(end,bairro,obs){
+  if(window.cxFotoGarante&&!(await cxFotoGarante()))return;
   const b=$("dl-env-b");b.disabled=true;const t=b.innerHTML;b.textContent="Gerando o Pix…";
   const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>({id:x.p.id,n:x.n})),endereco:end,bairro,obs,entrega:frete?frete.v:0}});
   b.disabled=false;b.innerHTML=t;
@@ -412,6 +413,7 @@ function meusPedHtml(){if(!meusPed.length)return"";const nome=id=>((lojas||[]).f
 
 /* lojista: receber pelo app + pedidos */
 async function pixLigar(on){
+  if(on&&window.cxFotoGarante&&!(await cxFotoGarante())){admRender();return}
   if(on){const r=await sb.from("dados_pessoais").select("cpf,cnpj").eq("user_id",uid).maybeSingle();
     if(!r.data||!(r.data.cnpj||r.data.cpf)){toast("Complete seu cadastro com CPF ou CNPJ primeiro");if(typeof abrirDados==="function")abrirDados();return}}
   safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Sua loja recebe pelo app ✓":"Desligado: os clientes não conseguem pedir até você ativar de novo");
