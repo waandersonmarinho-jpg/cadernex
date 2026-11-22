@@ -491,17 +491,18 @@ label.check{min-height:40px;align-items:center}
 .hx-bg i{position:absolute;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#f3ba2f);opacity:.3;animation:hxs 2.6s linear infinite}
 .hx-bg i:nth-child(1){top:22%;left:-40%;width:60%}.hx-bg i:nth-child(2){top:48%;left:-60%;width:45%;animation-delay:.7s}.hx-bg i:nth-child(3){top:70%;left:-50%;width:70%;animation-delay:1.3s;opacity:.35}.hx-bg i:nth-child(4){top:86%;left:-30%;width:40%;animation-delay:1.9s}
 @keyframes hxs{to{transform:translateX(260%)}}
-.hx-ph{position:absolute;z-index:0;top:-28px;right:-20px;bottom:-8px;width:64%;background:url(hero-delivery.jpg) 40% 20%/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 38%),linear-gradient(180deg,#000 70%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0%,#000 38%),linear-gradient(180deg,#000 70%,transparent 100%);mask-composite:intersect;opacity:.9}
+.hx-ph{position:absolute;z-index:0;top:-28px;right:-20px;bottom:-8px;width:64%;background:url(hero-delivery.jpg) 40% 20%/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 38%),linear-gradient(180deg,#000 38%,transparent 56%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0%,#000 38%),linear-gradient(180deg,#000 38%,transparent 56%);mask-composite:intersect;opacity:.9}
 .hx-ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,31,69,.35) 0%,rgba(15,31,69,0) 30%,rgba(15,31,69,.25) 70%,#0f1f45 100%),linear-gradient(90deg,rgba(15,31,69,.55),rgba(34,64,138,.15));mix-blend-mode:normal}
 .hx-txt>*:not(.hx-ph){position:relative;z-index:1}
 .hx-duo div{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.hx-txt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.hx-txt{position:relative;max-width:100%;padding-bottom:18px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .hx-eb{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#f3ba2f}
 .hx-t{margin:0;font-size:clamp(40px,12vw,56px);line-height:.98;font-weight:800;letter-spacing:-.03em;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.35)}
 .hx-t span{color:#f3ba2f}
 .hd-entrar{display:none;border:0;cursor:pointer;font:700 15px var(--body,inherit);padding:10px 22px;border-radius:999px;background:var(--accent);color:var(--accent-ink);align-self:center}
 html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none}
-.hx-duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.hx-duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px;width:100%;max-width:100%;box-sizing:border-box}
+.hx-duo>div{min-width:0}
 .hx-duo div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgba(10,21,48,.5);border:1px solid rgba(255,255,255,.16)}
 .hx-duo b{color:#fff;font-size:15px}.hx-duo span{color:#c9d2e6;font-size:13px;line-height:1.25}
 .hx-s{margin:0;font-size:17px;color:#d5dcec}
@@ -802,7 +803,6 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
             <div><b>🍔 Delivery</b><span>Peça das lojas daqui no Pix</span></div>
           </div>
           <button class="hx-cta" type="button" data-cta="cliente">Começar agora!</button>
-          <button class="hx-ja" type="button" data-aba="entrar">Já tenho conta · <b>Entrar</b></button>
         </div>
         <div class="hx-foto" role="img" aria-label="Motoqueiro Cadernex Entregas e Delivery com a bag de entrega, em Goiânia"></div>
       </div>
@@ -1760,7 +1760,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
         <form class="stack" id="lj-corpo" hidden>
           <p class="hint" style="margin:0">Com o nome da loja preenchido, ele aparece para o entregador nas corridas e você pode ter até 15 pedidos abertos. Se você envia como pessoa, deixe em branco.</p>
           <label>Nome da loja<input type="text" id="lj-nome" maxlength="40" autocomplete="organization"></label>
-          <label>Ramo<select id="lj-ramo"><option value="">Escolha</option><option>Farmácia</option><option>Restaurante</option><option>Lanchonete</option><option>Mercado</option><option>Loja</option><option>Outro</option></select></label>
+          <label>Ramo<select id="lj-ramo"><option value="">Escolha</option><option>Academia</option><option>Açaí e sorveteria</option><option>Açougue</option><option>Adega</option><option>Agropecuária</option><option>Armarinho</option><option>Artigos de festa</option><option>Artigos esportivos</option><option>Auto peças</option><option>Barbearia</option><option>Bazar</option><option>Bebidas e conveniência</option><option>Bicicletaria</option><option>Bolos e doces</option><option>Borracharia</option><option>Boutique</option><option>Brinquedos</option><option>Cafeteria</option><option>Calçados</option><option>Casa de carnes</option><option>Casa de ração</option><option>Celulares e acessórios</option><option>Chaveiro</option><option>Chocolateria</option><option>Churrascaria</option><option>Clínica</option><option>Clínica veterinária</option><option>Comida árabe</option><option>Comida caseira</option><option>Comida japonesa</option><option>Confeitaria</option><option>Conveniência</option><option>Copiadora e gráfica</option><option>Cosméticos</option><option>Depósito de construção</option><option>Depósito de gás</option><option>Distribuidora de água</option><option>Distribuidora de bebidas</option><option>Doceria</option><option>Drogaria</option><option>Eletrônicos</option><option>Embalagens</option><option>Empório</option><option>Espetinho</option><option>Estética</option><option>Farmácia</option><option>Farmácia de manipulação</option><option>Ferragista</option><option>Floricultura</option><option>Frios e laticínios</option><option>Frutaria</option><option>Gás e água</option><option>Gráfica</option><option>Hamburgueria</option><option>Hortifrúti</option><option>Informática</option><option>Joalheria</option><option>Lanchonete</option><option>Lava-jato</option><option>Lavanderia</option><option>Livraria</option><option>Loja</option><option>Loja de roupas</option><option>Loja de tintas</option><option>Loja de variedades</option><option>Lojas de 1,99</option><option>Madeireira</option><option>Marmitaria</option><option>Material de construção</option><option>Material elétrico</option><option>Material escolar</option><option>Mercado</option><option>Mercearia</option><option>Moda fitness</option><option>Moda infantil</option><option>Móveis</option><option>Óculos e ótica</option><option>Oficina mecânica</option><option>Padaria</option><option>Papelaria</option><option>Pastelaria</option><option>Peixaria</option><option>Perfumaria</option><option>Pet shop</option><option>Pizzaria</option><option>Produtos de limpeza</option><option>Produtos naturais</option><option>Quitanda</option><option>Restaurante</option><option>Sacolão</option><option>Salão de beleza</option><option>Salgaderia</option><option>Sex shop</option><option>Sorveteria</option><option>Supermercado</option><option>Suplementos</option><option>Tabacaria</option><option>Utilidades domésticas</option><option>Vidraçaria</option><option>Vinhos</option><option>Outro</option></select></label>
           <div class="grid2"><label>Bairro<input type="text" id="lj-bairro" maxlength="40"></label>
           <label>WhatsApp da loja<input type="tel" id="lj-whats" inputmode="numeric"></label></div>
           <label>Horário de funcionamento<input type="text" id="lj-hora" maxlength="60"></label>
