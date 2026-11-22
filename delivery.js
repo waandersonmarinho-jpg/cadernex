@@ -317,10 +317,12 @@ function ckRender(){
     ${loja.pix?`<div class="row" id="dl-sv-r"><span>Taxa de serviço (10%)</span><b class="num">${brl(servicoDe())}</b></div>`:""}
     <div class="row dl-tot" id="dl-tot-r" hidden><b>Total estimado</b><b class="num" id="dl-tot"></b></div>
     <p class="hint" style="margin:0;font-size:12px" id="dl-fr-h">${loja.lat!=null?"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.":"A taxa de entrega a loja te informa no WhatsApp, junto com a confirmação."}</p>
+    <label>CEP<input id="dl-cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000"></label>
+    <p class="hint" style="margin:-4px 0 0;font-size:12px" id="dl-cep-h">Coloque o CEP: o app acha a rua e calcula a entrega.</p>
     <label>Endereço de entrega<input id="dl-end" maxlength="140" placeholder="Rua, número, quadra, lote, referência" value="${esc(perfil.end_padrao||"")}"></label>
     <label>Bairro<input id="dl-bairro" maxlength="40"></label>
     <input type="hidden" id="dl-pag" value="app"><p class="hint dl-so-pix" style="margin:0">💳 Pagamento: <b>Pix pelo app</b>, na hora. O dinheiro vai direto pra loja.</p>
-    <label>Observação<input id="dl-obs" maxlength="140" placeholder="opcional: sem cebola, ponto da carne…"></label>
+    <label>Observação<input id="dl-obs" maxlength="140" placeholder="opcional: referência, cor, tamanho, detalhes…"></label>
     <button class="btn full" type="button" data-dlenviar id="dl-env-b">${IC.zap}Enviar pedido no WhatsApp da loja</button>
     <p class="hint" style="margin:0;font-size:12px" id="dl-env-h">A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.</p>
     <div id="dl-pix"></div></div>`;
@@ -332,10 +334,32 @@ function ckRender(){
   modo();
   frete=null;let t=null;const calc=()=>{clearTimeout(t);t=setTimeout(calcFrete,700)};
   $("dl-end").addEventListener("input",calc);$("dl-bairro").addEventListener("input",calc);
+  cepInfo=null;$("dl-cep").addEventListener("input",e=>{const v=so(e.target.value).slice(0,8);e.target.value=v.length>5?v.slice(0,5)+"-"+v.slice(5):v;
+    if(v.length===8)buscaCep(v);else if(cepInfo){cepInfo=null;calc()}});
   if(String(perfil.end_padrao||"").length>=5)calc();
   w.scrollIntoView({behavior:"smooth",block:"start"});
 }
-let frete=null,freteN=0;
+let frete=null,freteN=0,cepInfo=null;
+/* CEP: acha a rua e o bairro (ViaCEP) e o ponto no mapa do CEP, igual ao pedido de entrega */
+const prazo=(url,ms=7000)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);return fetch(url,{signal:ac.signal}).finally(()=>clearTimeout(t))};
+const cepPts={};
+async function cepPonto(cep){
+  if(cepPts[cep]!==undefined)return cepPts[cep];let p=null;
+  try{const d=await (await prazo(`https://cep.awesomeapi.com.br/json/${cep}`)).json();if(d&&d.lat&&d.lng&&Math.abs(+d.lat)>0.1)p={lat:+d.lat,lng:+d.lng}}catch(e){}
+  if(!p){try{const d=await (await prazo(`https://brasilapi.com.br/api/cep/v2/${cep}`)).json();const c=d&&d.location&&d.location.coordinates;if(c&&c.latitude&&c.longitude)p={lat:+c.latitude,lng:+c.longitude}}catch(e){}}
+  return cepPts[cep]=p;
+}
+async function buscaCep(cep){
+  const h=$("dl-cep-h");if(h)h.textContent="Buscando o CEP…";
+  try{const r=await prazo(`https://viacep.com.br/ws/${cep}/json/`),d=await r.json();
+    if(!r.ok||d.erro){if(h)h.textContent="CEP não encontrado. Confira ou escreva o endereço.";return}
+    cepInfo={...d,cep};const end=$("dl-end"),bai=$("dl-bairro");
+    if(d.logradouro){end.value=d.logradouro+", ";end.focus();end.setSelectionRange(end.value.length,end.value.length)}
+    if(d.bairro)bai.value=d.bairro;
+    if(h)h.textContent=`${d.localidade} - ${d.uf}. ${d.logradouro?"Complete com o número, quadra e lote.":"CEP da cidade toda: escreva a rua e o número."}`;
+    calcFrete();
+  }catch(e){if(h)h.textContent="Não deu pra buscar o CEP agora. Escreva o endereço."}
+}
 const servicoDe=()=>Math.round(total()*10)/100;
 function totAtual(){const r=$("dl-tot-r");if(!r)return;const app=true;
   if(!frete&&!app){r.hidden=true;return}
@@ -345,7 +369,11 @@ async function calcFrete(){
   const end=$("dl-end").value.trim(),bairro=$("dl-bairro").value.trim(),n=++freteN;frete=null;
   if(end.length<5){$("dl-fr").textContent="coloque o endereço";$("dl-tot-r").hidden=true;return}
   $("dl-fr").textContent="calculando…";
-  const pt=window.cxGeo?await cxGeo.ponto([end,bairro,"Goiânia","GO"].filter(Boolean).join(", ")):null;if(n!==freteN)return;
+  const cid=cepInfo?[cepInfo.localidade,cepInfo.uf]:["Goiânia","GO"];
+  const pc=cepInfo?await cepPonto(cepInfo.cep):null;if(n!==freteN)return;
+  let pt=window.cxGeo?await cxGeo.ponto([end.replace(/,\s*$/,""),bairro,...cid].filter(Boolean).join(", ")).catch(()=>null):null;if(n!==freteN)return;
+  // o nome da rua caiu longe do CEP (mais de 1 km)? confia no CEP
+  if(pc&&(!pt||Math.hypot((pt.lat-pc.lat)*111,(pt.lng-pc.lng)*107)>1))pt=pc;
   if(!pt){$("dl-fr").textContent="a loja informa";$("dl-tot-r").hidden=true;return}
   const a={lat:loja.lat,lng:loja.lng};let m=window.cxGeo?await cxGeo.rotaMetros(a,pt):null;if(n!==freteN)return;
   if(!m){const R=6371e3,r=x=>x*Math.PI/180,dl=r(pt.lat-a.lat),dn=r(pt.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(pt.lat))*Math.sin(dn/2)**2;m=2*R*Math.asin(Math.sqrt(h))*1.3}
@@ -359,7 +387,8 @@ function enviar(){
   if(end.length<5){toast("Coloque o endereço de entrega");$("dl-end").focus();return}
   if(bairro.length<2){toast("Coloque o bairro");$("dl-bairro").focus();return}
   if(!loja.pix){toast("Essa loja ainda não recebe pedidos pelo app");return}
-  return pagarApp(end,bairro,obs);
+  const cep=cepInfo&&!/CEP/i.test(end)?` — CEP ${cepInfo.cep.slice(0,5)}-${cepInfo.cep.slice(5)}`:"";
+  return pagarApp(end+cep,bairro,obs);
 }
 document.addEventListener("click",e=>{
   if(e.target.closest("#pc-tenho-loja2")){window.cxNavUser=Date.now();go("perfilc");const b=$("pc-tenho-loja");if(b)setTimeout(()=>b.click(),50);return}
