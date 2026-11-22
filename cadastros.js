@@ -28,7 +28,6 @@ function pinta(){
     const vs=(p.veiculos||[]).map(v=>VEI[v]||v).join(", ");
     const tags=[
       ehMoto(p)?(p.documentos?'<span class="ok">✓ Documentos</span>':'<span class="pend">Sem documentos</span>'):"",
-      ehMoto(p)?(p.mp?'<span class="ok">✓ Mercado Pago</span>':'<span class="pend">Sem Mercado Pago</span>'):"",
       p.bloqueado?'<span class="pend">Bloqueado</span>':""].join("");
     const w=String(p.whats||"").replace(/\D/g,"");
     return `<div class="adm-it cad-it"><div class="cad-l1"><span class="t">${esc(p.loja&&p.loja_nome?p.loja_nome:p.nome||"(sem nome)")}</span><span class="cad-tp ${ehMoto(p)?"m":"e"}">${rotulo(p)}</span></div>
@@ -55,9 +54,9 @@ async function carregar(){
 }
 function planilha(){
   const f=filtrados(),q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const linhas=[["Nome","Tipo","Loja","Bairro","WhatsApp","E-mail","Veículos","CNH / placa","Documentos","Mercado Pago","Bloqueado","Entregas","Pedidos","Cadastro","Último acesso"],
+  const linhas=[["Nome","Tipo","Loja","Bairro","WhatsApp","E-mail","Veículos","CNH / placa","Documentos","Bloqueado","Entregas","Pedidos","Cadastro","Último acesso"],
     ...f.map(p=>[p.nome,rotulo(p),p.loja_nome,p.bairro,fone(p.whats),p.email,(p.veiculos||[]).map(v=>VEI[v]||v).join(", "),p.docs_veiculo,
-      p.documentos?"Sim":"Não",p.mp?"Sim":"Não",p.bloqueado?"Sim":"Não",p.entregas,p.pedidos,data(p.criado_em),data(p.ultimo_acesso)])];
+      p.documentos?"Sim":"Não",p.bloqueado?"Sim":"Não",p.entregas,p.pedidos,data(p.criado_em),data(p.ultimo_acesso)])];
   const csv="﻿"+linhas.map(l=>l.map(q).join(";")).join("\r\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
   a.download=`cadastros-cadernex-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();

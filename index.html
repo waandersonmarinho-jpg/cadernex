@@ -446,7 +446,9 @@ code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:14px}
 label.check{min-height:40px;align-items:center}
 .prod-ac .link{padding:0 6px!important}
 
-/* apresentação: receber pelo Mercado Pago */
+/* apresentação: receber no Pix (Woovi) */
+.pix-chave{display:flex;flex-direction:column;gap:2px;background:var(--bg);border-radius:12px;padding:12px 14px;box-shadow:inset 0 0 0 1px var(--line)}.pix-chave small{font-size:12px;color:var(--muted)}.pix-chave b{font:700 18px var(--display)}
+.disp-pix{margin:0;font-size:13px;color:var(--good)}
 .mpi{display:flex;flex-direction:column;gap:14px;border-color:var(--accent);background:linear-gradient(160deg,var(--accent-soft),var(--surface) 55%)}
 .mpi-t{font-size:26px;margin:0;line-height:1.1}.mpi-t span{color:var(--accent)}
 .mpi-lead{margin:0;font-size:15px;color:var(--fg)}
@@ -952,6 +954,7 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
           </div>
           <label>Sua região<input type="text" id="dp-reg" placeholder="ex.: Centro, zona sul"></label>
           <button class="btn full" type="submit">Ficar disponível pra corridas</button>
+          <p class="hint disp-pix" id="dp-pix" hidden>✅ Pagamento automático ativo: suas corridas caem direto no Pix do seu CPF cadastrado.</p>
           <p class="hint" style="margin:0">Quem pede vê seu primeiro nome, o veículo, a região e uma posição aproximada no mapa (uns 400 m), nunca o ponto exato. Saiu do disponível, some do mapa.</p>
         </form>
       </div>
@@ -1484,9 +1487,8 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <div class="card stack" id="cf-mp" hidden>
         <h2>Receber pelo app</h2>
         <p class="hint" id="cf-mp-st" style="margin:0">Carregando…</p>
-        <button class="btn full" id="cf-mp-btn" type="button">Conectar Mercado Pago</button>
-        <button class="link" id="cf-mp-off" type="button" hidden style="align-self:flex-start">Desconectar</button>
-        <p class="hint" style="margin:0;font-size:12px">Só para as vendas da loja pelo app. O Cadernex nunca vê sua senha do Mercado Pago.</p>
+        <div class="pix-chave" id="cf-mp-chave" hidden><small>Sua chave Pix</small><b class="num" id="cf-mp-num"></b></div>
+        <p class="hint" style="margin:0;font-size:12px">Os pagamentos caem automaticamente na sua chave Pix (CPF/CNPJ) cadastrada no momento da confirmação, já descontada a taxa do app. Processamento seguro via Woovi.</p>
       </div>
       <div class="card stack" id="cf-push">
         <h2>Notificações</h2>
@@ -1608,14 +1610,15 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
           <div class="mpi-voce"><small>Você recebe</small><b class="num">R$ 13,80</b></div>
           <p>O cliente paga R$ 19,09 pelo app (corrida + 14% de serviço + R$ 1,99 do app). Dos R$ 15,00, o Cadernex fica com 8% (R$ 1,20).</p>
         </div>
+        <p class="mpi-lead">Receba direto no seu Pix, na hora. Sem precisar abrir conta em outro banco nem conectar aplicativo. O pagamento é dividido automaticamente no momento em que o cliente paga:</p>
         <ol class="mpi-passos">
-          <li><b>Tenha uma conta no Mercado Pago</b><span>É grátis e abre pelo celular, com seu CPF. Se já tem, pule este passo.</span></li>
-          <li><b>Toque em Conectar</b><span>Você entra com seu login do Mercado Pago e autoriza o Cadernex. Sua senha fica só lá.</span></li>
-          <li><b>Pronto, é só rodar</b><span>Cliente paga pelo app e o dinheiro cai na sua conta. Sem esperar repasse do Cadernex.</span></li>
+          <li><b>Sua chave Pix já é o seu CPF</b><span>O dinheiro cai direto no seu CPF, em qualquer banco que você use.</span></li>
+          <li><b>Aceite e faça a entrega</b><span>O sistema separa a taxa da plataforma e envia a sua parte direto para você.</span></li>
+          <li><b>Caiu na conta na hora</b><span>Sem esperar fechamento de semana ou pedir saque manual.</span></li>
         </ol>
         <p class="mpi-classe">Taxa baixa é pra fortalecer a classe: quem roda fica com o valor da corrida, quem pede paga um preço justo, e a tabela de valor justo ajuda ninguém a trabalhar abaixo do custo.</p>
-        <button class="btn full" type="button" id="mpi-con">Conectar meu Mercado Pago</button>
-        <div class="mpi-rodape"><a class="link" href="https://www.mercadopago.com.br/" target="_blank" rel="noopener">Ainda não tenho conta</a><button class="link" type="button" id="mpi-depois">Agora não</button></div>
+        <button class="btn full" type="button" id="mpi-con" data-go="resumo">Conferir minha chave Pix</button>
+        <div class="mpi-rodape"><span></span><button class="link" type="button" id="mpi-depois">Agora não</button></div>
       </div>
       <p class="warn co-erro" hidden>Não deu pra carregar agora. Confira a internet e tente de novo em alguns minutos.</p>
       <div class="card bloq" hidden><h2>Conta bloqueada para análise</h2><p>Você recebeu 3 relatos de problema em corridas. Enquanto a análise não termina, você não pode ficar disponível. Seu controle financeiro continua funcionando normal.</p><p class="hint bloq-mot"></p>
