@@ -58,6 +58,8 @@ const hmOf=iso=>hm(new Date(iso));
 const ponto=(lat,lng,end)=>lat!=null&&lng!=null?`${lat},${lng}`:end;
 const wazeQ=(lat,lng,end)=>lat!=null&&lng!=null?`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`:`https://waze.com/ul?q=${encodeURIComponent(end)}&navigate=yes`;
 const mapsQ=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+const mapsNav=(dest,v)=>`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=${v==="bike"?"bicycling":"driving"}&dir_action=navigate`;
+const IC_NAV='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z"/></svg>';
 const mapsRota=(a,b,v)=>`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(a)}&destination=${encodeURIComponent(b)}&travelmode=${v==="bike"?"bicycling":"driving"}`;
 function km(a,b,c,d){if([a,b,c,d].some(x=>x==null||x===""))return null;const R=6371,r=x=>x*Math.PI/180;const dl=r(c-a),dn=r(d-b);const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return Math.round(R*2*Math.asin(Math.sqrt(h))*1.3*10)/10} // ×1.3: ruas não são linha reta
 const MOT={nao_entregou:"Não entregou",atraso:"Atraso grande",avaria:"Encomenda danificada",cobranca:"Cobrou a mais",conduta:"Falta de respeito",nao_pagou:"Não pagou",endereco:"Endereço errado",item_proibido:"Item proibido"};
@@ -139,6 +141,10 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   if(d){const a=ponto(d.coleta_lat,d.coleta_lng,d.coleta_end),b=ponto(d.entrega_lat,d.entrega_lng,d.entrega_end);
     h+=`<div class="corr-end"><div><span class="eyebrow">Coleta</span><p>${esc(d.coleta_end)}</p><div class="mlinks"><a class="mbtn" href="${mapsQ(a)}" target="_blank" rel="noopener">Maps</a><a class="mbtn" href="${wazeQ(d.coleta_lat,d.coleta_lng,d.coleta_end)}" target="_blank" rel="noopener">Waze</a></div></div><div><span class="eyebrow">Entrega</span><p>${esc(d.entrega_end)}</p><div class="mlinks"><a class="mbtn" href="${mapsQ(b)}" target="_blank" rel="noopener">Maps</a><a class="mbtn" href="${wazeQ(d.entrega_lat,d.entrega_lng,d.entrega_end)}" target="_blank" rel="noopener">Waze</a></div></div></div>
     <a class="btn ghost full" href="${mapsRota(a,b,c.veiculo)}" target="_blank" rel="noopener">Ver rota completa no Maps</a>`;
+    if(papel==="ent"&&ativo){const col=c.status==="aceita",dest=col?a:b,wz=col?wazeQ(d.coleta_lat,d.coleta_lng,d.coleta_end):wazeQ(d.entrega_lat,d.entrega_lng,d.entrega_end);
+      h+=`<div class="nav-gps"><a class="btn full" href="${mapsNav(dest,c.veiculo)}" target="_blank" rel="noopener">${IC_NAV}Ir pra ${col?"coleta":"entrega"} no Google Maps</a>
+      <a class="btn ghost full" href="${wz}" target="_blank" rel="noopener">Abrir no Waze</a>
+      <small class="hint">Abre o GPS com a voz guiando. Quando chegar, volte pro Cadernex pra digitar o código.</small></div>`}
     if(d.contato)h+=`<p class="corr-pessoa">Contato: <a href="tel:${esc(d.contato.replace(/[^\d+]/g,""))}">${esc(d.contato)}</a></p>`;
     if(d.obs)h+=`<p class="hint" style="margin:0">Obs.: ${esc(d.obs)}</p>`;}
   else if(papel==="ent"&&c.status==="aberta")h+=`<p class="hint" style="margin:0">O endereço completo aparece depois que você aceitar.</p>`;
