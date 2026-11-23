@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
           saiu: "Saiu pra entrega! Tenha o código de entrega em mãos",
           entregue: "Pedido entregue ✓ Obrigado por comprar no Cadernex",
         };
+        if (c?.retirada) { T.aceito = "A loja aceitou e já está separando"; T.saiu = "Seu pedido está pronto! Vá buscar na loja com o código de retirada"; T.entregue = "Pedido retirado ✓ Obrigado por comprar no Cadernex"; }
         if (T[c?.status]) { alvo = [c.cliente_id]; msg = { titulo: `Seu pedido${num}`, corpo: T[c.status], url: "./", tag: "meuped-" + c.id }; }
       }
     } else if (t === "encomendas") {

@@ -1,6 +1,6 @@
 // Cadernex — woovi-pedido: cria o Pix de um pedido do delivery (produtos da loja).
 // Cliente paga: produtos + 10% de serviço + entrega (+ taxa do Pix).
-// A loja recebe na hora, no Pix dela: produtos − 12% (+ entrega, só se ela tiver entregador próprio).
+// A loja recebe na hora, no Pix dela: produtos − 12%. Retirada na loja: sem entrega.
 // Entrega automática: a parte da entrega fica na Cadernex e paga o motoboy quando ele entrega (woovi-repasse).
 // O Cadernex fica com 10% + 12%. Os preços são conferidos aqui no servidor.
 // Segredo: WOOVI_APP_ID. Publicar com "Verify JWT" LIGADO (padrão).
@@ -82,17 +82,19 @@ Deno.serve(async (req) => {
 
     const lojaId = String(b.loja_id || "");
     const itensPed: { id: string; n: number; op?: string }[] = Array.isArray(b.itens) ? b.itens : [];
-    const endereco = String(b.endereco || "").trim().slice(0, 160);
-    const bairro = String(b.bairro || "").trim().slice(0, 60);
+    const retirada = b.retirada === true; // cliente busca na loja: sem entrega
+    let endereco = String(b.endereco || "").trim().slice(0, 160);
+    let bairro = String(b.bairro || "").trim().slice(0, 60);
     const obs = String(b.obs || "").trim().slice(0, 160);
     let entrega = Number(b.entrega || 0);
-    if (!endereco || endereco.length < 5) return json({ erro: "Coloque o endereço de entrega." }, 400);
+    if (retirada) entrega = 0;
+    if (!retirada && (!endereco || endereco.length < 5)) return json({ erro: "Coloque o endereço de entrega." }, 400);
     if (!itensPed.length || itensPed.length > 50) return json({ erro: "Seu carrinho está vazio." }, 400);
-    if (!(entrega >= 0 && entrega <= 150)) entrega = 0;
+    if (!(entrega >= 0 && entrega <= 150) || retirada) entrega = 0;
     if (lojaId === user.id) return json({ erro: "Você não pode comprar da sua própria loja." }, 400);
 
     const { data: loja } = await admin.from("perfis")
-      .select("user_id,loja,loja_nome,loja_aberta,loja_pix,bloqueado,loja_lat,loja_lng,loja_entrega_propria").eq("user_id", lojaId).maybeSingle();
+      .select("user_id,loja,loja_nome,loja_aberta,loja_pix,bloqueado,loja_lat,loja_lng,loja_end,loja_bairro").eq("user_id", lojaId).maybeSingle();
     if (!loja?.loja || loja.bloqueado) return json({ erro: "Essa loja não está disponível." }, 400);
     if (loja.loja_aberta === false) return json({ erro: "A loja está fechada agora." }, 400);
     if (!loja.loja_pix) return json({ erro: "Essa loja ainda não recebe pelo app. Pague na entrega pelo WhatsApp." }, 400);
@@ -126,7 +128,10 @@ Deno.serve(async (req) => {
     let entregaApp = false, corridaValor: number | null = null, km: number | null = null;
     const dLat = Number(b.lat), dLng = Number(b.lng);
     const temDest = isFinite(dLat) && isFinite(dLng) && Math.abs(dLat) > 0.1;
-    if (!loja.loja_entrega_propria && loja.loja_lat != null && (temDest || Number(b.km) > 0)) {
+    if (retirada) {
+      endereco = ("Retirar na loja" + (loja.loja_end ? ": " + loja.loja_end : "")).slice(0, 160);
+      bairro = String(loja.loja_bairro || "").slice(0, 60);
+    } else if (loja.loja_lat != null && (temDest || Number(b.km) > 0)) {
       let k = Math.max(0, Math.min(60, Number(b.km) || 0));
       if (temDest) {
         const R = 6371, rd = (x: number) => x * Math.PI / 180;
@@ -151,7 +156,8 @@ Deno.serve(async (req) => {
     const { data: ped, error: e1 } = await admin.from("pedidos_loja").insert({
       loja_id: lojaId, cliente_id: user.id, itens, subtotal, servico, entrega, comissao, total, repasse,
       cliente_nome: cli?.nome || null, cliente_whats: cli?.telefone || null, endereco, bairro, obs,
-      entrega_app: entregaApp, corrida_valor: corridaValor, km, dest_lat: temDest ? dLat : null, dest_lng: temDest ? dLng : null,
+      entrega_app: entregaApp, corrida_valor: corridaValor, km, dest_lat: temDest && !retirada ? dLat : null, dest_lng: temDest && !retirada ? dLng : null,
+      ...(retirada ? { retirada: true } : {}),
     }).select("id").single();
     if (e1) throw e1;
 
