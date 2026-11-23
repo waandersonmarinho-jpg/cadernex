@@ -42,6 +42,7 @@ function vitrineAbrir(id){
   ["s-setup","s-auth","s-dados","s-app"].forEach(k=>{const x=$(k);if(x)x.hidden=true});sv.hidden=false;
   abrirLoja(id);
 }
+function notasLojas(){if(window.cxNotas&&lojas&&lojas.length)cxNotas(lojas.map(l=>l.id)).then(()=>{if(!loja)cliRender()})}
 // quem não tem conta toca em "Delivery" na página inicial: vê a lista de lojas
 async function vitrineLista(){
   const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv||!cli)return;
@@ -221,15 +222,15 @@ let lojas=null,loja=null,cardapio=[],cart={};
 try{const c=JSON.parse(sessionStorage.getItem(CART_KEY)||"null");if(c&&c.loja&&c.q)cart=c}catch(e){}
 const salvaCart=()=>{try{sessionStorage.setItem(CART_KEY,JSON.stringify(cart))}catch(e){}};
 async function lojasLoad(){if(!sb)return;
-  if(!uid){if(!publico)return;const r=await sb.rpc("lojas_vitrine_publica");lojas=r.error?[]:(r.data||[]);if(!loja)cliRender();return}
-  const r=await sb.rpc("lojas_publicas");lojas=r.error?[]:(r.data||[]).filter(l=>l.id!==uid);if(!loja)cliRender()}
+  if(!uid){if(!publico)return;const r=await sb.rpc("lojas_vitrine_publica");lojas=r.error?[]:(r.data||[]);if(!loja)cliRender();notasLojas();return}
+  const r=await sb.rpc("lojas_publicas");lojas=r.error?[]:(r.data||[]).filter(l=>l.id!==uid);if(!loja)cliRender();notasLojas()}
 function cliRender(){
   const w=$("dl-cli");if(!w)return;
   if(loja)return cardRender();
   if(lojas==null){w.innerHTML=`<p class="hint">Carregando as lojas…</p>`;return}
   w.innerHTML=`<div class="dl-hero"><img src="delivery-hero.jpg" alt="Motoboy do Cadernex Delivery com pizza, hambúrguer e sacolas prontas pra entrega" width="848" height="600" loading="lazy" decoding="async"><div class="dl-hero-t"><b>Bateu a fome? A gente leva.</b><span>Pizza, lanche, mercado e mais · Pix pelo app e entrega com código</span></div></div>`+meusPedHtml()+(lojas.length?`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
     ${lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}">${l.logo_v?logoHtml(l.id,l.nome,l.logo_v,"dl-lj-i dl-lj-logo"):`<span class="dl-lj-i">${IC.loja}</span>`}
-      <span class="dl-lj-t"><b>${esc(l.nome)}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
+      <span class="dl-lj-t"><b>${esc(l.nome)}${window.cxNotaTxt&&cxNotaTxt(l.id)?` <span class="dl-nota">${cxNotaTxt(l.id)}</span>`:""}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")}</div>`:"");
 }
 async function abrirLoja(id){if(publico&&$("vt-sub"))$("vt-sub").textContent="Cardápio da loja";
@@ -465,6 +466,7 @@ async function meusPedLoad(){if(!sb||!uid)return;let r=await sb.from("pedidos_lo
   if(ab.length){const k=await sb.from("pedido_loja_codigos").select("pedido_id,codigo").in("pedido_id",ab);if(!k.error)(k.data||[]).forEach(x=>meusCod[x.pedido_id]=x.codigo)}
   if(!meusCanal){try{meusCanal=sb.channel("mp-"+uid).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`cliente_id=eq.${uid}`},m=>{
     const T={aceito:"A loja aceitou seu pedido ✓",saiu:"Seu pedido saiu pra entrega! Tenha o código em mãos.",entregue:"Pedido entregue ✓"};
+    if(m.new&&m.new.status==="entregue"&&window.cxAvaliar)setTimeout(cxAvaliar,2500);
     if(m.new&&m.old&&m.new.status!==m.old.status&&T[m.new.status]){toast(T[m.new.status]);if(window.alertaPedido)alertaPedido(m.new,T[m.new.status])}
     meusPedLoad()}).subscribe()}catch(e){}}
   if(!loja)cliRender()}
@@ -631,7 +633,7 @@ async function despachar(p,m,valor,k,aj){
 document.addEventListener("submit",e=>{const f=e.target.closest("[data-pdent]");if(!f)return;e.preventDefault();
   const i=f.querySelector("input"),b=f.querySelector("button"),cod=so(i.value);if(cod.length!==4){toast("O código tem 4 números");i.focus();return}
   b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_entregar",{pid:f.dataset.pdent,cod});b.disabled=false;
-    if(r.error){i.value="";i.focus();throw Object.assign(r.error,{cxMsg:r.error.message})}await pedLojaLoad()},"Pedido entregue ✓ Código conferido")});
+    if(r.error){i.value="";i.focus();throw Object.assign(r.error,{cxMsg:r.error.message})}await pedLojaLoad();if(window.cxAvaliar)setTimeout(cxAvaliar,1500)},"Pedido entregue ✓ Código conferido")});
 function pedStatus(id,novo,b){b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_status",{pid:id,novo});b.disabled=false;if(r.error)throw Object.assign(r.error,{cxMsg:r.error.message});await pedLojaLoad()},novo==="aceito"?"Pedido aceito ✓":novo==="saiu"?"Cliente avisado: saiu pra entrega":"Pedido entregue ✓")}
 
 /* ---------- ligações com o resto do app ---------- */
