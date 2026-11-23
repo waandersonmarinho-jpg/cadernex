@@ -42,6 +42,17 @@ function vitrineAbrir(id){
   ["s-setup","s-auth","s-dados","s-app"].forEach(k=>{const x=$(k);if(x)x.hidden=true});sv.hidden=false;
   abrirLoja(id);
 }
+// quem não tem conta toca em "Delivery" na página inicial: vê a lista de lojas
+async function vitrineLista(){
+  const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv||!cli)return;
+  if(!cliCasa)cliCasa={pai:cli.parentNode,depois:cli.nextSibling};
+  $("vt-slot").appendChild(cli);publico=true;document.documentElement.classList.add("vitrine");document.title="Cadernex Delivery: lojas de Goiânia";if($("vt-sub"))$("vt-sub").textContent="Lojas de Goiânia";
+  ["s-setup","s-auth","s-dados","s-app"].forEach(k=>{const x=$(k);if(x)x.hidden=true});sv.hidden=false;scrollTo(0,0);
+  loja=null;lojas=null;cliRender();
+  for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));
+  await lojasLoad();if(lojas&&!lojas.length)cli.innerHTML+=`<div class="card"><p class="hint" style="margin:0">As lojas estão chegando. Volte em breve!</p></div>`;
+}
+window.cxVitrineLista=vitrineLista;
 function vitrineFechar(){
   const sv=$("s-vitrine"),cli=$("dl-cli");if(!sv)return;sv.hidden=true;
   if(publico&&cliCasa&&cli){cliCasa.pai.insertBefore(cli,cliCasa.depois);publico=false;loja=null;document.documentElement.classList.remove("vitrine");document.title="Cadernex Entregas: motoboy, delivery e fretes em Goiânia"}
@@ -209,7 +220,9 @@ V.addEventListener("change",e=>{if(e.target.id!=="dl-file2")return;const x=e.tar
 let lojas=null,loja=null,cardapio=[],cart={};
 try{const c=JSON.parse(sessionStorage.getItem(CART_KEY)||"null");if(c&&c.loja&&c.q)cart=c}catch(e){}
 const salvaCart=()=>{try{sessionStorage.setItem(CART_KEY,JSON.stringify(cart))}catch(e){}};
-async function lojasLoad(){if(!sb||!uid)return;const r=await sb.rpc("lojas_publicas");lojas=r.error?[]:(r.data||[]).filter(l=>l.id!==uid);if(!loja)cliRender()}
+async function lojasLoad(){if(!sb)return;
+  if(!uid){if(!publico)return;const r=await sb.rpc("lojas_vitrine_publica");lojas=r.error?[]:(r.data||[]);if(!loja)cliRender();return}
+  const r=await sb.rpc("lojas_publicas");lojas=r.error?[]:(r.data||[]).filter(l=>l.id!==uid);if(!loja)cliRender()}
 function cliRender(){
   const w=$("dl-cli");if(!w)return;
   if(loja)return cardRender();
@@ -219,7 +232,7 @@ function cliRender(){
       <span class="dl-lj-t"><b>${esc(l.nome)}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")}</div>`:"");
 }
-async function abrirLoja(id){
+async function abrirLoja(id){if(publico&&$("vt-sub"))$("vt-sub").textContent="Cardápio da loja";
   for(let i=0;i<40&&!sb;i++)await new Promise(r=>setTimeout(r,150));if(!sb)return;
   if(!UUID.test(id)){id=await idDoLink(id);if(!id){if(publico)$("dl-cli").innerHTML=`<div class="card"><p class="hint" style="margin:0">Não achamos essa loja. Confira o link com a loja.</p></div>`;else toast("Não achamos essa loja");return}}
   const v=await sb.rpc("loja_vitrine",{lid:id});let l=!v.error&&v.data&&v.data[0];
@@ -403,7 +416,7 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#pc-tenho-loja2")){window.cxNavUser=Date.now();go("perfilc");const b=$("pc-tenho-loja");if(b)setTimeout(()=>b.click(),50);return}
   if(!e.target.closest("#dl-cli"))return;
   const lj=e.target.closest("[data-dlloja]");if(lj){abrirLoja(lj.dataset.dlloja);return}
-  if(e.target.closest("[data-dlvolta]")){loja=null;cliRender();scrollTo(0,0);return}
+  if(e.target.closest("[data-dlvolta]")){loja=null;if(publico&&$("vt-sub"))$("vt-sub").textContent="Lojas de Goiânia";cliRender();scrollTo(0,0);if(lojas==null)lojasLoad();return}
   const ir=e.target.closest("[data-dlir]");if(ir){$("dl-sec-"+ir.dataset.dlir)?.scrollIntoView({behavior:"smooth",block:"start"});return}
   const ma=e.target.closest("[data-dlmais]");if(ma){cart.q[ma.dataset.dlmais]=(cart.q[ma.dataset.dlmais]||0)+1;salvaCart();const y=scrollY;cardRender();scrollTo(0,y);return}
   const me=e.target.closest("[data-dlmenos]");if(me){const k=me.dataset.dlmenos;cart.q[k]=Math.max(0,(cart.q[k]||0)-1);if(!cart.q[k])delete cart.q[k];salvaCart();const y=scrollY;cardRender();scrollTo(0,y);return}

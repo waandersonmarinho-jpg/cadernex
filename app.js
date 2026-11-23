@@ -82,7 +82,8 @@ function auAba(n){const t=$("au-inicio"),e=$("au-entrar");if(!t||!e)return;t.hid
   document.querySelectorAll(".au-tabs [data-aba]").forEach(b=>b.setAttribute("aria-selected",b.dataset.aba===n));
   try{sessionStorage.setItem("cx-aba",n)}catch(x){}window.scrollTo({top:0,behavior:"smooth"})}
 window.auAba=auAba;
-document.addEventListener("click",ev=>{const a=ev.target.closest("#s-auth [data-aba],.hd-entrar");if(a){auAba(a.dataset.aba);if(a.dataset.aba==="entrar"&&modo!=="entrar")setModo("entrar");return}
+document.addEventListener("click",ev=>{if(ev.target.closest("#s-auth [data-vtlista]")){if(window.cxVitrineLista)cxVitrineLista();return}
+  const a=ev.target.closest("#s-auth [data-aba],.hd-entrar");if(a){auAba(a.dataset.aba);if(a.dataset.aba==="entrar"&&modo!=="entrar")setModo("entrar");return}
   const c=ev.target.closest("#s-auth [data-cta]");if(!c)return;
   $("a-tipo").querySelectorAll("[data-tipo]").forEach(x=>x.setAttribute("aria-checked",x.dataset.tipo===c.dataset.cta));setModo("criar");setTimeout(()=>{try{$("a-nome").focus({preventScroll:true})}catch(x){}},350)});
 {let ab="inicio";try{ab=sessionStorage.getItem("cx-aba")||ab}catch(x){}if(location.search||/pedir|entrar/.test(location.hash))ab="entrar";auAba(ab)}
