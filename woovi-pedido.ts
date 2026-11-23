@@ -18,6 +18,7 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+let recursoOff = false; // a Woovi respondeu "feature not enabled" (subconta/split não liberado na conta)
 async function woovi(path: string, init: RequestInit = {}) {
   const r = await fetch(API + path, {
     ...init,
@@ -48,7 +49,7 @@ async function subconta(admin: SupabaseClient, uid: string, chaves: string[], no
     if (!ok) {
       const g = await woovi(`/subaccount/${encodeURIComponent(chave)}`);
       ok = g.ok;
-      if (!ok) console.error("woovi-pedido subconta", chave.length === 14 ? "CNPJ" : "CPF", c.status, JSON.stringify(c.b));
+      if (!ok) { console.error("woovi-pedido subconta", chave.length === 14 ? "CNPJ" : "CPF", c.status, JSON.stringify(c.b)); if (c.status === 403) { recursoOff = true; return null; } }
     }
     if (ok) { await admin.from("woovi_subcontas").upsert({ user_id: uid, pix_key: chave }); return chave; }
   }
@@ -57,6 +58,7 @@ async function subconta(admin: SupabaseClient, uid: string, chaves: string[], no
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  recursoOff = false;
   try {
     if (!Deno.env.get("WOOVI_APP_ID")) return json({ erro: "O pagamento pelo app ainda não foi ligado." }, 503);
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -73,7 +75,7 @@ Deno.serve(async (req) => {
       const ch = chavesDe(d);
       if (!ch.length) return json({ erro: "Cadastre uma chave Pix ou complete o CPF/CNPJ do seu cadastro." }, 400);
       const ok = await subconta(admin, user.id, ch, d?.empresa_nome || me?.loja_nome || d?.nome_completo || "Loja Cadernex");
-      if (!ok) return json({ erro: "O banco não encontrou essa chave Pix. Confira se ela está cadastrada no app do seu banco." }, 400);
+      if (!ok) return json({ erro: recursoOff ? "O recebimento pelo app ainda está sendo liberado pelo Cadernex. Tente de novo mais tarde." : "O banco não encontrou essa chave Pix. Confira se ela está cadastrada no app do seu banco." }, 400);
       return json({ ok: true, chave: ok });
     }
 
@@ -119,7 +121,7 @@ Deno.serve(async (req) => {
 
     const chave = await subconta(admin, lojaId, chaves, dl?.empresa_nome || loja.loja_nome || dl?.nome_completo || "Loja Cadernex");
     if (!chave) {
-      return json({ erro: "O Pix dessa loja ainda não está pronto: o CPF/CNPJ dela precisa estar cadastrado como chave Pix no banco. Avise a loja." }, 502);
+      return json({ erro: recursoOff ? "O pagamento pelo app está em liberação. Tente de novo mais tarde." : "O Pix dessa loja ainda não está pronto: o CPF/CNPJ dela precisa estar cadastrado como chave Pix no banco. Avise a loja." }, 502);
     }
     const { data: cli } = await admin.from("perfis").select("nome,telefone").eq("user_id", user.id).maybeSingle();
     const { data: ped, error: e1 } = await admin.from("pedidos_loja").insert({

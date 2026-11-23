@@ -23,6 +23,7 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+let recursoOff = false; // a Woovi respondeu "feature not enabled" (subconta/split não liberado na conta)
 async function woovi(path: string, init: RequestInit = {}) {
   const r = await fetch(API + path, {
     ...init,
@@ -40,7 +41,7 @@ async function subconta(admin: SupabaseClient, uid: string, cpf: string, nome: s
   const c = await woovi("/subaccount", { method: "POST", body: JSON.stringify({ pixKey: cpf, name: nome.slice(0, 60) }) });
   if (!c.ok) {
     const g = await woovi(`/subaccount/${encodeURIComponent(cpf)}`);
-    if (!g.ok) { console.error("woovi-subconta", c.status, JSON.stringify(c.b)); return false; }
+    if (!g.ok) { console.error("woovi-subconta", c.status, JSON.stringify(c.b)); if (c.status === 403) recursoOff = true; return false; }
   }
   await admin.from("woovi_subcontas").upsert({ user_id: uid, pix_key: cpf });
   return true;
@@ -48,6 +49,7 @@ async function subconta(admin: SupabaseClient, uid: string, cpf: string, nome: s
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  recursoOff = false;
   try {
     if (!Deno.env.get("WOOVI_APP_ID")) return json({ erro: "O pagamento pelo app ainda não foi ligado no servidor." }, 503);
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -76,7 +78,7 @@ Deno.serve(async (req) => {
       return json({ erro: "O Pix desse entregador ainda não está pronto. Fale com ele pela conversa da corrida." }, 400);
     }
     if (!(await subconta(admin, c.entregador_id, cpf, d.nome_completo || "Entregador Cadernex"))) {
-      return json({ erro: "Não deu pra preparar o Pix do entregador agora. Tente de novo em instantes." }, 502);
+      return json({ erro: recursoOff ? "O pagamento pelo app está em liberação. Tente de novo mais tarde." : "Não deu pra preparar o Pix do entregador agora. Tente de novo em instantes." }, 502);
     }
 
     const taxaPix = Number(Deno.env.get("WOOVI_TAXA") || "0.008");
