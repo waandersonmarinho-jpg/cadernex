@@ -5,8 +5,11 @@
 - Como funciona: o cliente informa os CEPs de coleta e entrega e escolhe o que vai enviar. O app calcula a distância e o valor (até 3 km, R$ 8; acima de 3 km, + R$ 1,40 por km rodado). Um entregador próximo aceita e o cliente acompanha pelo GPS.
 - Várias entregas de uma vez: restaurantes, farmácias e lojas colocam um endereço de coleta e vários destinos; cada destino vira uma corrida.
 - Pagamento: só Pix pelo app (Woovi). O entregador fica com 92% da corrida (comissão de 8% do Cadernex a partir de 01/12/2026), direto no Pix do CPF; quem pede paga 14% de taxa de serviço e R$ 1,99 de taxa do app.
+- Delivery das lojas: lanchonetes, padarias, farmácias, açougues, ferragistas e outras lojas criam cardápio com fotos e link próprio. O cliente vê as lojas sem conta (Delivery → Ver as lojas), paga por Pix e o valor cai na hora no Pix da loja, menos 12% dos produtos; o cliente paga 10% de serviço. Cada pedido tem número e código de entrega; a loja recebe alerta no celular a cada pedido pago.
+- Despacho multimodal: com o pedido pronto, a loja escolhe moto, bike, picape ou caminhão, com o preço de cada opção calculado pela distância.
+- Avaliações: no fim de cada entrega, cliente, loja e entregador se avaliam (1 a 5 estrelas). Só a média aparece para os outros.
 - Fretes e mudanças: picape pequena, picape média ou caminhão, com agendamento e ajudantes.
-- Segurança: cadastro com CPF, endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
+- Segurança: cadastro com CPF e foto (selfie do cliente e do entregador, fachada da loja), endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
 - Promotores: autônomos, sem vínculo de emprego, que atuam em todo o Brasil cadastrando lojas. Ganham 2% da taxa do Cadernex sobre cada loja durante 24 meses, a partir da 2ª entrega paga pelo app (a 1ª é da fidelidade da loja com o Cadernex), com saque semanal por Pix a partir de R$ 5. Cadastro grátis, escolhendo "Promover" ao criar a conta, com nome, CPF e aceite do Termo do Promotor Autônomo (https://cadernex.com.br/termo-promotor.html). Cada loja tem uma conta só, e conta de loja não pode ser promotor.
 - Abrangência: todo o Brasil.
 - Suporte: suporte@cadernex.com.br
