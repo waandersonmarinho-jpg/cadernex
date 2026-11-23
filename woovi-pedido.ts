@@ -1,6 +1,7 @@
 // Cadernex — woovi-pedido: cria o Pix de um pedido do delivery (produtos da loja).
 // Cliente paga: produtos + 10% de serviço + entrega (+ taxa do Pix).
-// A loja recebe na hora, no Pix dela (CNPJ ou CPF do cadastro): produtos − 12% + entrega.
+// A loja recebe na hora, no Pix dela: produtos − 12% (+ entrega, só se ela tiver entregador próprio).
+// Entrega automática: a parte da entrega fica na Cadernex e paga o motoboy quando ele entrega (woovi-repasse).
 // O Cadernex fica com 10% + 12%. Os preços são conferidos aqui no servidor.
 // Segredo: WOOVI_APP_ID. Publicar com "Verify JWT" LIGADO (padrão).
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -91,7 +92,7 @@ Deno.serve(async (req) => {
     if (lojaId === user.id) return json({ erro: "Você não pode comprar da sua própria loja." }, 400);
 
     const { data: loja } = await admin.from("perfis")
-      .select("user_id,loja,loja_nome,loja_aberta,loja_pix,bloqueado").eq("user_id", lojaId).maybeSingle();
+      .select("user_id,loja,loja_nome,loja_aberta,loja_pix,bloqueado,loja_lat,loja_lng,loja_entrega_propria").eq("user_id", lojaId).maybeSingle();
     if (!loja?.loja || loja.bloqueado) return json({ erro: "Essa loja não está disponível." }, 400);
     if (loja.loja_aberta === false) return json({ erro: "A loja está fechada agora." }, 400);
     if (!loja.loja_pix) return json({ erro: "Essa loja ainda não recebe pelo app. Pague na entrega pelo WhatsApp." }, 400);
@@ -115,7 +116,25 @@ Deno.serve(async (req) => {
     const servico = r2(subtotal * SERVICO);
     const comissao = r2(subtotal * COMISSAO);
     entrega = r2(entrega);
-    const repasse = r2(subtotal - comissao + entrega);
+    // Entrega automática: o cliente paga a entrega aqui, a Cadernex guarda e paga o motoboy quando ele entregar.
+    // A distância é conferida aqui (não só no celular). Loja com entregador próprio recebe a entrega, como antes.
+    let entregaApp = false, corridaValor: number | null = null, km: number | null = null;
+    const dLat = Number(b.lat), dLng = Number(b.lng);
+    const temDest = isFinite(dLat) && isFinite(dLng) && Math.abs(dLat) > 0.1;
+    if (!loja.loja_entrega_propria && loja.loja_lat != null && (temDest || Number(b.km) > 0)) {
+      let k = Math.max(0, Math.min(60, Number(b.km) || 0));
+      if (temDest) {
+        const R = 6371, rd = (x: number) => x * Math.PI / 180;
+        const h = Math.sin(rd(dLat - loja.loja_lat) / 2) ** 2 + Math.cos(rd(loja.loja_lat)) * Math.cos(rd(dLat)) * Math.sin(rd(dLng - loja.loja_lng) / 2) ** 2;
+        k = Math.max(k, 2 * R * Math.asin(Math.sqrt(h)) * 1.2); // nunca menos que a linha reta + 20%
+      }
+      km = Math.round(k * 10) / 10;
+      if (km > 40) return json({ erro: "Esse endereço está fora da área de entrega da loja." }, 400);
+      corridaValor = Math.max(8, Math.ceil((8 + 1.4 * Math.max(0, km - 3)) * 2) / 2);
+      entrega = Math.ceil((corridaValor * 1.14 + 1.99) * 2) / 2;
+      entregaApp = true;
+    }
+    const repasse = r2(subtotal - comissao + (entregaApp ? 0 : entrega));
     const taxaPix = Number(Deno.env.get("WOOVI_TAXA") || "0.008");
     const total = Math.ceil(((subtotal + servico + entrega) / (1 - taxaPix)) * 100) / 100;
 
@@ -127,6 +146,7 @@ Deno.serve(async (req) => {
     const { data: ped, error: e1 } = await admin.from("pedidos_loja").insert({
       loja_id: lojaId, cliente_id: user.id, itens, subtotal, servico, entrega, comissao, total, repasse,
       cliente_nome: cli?.nome || null, cliente_whats: cli?.telefone || null, endereco, bairro, obs,
+      entrega_app: entregaApp, corrida_valor: corridaValor, km, dest_lat: temDest ? dLat : null, dest_lng: temDest ? dLng : null,
     }).select("id").single();
     if (e1) throw e1;
 

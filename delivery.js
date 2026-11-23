@@ -115,8 +115,9 @@ function admRender(){
       <button type="button" class="dl-sw${perfil.loja_pix?" on":""}" role="switch" aria-checked="${perfil.loja_pix?"true":"false"}" aria-label="Receber pelo app" data-dlpixsw><i></i></button></div>
     ${perfil.loja_pix?`<p class="hint" style="margin:0"><b class="pix-on">✓ Ligado.</b> Seus clientes pagam por Pix no app e o dinheiro cai na hora na chave Pix abaixo.</p>`
     :`<p class="hint" style="margin:0">O cliente paga por Pix no app e o dinheiro cai <b>na hora</b> na chave Pix da loja. O pedido chega pra você já pago.</p>
-      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88 + a entrega. Quando você chama o motoboy do Cadernex, a corrida tem 14% de serviço + R$ 1,99 de taxa do app.</p>
+      <p class="hint" style="margin:0;font-size:13px">Taxas: o Cadernex fica com <b>12% dos produtos</b>, e o cliente paga <b>10% de serviço</b>. Exemplo: pedido de R$ 100 → você recebe R$ 88. A entrega o cliente paga junto no Pix, e o motoboy do Cadernex leva sem custo pra você.</p>
       <p class="dl-aviso" style="margin:0"><b>Desligado: os clientes só conseguem pedir depois que você ligar.</b></p>`}
+    <label class="dl-ep"><input type="checkbox" data-dlep ${perfil.loja_entrega_propria?"checked":""}><span><b>Tenho entregador próprio</b><small>${perfil.loja_entrega_propria?"Você recebe a entrega junto no Pix e leva o pedido.":"Desligado: o cliente paga a entrega no Pix e o motoboy do Cadernex leva quando você tocar em \"Pedido pronto\"."}</small></span></label>
     <div class="pix-chave"><small>Chave Pix da loja</small><b class="num" id="dl-pixk">${esc(chaveTxt())}</b></div>
     <button class="link" type="button" data-dlpixed style="align-self:flex-start;padding:0">${pixInfo&&pixInfo.pix_chave?"Editar chave Pix":"Usar outra chave Pix"}</button>
     <form id="dl-pixf" class="stack" hidden>
@@ -194,6 +195,10 @@ V.addEventListener("click",e=>{
   if(e.target.closest("[data-dlpixcan]")){$("dl-pixf").hidden=true;return}
   const ps=e.target.closest("[data-pdst]");if(ps){pedStatus(ps.dataset.pdid,ps.dataset.pdst,ps);return}
   const pm=e.target.closest("[data-pdmoto]");if(pm){chamarMoto(pm.dataset.pdmoto,pm);return}
+  const ep=e.target.closest("[data-dlep]");if(ep){const v=ep.checked;safe(async()=>{await savePerfil({loja_entrega_propria:v});admRender()},v?"Entregador próprio: a entrega vai pra você junto com o pedido":"Entrega automática: o motoboy do Cadernex leva, já pago pelo cliente");return}
+  const pp=e.target.closest("[data-pdpronto]");if(pp){pp.disabled=true;pp.textContent="Chamando o motoboy…";
+    safe(async()=>{const r=await sb.rpc("pedido_loja_pronto",{pid:pp.dataset.pdpronto});if(r.error){pp.disabled=false;pp.textContent="✅ Pedido pronto: chamar motoboy";throw Object.assign(r.error,{cxMsg:r.error.message})}
+      if(typeof corrLoad==="function")corrLoad();await pedLojaLoad()},"Motoboy chamado! Avisamos quando alguém aceitar.");return}
   const im=e.target.closest("[data-dlimg]");if(im&&$("dl-adm")&&$("dl-adm").contains(im)){e.stopPropagation();imgAlvo=im.dataset.dlimg;$("dl-file3").click();return}
   if(e.target.closest("[data-dlend]")){salvaEnd();return}
   if(e.target.closest("[data-dlpick]")){$("dl-file").click();return}
@@ -351,7 +356,7 @@ function ckRender(){
     <div id="dl-pix"></div></div>`;
   const modo=()=>{const app=true;
     if($("dl-sv-r"))$("dl-sv-r").hidden=!app;
-    if($("dl-fr-h")&&loja.lat!=null)$("dl-fr-h").textContent=app?"A entrega já vai junto no Pix e fica com a loja, que chama o motoboy.":"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.";
+    if($("dl-fr-h")&&loja.lat!=null)$("dl-fr-h").textContent=app?"A entrega vai junto no Pix. O pedido só é entregue com o seu código.":"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.";
     $("dl-env-b").innerHTML=app?"Pagar com Pix":`${IC.zap}Enviar pedido no WhatsApp da loja`;
     $("dl-env-h").textContent=app?"Você paga agora pelo app. O dinheiro vai direto pra loja, que já recebe o pedido pago.":"A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.";totAtual()};
   modo();
@@ -402,7 +407,7 @@ async function calcFrete(){
   if(!m){const R=6371e3,r=x=>x*Math.PI/180,dl=r(pt.lat-a.lat),dn=r(pt.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(pt.lat))*Math.sin(dn/2)**2;m=2*R*Math.asin(Math.sqrt(h))*1.3}
   const k=Math.round(m/100)/10;
   if(k>40){$("dl-fr").textContent="fora da área: a loja informa";$("dl-tot-r").hidden=true;return}
-  frete={v:freteDe(k),km:k};
+  frete={v:freteDe(k),km:k,lat:pt.lat,lng:pt.lng};
   $("dl-fr").textContent=`${brl(frete.v)} · ${String(k).replace(".",",")} km`;totAtual();
 }
 function enviar(){
@@ -430,7 +435,7 @@ let pedCanal=null;
 async function pagarApp(end,bairro,obs){
   if(window.cxFotoGarante&&!(await cxFotoGarante()))return;
   const b=$("dl-env-b");b.disabled=true;const t=b.innerHTML;b.textContent="Gerando o Pix…";
-  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>({id:x.p.id,n:x.n})),endereco:end,bairro,obs,entrega:frete?frete.v:0}});
+  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>({id:x.p.id,n:x.n})),endereco:end,bairro,obs,entrega:frete?frete.v:0,km:frete?frete.km:null,lat:frete?frete.lat:null,lng:frete?frete.lng:null}});
   b.disabled=false;b.innerHTML=t;
   if(error||!data||!data.brcode){let m=data&&data.erro;if(!m)try{const j=await error.context.json();m=j&&j.erro}catch(x){}toast(m||"Não deu pra gerar o Pix agora. Tente de novo.");return}
   if(uid&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
@@ -540,15 +545,26 @@ function novoPedido(p){
   let a=$("dl-alerta");if(!a){a=document.createElement("button");a.id="dl-alerta";a.type="button";document.body.appendChild(a)}
   a.textContent=t+" · Ver pedido";a.hidden=false;a.onclick=()=>{a.hidden=true;window.cxNavUser=Date.now();go("lojas");setTimeout(()=>{const c=document.querySelector(".dl-ped");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})},300)};
 }
+function acoesPed(p){
+  if(p.status==="pago")return`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`;
+  if(p.entrega_app){ // entrega automática: o cliente já pagou a entrega
+    if(!p.corrida_id&&p.status==="aceito")return`<button class="btn full" type="button" data-pdpronto="${p.id}">✅ Pedido pronto: chamar motoboy</button><small class="hint" style="margin:0">A entrega já foi paga pelo cliente. O motoboy recebe quando entregar, com o código do cliente. Você não paga nada.</small>`;
+    if(p.corrida_id&&["aceito","saiu"].includes(p.status))return`<div class="dl-moto">🛵 Motoboy · ${esc(motoSt(p.corrida_id))}<br><small class="hint">A corrida já está paga. Na coleta, passe o código de coleta que aparece em Pedidos.</small></div>`;
+    return"";
+  }
+  const desp=p.status==="aceito"?(p.corrida_id?`<div class="dl-moto">🚀 Entregador chamado · ${esc(motoSt(p.corrida_id))}<br><small class="hint">Quando ele coletar, o cliente é avisado que saiu pra entrega. Pague a corrida em Pedidos quando ele aceitar.</small></div><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (sem o app)</button>`:`<button class="btn full" type="button" data-pdmoto="${p.id}">🚀 Despachar: moto, bike ou frete</button><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (entregador próprio)</button>`):"";
+  const cod=["aceito","saiu"].includes(p.status)&&!p.corrida_id?`<form class="dl-ent" data-pdent="${p.id}"><input inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Código" aria-label="Código de entrega do cliente" required><button class="btn" type="submit">Entregue ✓</button></form><small class="hint" style="margin:0">Na entrega, peça ao cliente o código de 4 números que aparece no app dele.</small>`:"";
+  return desp+cod;
+}
 function pedLojaHtml(){
   if(!perfil.loja_pix)return"";
   const ativos=pedLoja.filter(p=>p.status!=="entregue"),feitos=pedLoja.filter(p=>p.status==="entregue").slice(0,5);
   const um=p=>{const w=so(p.cliente_whats);return`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(ST[p.status]||p.status)}</span></div>
     <div>${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join("<br>")}</div>
     <small class="hint">Entregar em: ${esc(p.endereco)}${p.bairro?" — "+esc(p.bairro):""}${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>
-    <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex + entrega ${brl(Number(p.entrega))} = <b>você recebe ${brl(Number(p.repasse))}</b>${["enviado","manual"].includes(p.repasse_status)?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}</small>
+    <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex${p.entrega_app?"":` + entrega ${brl(Number(p.entrega))}`} = <b>você recebe ${brl(Number(p.repasse))}</b>${["enviado","manual"].includes(p.repasse_status)?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}${p.entrega_app?` · entrega de ${brl(Number(p.entrega))} paga pelo cliente`:""}</small>
     ${w?`<a class="link" href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp do cliente</a>`:""}
-    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?(p.corrida_id?`<div class="dl-moto">🚀 Entregador chamado · ${esc(motoSt(p.corrida_id))}<br><small class="hint">Quando ele coletar, o cliente é avisado que saiu pra entrega. Pague a corrida em Pedidos quando ele aceitar.</small></div><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (sem o app)</button>`:`<button class="btn full" type="button" data-pdmoto="${p.id}">🚀 Despachar: moto, bike ou frete</button><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (entregador próprio)</button>`):""}${["aceito","saiu"].includes(p.status)&&!p.corrida_id?`<form class="dl-ent" data-pdent="${p.id}"><input inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Código" aria-label="Código de entrega do cliente" required><button class="btn" type="submit">Entregue ✓</button></form><small class="hint" style="margin:0">Na entrega, peça ao cliente o código de 4 números que aparece no app dele.</small>`:""}</div>`};
+    ${acoesPed(p)}</div>`};
   return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Pedidos da loja</h2></div>
     ${ativos.length?ativos.map(um).join(""):`<p class="hint" style="margin:0">Nenhum pedido em andamento. Quando um cliente pagar, ele aparece aqui na hora.</p>`}
     ${feitos.length?`<details><summary class="hint">Entregues (${feitos.length})</summary>${feitos.map(um).join("")}</details>`:""}</div>`;

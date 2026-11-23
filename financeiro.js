@@ -40,9 +40,9 @@ function render(){
   const n=linhas.length,vol=linhas.reduce((s,x)=>s+Number(x.total),0),rep=linhas.reduce((s,x)=>s+Number(x.repasse),0),
     bruto=linhas.reduce((s,x)=>s+Number(x.taxa),0),pix=n*CUSTO_PIX,liq=bruto-pix;
   const por=t=>{const l=linhas.filter(x=>x.tipo===t);return{n:l.length,v:l.reduce((s,x)=>s+Number(x.taxa),0)}};
-  const pend=linhas.filter(x=>!["enviado","manual"].includes(x.repasse_status)).length;
+  const pend=linhas.filter(x=>!["enviado","manual","aguarda_entrega"].includes(x.repasse_status)).length;
   const lista=linhas.slice(0,mostrar).map(x=>{const d=new Date(x.quando);
-    return`<div class="fin-t"><span><b>${TIPO[x.tipo]||x.tipo}${x.numero?" #"+x.numero:""}</b>${["enviado","manual"].includes(x.repasse_status)?"":`<span class="fin-st">repasse ${esc(x.repasse_status||"pendente")}</span>`}<br>
+    return`<div class="fin-t"><span><b>${TIPO[x.tipo]||x.tipo}${x.numero?" #"+x.numero:""}</b>${["enviado","manual"].includes(x.repasse_status)?"":x.repasse_status==="aguarda_entrega"?`<span class="fin-st" style="background:rgba(127,127,127,.15);color:var(--muted)">motoboy recebe na entrega</span>`:`<span class="fin-st">repasse ${esc(x.repasse_status||"pendente")}</span>`}<br>
       <small>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})} ${d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(x.pagador)} → ${esc(x.recebedor)}</small></span>
       <span class="v">+ ${brl(x.taxa)}<small>de ${brl(x.total)}</small></span></div>`}).join("");
   box.innerHTML=`<div class="fin-per" role="group" aria-label="Período">${PER.map(([k,t])=>`<button type="button" data-finp="${k}" aria-pressed="${k===per}">${t}</button>`).join("")}</div>
