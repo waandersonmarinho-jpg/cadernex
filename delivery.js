@@ -449,7 +449,7 @@ function esperaPago(id){
   let fim=false;const ok=()=>{if(fim)return;fim=true;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
     cart={loja:loja.id,q:{}};salvaCart();
     const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox ok"><b>✓ Pago! Seu pedido foi pra loja.</b><p class="hint" style="margin:0">Acompanhe aqui no Delivery, em "Seus pedidos". A loja prepara e chama o motoboy.</p></div>`;
-    toast("Pagamento confirmado ✓");setTimeout(()=>{if(loja){cardRender();meusPedLoad()}},2500)};
+    toast("Pagamento confirmado ✓ Seu código de entrega está em Seus pedidos");setTimeout(()=>{loja=null;meusPedLoad();scrollTo(0,0)},2500)};
   try{pedCanal=sb.channel("ped-"+id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`id=eq.${id}`},m=>{if(m.new&&m.new.status==="pago")ok()}).subscribe()}catch(e){}
   let n=0;const tick=async()=>{if(fim||++n>200)return;const r=await sb.from("pedidos_loja").select("status").eq("id",id).maybeSingle();
     if(r.data&&r.data.status==="pago")return ok();if(r.data&&r.data.status==="expirado"){const s=$("dl-pix-st");if(s)s.textContent="O Pix venceu. Faça o pedido de novo.";return}setTimeout(tick,6000)};setTimeout(tick,6000);
@@ -457,10 +457,19 @@ function esperaPago(id){
 /* cliente: seus pedidos do delivery */
 let meusPed=[];
 const ST={aguardando:"Aguardando pagamento",pago:"Pago · a loja vai aceitar",aceito:"A loja está preparando",saiu:"Saiu pra entrega 🛵",entregue:"Entregue ✓",cancelado:"Cancelado",expirado:"Pix vencido"};
-async function meusPedLoad(){if(!sb||!uid)return;const r=await sb.from("pedidos_loja").select("id,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
-  meusPed=r.error?[]:r.data||[];if(!loja)cliRender()}
+let meusCod={},meusCanal=null;
+async function meusPedLoad(){if(!sb||!uid)return;let r=await sb.from("pedidos_loja").select("id,numero,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
+  if(r.error&&/numero/.test(r.error.message||""))r=await sb.from("pedidos_loja").select("id,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
+  meusPed=r.error?[]:r.data||[];
+  const ab=meusPed.filter(p=>p.status!=="entregue").map(p=>p.id);
+  if(ab.length){const k=await sb.from("pedido_loja_codigos").select("pedido_id,codigo").in("pedido_id",ab);if(!k.error)(k.data||[]).forEach(x=>meusCod[x.pedido_id]=x.codigo)}
+  if(!meusCanal){try{meusCanal=sb.channel("mp-"+uid).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`cliente_id=eq.${uid}`},m=>{
+    const T={aceito:"A loja aceitou seu pedido ✓",saiu:"Seu pedido saiu pra entrega! Tenha o código em mãos.",entregue:"Pedido entregue ✓"};
+    if(m.new&&m.old&&m.new.status!==m.old.status&&T[m.new.status]){toast(T[m.new.status]);if(window.alertaPedido)alertaPedido(m.new,T[m.new.status])}
+    meusPedLoad()}).subscribe()}catch(e){}}
+  if(!loja)cliRender()}
 function meusPedHtml(){if(!meusPed.length)return"";const nome=id=>((lojas||[]).find(l=>l.id===id)||{}).nome||"Loja";
-  return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Seus pedidos</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(ST[p.status]||p.status)}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small></div>`).join("")}</div>`}
+  return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Seus pedidos</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(ST[p.status]||p.status)}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small>${p.status!=="entregue"&&meusCod[p.id]?`<div class="dl-cod"><small>Código de entrega</small><b class="num">${esc(meusCod[p.id])}</b><span>Passe esse código só quando receber o pedido na mão.</span></div>`:""}</div>`).join("")}</div>`}
 
 /* lojista: receber pelo app + pedidos */
 /* ---------- chave Pix da loja ---------- */
@@ -518,17 +527,26 @@ async function pedLojaLoad(){if(!sb||!uid||!ehLoja())return;
   const r=await sb.from("pedidos_loja").select("*").eq("loja_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(30);
   pedLoja=r.error?[]:r.data||[];admRender();
   if(!pedLojaCanal){try{pedLojaCanal=sb.channel("pl-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"pedidos_loja",filter:`loja_id=eq.${uid}`},m=>{
-    if(m.new&&m.new.status==="pago"&&(!m.old||m.old.status!=="pago"))toast("🛍️ Novo pedido pago!");pedLojaLoad()}).subscribe()}catch(e){}}
+    if(m.new&&m.new.status==="pago"&&(!m.old||m.old.status!=="pago"))novoPedido(m.new);pedLojaLoad()}).subscribe()}catch(e){}}
+}
+// alerta de pedido novo pra loja: som, vibração, notificação e aviso na tela
+function novoPedido(p){
+  const t=`🛍️ Pedido novo pago${p.numero?" #"+p.numero:""} · ${brl(Number(p.total))}`;
+  try{window.cxSom&&cxSom(5)}catch(e){}try{navigator.vibrate&&navigator.vibrate([400,150,400,150,400])}catch(e){}
+  if(document.hidden&&window.cxNotificar)cxNotificar(t,`${p.cliente_nome||"Cliente"} pagou pelo app. Toque pra aceitar.`,"pedloja-"+p.id);
+  toast(t);
+  let a=$("dl-alerta");if(!a){a=document.createElement("button");a.id="dl-alerta";a.type="button";document.body.appendChild(a)}
+  a.textContent=t+" · Ver pedido";a.hidden=false;a.onclick=()=>{a.hidden=true;window.cxNavUser=Date.now();go("lojas");setTimeout(()=>{const c=document.querySelector(".dl-ped");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})},300)};
 }
 function pedLojaHtml(){
   if(!perfil.loja_pix)return"";
   const ativos=pedLoja.filter(p=>p.status!=="entregue"),feitos=pedLoja.filter(p=>p.status==="entregue").slice(0,5);
-  const um=p=>{const w=so(p.cliente_whats);return`<div class="dl-ped"><div class="row"><b>${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(ST[p.status]||p.status)}</span></div>
+  const um=p=>{const w=so(p.cliente_whats);return`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(ST[p.status]||p.status)}</span></div>
     <div>${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join("<br>")}</div>
     <small class="hint">Entregar em: ${esc(p.endereco)}${p.bairro?" — "+esc(p.bairro):""}${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>
     <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex + entrega ${brl(Number(p.entrega))} = <b>você recebe ${brl(Number(p.repasse))}</b>${["enviado","manual"].includes(p.repasse_status)?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}</small>
     ${w?`<a class="link" href="https://wa.me/55${w}" target="_blank" rel="noopener">WhatsApp do cliente</a>`:""}
-    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?(p.corrida_id?`<div class="dl-moto">🛵 Motoboy chamado · ${esc(motoSt(p.corrida_id))}<br><small class="hint">Quando ele coletar, o cliente é avisado que saiu pra entrega. Pague a corrida em Pedidos quando ele aceitar.</small></div><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (sem o app)</button>`:`<button class="btn full" type="button" data-pdmoto="${p.id}">🛵 Chamar motoboy do Cadernex</button><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (motoboy próprio)</button>`):p.status==="saiu"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="entregue">Marcar entregue</button>`:""}</div>`};
+    ${p.status==="pago"?`<button class="btn full" type="button" data-pdid="${p.id}" data-pdst="aceito">Aceitar pedido</button>`:p.status==="aceito"?(p.corrida_id?`<div class="dl-moto">🚀 Entregador chamado · ${esc(motoSt(p.corrida_id))}<br><small class="hint">Quando ele coletar, o cliente é avisado que saiu pra entrega. Pague a corrida em Pedidos quando ele aceitar.</small></div><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (sem o app)</button>`:`<button class="btn full" type="button" data-pdmoto="${p.id}">🚀 Despachar: moto, bike ou frete</button><button class="btn ghost full" type="button" data-pdid="${p.id}" data-pdst="saiu">Saiu pra entrega (entregador próprio)</button>`):""}${["aceito","saiu"].includes(p.status)&&!p.corrida_id?`<form class="dl-ent" data-pdent="${p.id}"><input inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Código" aria-label="Código de entrega do cliente" required><button class="btn" type="submit">Entregue ✓</button></form><small class="hint" style="margin:0">Na entrega, peça ao cliente o código de 4 números que aparece no app dele.</small>`:""}</div>`};
   return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Pedidos da loja</h2></div>
     ${ativos.length?ativos.map(um).join(""):`<p class="hint" style="margin:0">Nenhum pedido em andamento. Quando um cliente pagar, ele aparece aqui na hora.</p>`}
     ${feitos.length?`<details><summary class="hint">Entregues (${feitos.length})</summary>${feitos.map(um).join("")}</details>`:""}</div>`;
@@ -536,22 +554,84 @@ function pedLojaHtml(){
 /* chamar motoboy: a corrida já sai pronta com a coleta na loja e a entrega no endereço do pedido */
 function motoSt(cid){const c=(typeof minhas!=="undefined"&&Array.isArray(minhas)?minhas:[]).find(x=>x.id===cid);
   return!c?"procurando":c.status==="aberta"?"procurando motoboy":c.status==="aceita"?"a caminho da loja":c.status==="coletada"?"levando até o cliente":c.status==="entregue"?"entregue ✓":c.status==="cancelada"?"cancelada":"procurando"}
+/* ---------- despacho multimodal: a loja escolhe moto, bike, picape ou caminhão ---------- */
+const MODAIS=[
+  {v:"moto",i:"🛵",n:"Moto",d:"Rápido: comida, celular, itens pequenos"},
+  {v:"bike",i:"🚲",n:"Bike",d:"Pertinho e leve, até 5 km"},
+  {v:"picape_p",i:"🛻",n:"Picape pequena",d:"Volumes médios: caixas, eletros pequenos",fr:1},
+  {v:"picape_m",i:"🛻",n:"Picape média",d:"Volumes grandes: móveis, material de obra",fr:1},
+  {v:"caminhao",i:"🚚",n:"Caminhão pequeno",d:"Carga pesada ou muita coisa",fr:1}];
+const TX_SERV=0.14,TX_APP=1.99,AJUD=typeof AJUDANTE!=="undefined"?AJUDANTE:70;
+const precoModal=(m,k,aj)=>m.fr?(typeof precoFrete==="function"?precoFrete(m.v,k,aj,0):Math.ceil(((m.v==="picape_p"?40:m.v==="picape_m"?60:150)+(m.v==="picape_p"?3:m.v==="picape_m"?3.5:5)*k+aj*AJUD)*2)/2)
+  :(typeof justo==="function"?justo(k):Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2));
+const totLoja=v=>Math.round((v*(1+TX_SERV)+TX_APP)*100)/100;
+async function kmPedido(p){
+  try{let a=perfil.loja_lat&&perfil.loja_lng?{lat:+perfil.loja_lat,lng:+perfil.loja_lng}:null;
+    if(!a&&window.cxGeo)a=await cxGeo.ponto(perfil.loja_end+", Goiânia, GO");
+    const cep=(String(p.endereco).match(/CEP (\d{5})-?(\d{3})/)||[]).slice(1).join("");
+    let b=cep.length===8?await cepPonto(cep):null;
+    if(!b&&window.cxGeo)b=await cxGeo.ponto([String(p.endereco).replace(/ — CEP.*$/,""),p.bairro,"Goiânia","GO"].filter(Boolean).join(", "));
+    if(!a||!b)return null;
+    let m=window.cxGeo?await cxGeo.rotaMetros(a,b):null;
+    if(!m){const R=6371e3,r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dn=r(b.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;m=2*R*Math.asin(Math.sqrt(h))*1.3}
+    return Math.round(m/100)/10}catch(e){return null}}
 async function chamarMoto(pid,b){
   const p=pedLoja.find(x=>x.id===pid);if(!p||p.corrida_id)return;
   if(!String(perfil.loja_end||"").trim()){toast("Coloque o endereço da loja primeiro (em Logo, capa e endereço)");return}
-  const sug=Math.max(8,Number(p.entrega)||0);
-  const v=prompt(`Valor da corrida pro motoboy (mínimo R$ 8). O cliente pagou ${brl(Number(p.entrega)||0)} de entrega.`,sug.toFixed(2).replace(".",","));
-  if(v===null)return;const valor=Math.round(Number(String(v).replace(/\./g,"").replace(",","."))*100)/100;
-  if(!(valor>=8)){toast("O mínimo da corrida é R$ 8");return}
-  const item=("Pedido de "+(p.cliente_nome||"cliente")+": "+(p.itens||[]).map(i=>i.n+"× "+i.nome).join(", ")).slice(0,120);
-  b.disabled=true;b.textContent="Chamando…";
-  safe(async()=>{
-    const{data,error}=await sb.from("corridas").insert({coleta_bairro:perfil.loja_bairro||"Loja",entrega_bairro:p.bairro||"Cliente",item,valor,veiculo:"qualquer",distancia_km:null}).select().single();if(error)throw error;
+  b.disabled=true;const t0=b.textContent;b.textContent="Calculando a distância…";
+  const k=await kmPedido(p);b.disabled=false;b.textContent=t0;
+  despachoAbrir(p,k);
+}
+function despachoAbrir(p,k){
+  let esc_=$("dsp-bg");if(esc_)esc_.remove();
+  let sel=null,aj=0;
+  const bg=document.createElement("div");bg.id="dsp-bg";bg.setAttribute("role","dialog");bg.setAttribute("aria-modal","true");bg.setAttribute("aria-label","Despachar pedido");
+  const kmTxt=k!=null?`${String(k).replace(".",",")} km até o cliente`:"Não achamos a distância: confira o valor";
+  const kk=k!=null?k:3;
+  const opc=()=>MODAIS.map(m=>{const off=m.v==="bike"&&kk>5,v=precoModal(m,kk,m.fr?aj:0);
+    return`<button type="button" class="dsp-op${sel&&sel.v===m.v?" on":""}" data-dspv="${m.v}"${off?" disabled":""}><span class="dsp-i">${m.i}</span><span class="dsp-t"><b>${m.n}</b><small>${off?"Mais de 5 km: bike não vai":m.d}</small></span><span class="dsp-p"><b>${brl(v)}</b><small>você paga ${brl(totLoja(v))}</small></span></button>`}).join("");
+  bg.innerHTML=`<div id="dsp-box"><div class="dsp-h"><div><div class="eyebrow">Despachar${p.numero?" pedido #"+p.numero:" pedido"}</div><h2 style="margin:2px 0 0">Como vai a entrega?</h2></div><button type="button" class="dsp-x" aria-label="Fechar" data-dspx>✕</button></div>
+    <p class="hint" style="margin:0">${esc(perfil.loja_bairro||"Sua loja")} → ${esc(p.bairro||"cliente")} · ${kmTxt}</p>
+    <div class="dsp-ops">${opc()}</div>
+    <label class="dsp-aj" hidden><input type="checkbox" id="dsp-ajc"> Precisa de ajudante pra carregar (+ ${brl(AJUD)})</label>
+    <label class="dsp-val" hidden>Valor da corrida (pode aumentar pra achar entregador mais rápido)<input id="dsp-v" inputmode="decimal"></label>
+    <p class="hint dsp-res" style="margin:0"></p>
+    <button class="btn full" type="button" id="dsp-ok" disabled>Escolha o veículo</button>
+    <p class="hint" style="margin:0;font-size:12px">Por cima da corrida: 14% de serviço + R$ 1,99 de taxa do app. O cliente pagou ${brl(Number(p.entrega)||0)} de entrega.</p></div>`;
+  document.body.appendChild(bg);
+  const ops=bg.querySelector(".dsp-ops"),vin=bg.querySelector("#dsp-v"),res=bg.querySelector(".dsp-res"),ok=bg.querySelector("#dsp-ok");
+  const minimo=()=>sel?precoModal(sel,kk,sel.fr?aj:0):0;
+  const valor=()=>{const v=Math.round(Number(String(vin.value).replace(/\./g,"").replace(",","."))*100)/100;return isFinite(v)?v:0};
+  const atual=()=>{if(!sel)return;const v=Math.max(valor(),0);res.innerHTML=`Você paga <b>${brl(totLoja(v))}</b> · o entregador recebe ${brl(Math.round(v*0.92*100)/100)}`;ok.disabled=v<minimo();ok.textContent=v<minimo()?`Mínimo ${brl(minimo())}`:`Chamar ${sel.n.toLowerCase()} · ${brl(v)}`};
+  const escolhe=m=>{sel=m;bg.querySelector(".dsp-aj").hidden=!m.fr;if(!m.fr){aj=0;bg.querySelector("#dsp-ajc").checked=false}
+    ops.innerHTML=opc();bg.querySelector(".dsp-val").hidden=false;vin.value=minimo().toFixed(2).replace(".",",");atual()};
+  ops.addEventListener("click",e=>{const o=e.target.closest("[data-dspv]");if(!o||o.disabled)return;escolhe(MODAIS.find(m=>m.v===o.dataset.dspv))});
+  bg.querySelector("#dsp-ajc").onchange=e=>{aj=e.target.checked?1:0;if(sel){ops.innerHTML=opc();vin.value=minimo().toFixed(2).replace(".",",");atual()}};
+  vin.addEventListener("input",atual);
+  const fecha=()=>bg.remove();
+  bg.addEventListener("click",e=>{if(e.target===bg||e.target.closest("[data-dspx]"))fecha()});
+  // sugestão: moto pra até 5 itens, picape pra pedido grande
+  const qtd=(p.itens||[]).reduce((s,i)=>s+Number(i.n||1),0);escolhe(MODAIS[qtd>15?2:0]);
+  ok.onclick=()=>{const v=valor();if(!sel||v<minimo())return;ok.disabled=true;ok.textContent="Chamando…";
+    despachar(p,sel,v,k,aj).then(fecha,()=>{ok.disabled=false;atual()})};
+}
+async function despachar(p,m,valor,k,aj){
+  const item=("Pedido"+(p.numero?" #"+p.numero:"")+" de "+(p.cliente_nome||"cliente")+": "+(p.itens||[]).map(i=>i.n+"× "+i.nome).join(", ")).slice(0,120);
+  try{
+    const ins={coleta_bairro:perfil.loja_bairro||"Loja",entrega_bairro:p.bairro||"Cliente",item,valor,veiculo:m.v,distancia_km:k};
+    if(m.fr)Object.assign(ins,{tipo:"frete",ajudantes:aj,andares:0,agendado_para:null});
+    const{data,error}=await sb.from("corridas").insert(ins).select().single();if(error)throw error;
     const r=await sb.from("corridas_det").insert({corrida_id:data.id,coleta_end:perfil.loja_end,entrega_end:p.endereco+(p.bairro?" — "+p.bairro:""),contato:so(p.cliente_whats)||perfil.telefone||null,obs:p.obs||null});
     if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
-    const l=await sb.rpc("pedido_loja_corrida",{pid,cid:data.id});if(l.error)throw l.error;
-    if(typeof corrLoad==="function")await corrLoad();await pedLojaLoad()},"Motoboy chamado! Avisamos quando alguém aceitar.").finally(()=>{b.disabled=false});
+    const l=await sb.rpc("pedido_loja_corrida",{pid:p.id,cid:data.id});if(l.error)throw l.error;
+    toast(`${m.n} chamado! Avisamos quando alguém aceitar.`);
+    if(typeof corrLoad==="function")corrLoad();pedLojaLoad();
+  }catch(e){console.error(e);toast(e&&e.message&&/foto|Pix|mínimo|Falta/i.test(e.message)?e.message:"Não deu pra chamar agora. Confira a internet e tente de novo.");throw e}
 }
+document.addEventListener("submit",e=>{const f=e.target.closest("[data-pdent]");if(!f)return;e.preventDefault();
+  const i=f.querySelector("input"),b=f.querySelector("button"),cod=so(i.value);if(cod.length!==4){toast("O código tem 4 números");i.focus();return}
+  b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_entregar",{pid:f.dataset.pdent,cod});b.disabled=false;
+    if(r.error){i.value="";i.focus();throw Object.assign(r.error,{cxMsg:r.error.message})}await pedLojaLoad()},"Pedido entregue ✓ Código conferido")});
 function pedStatus(id,novo,b){b.disabled=true;safe(async()=>{const r=await sb.rpc("pedido_loja_status",{pid:id,novo});b.disabled=false;if(r.error)throw Object.assign(r.error,{cxMsg:r.error.message});await pedLojaLoad()},novo==="aceito"?"Pedido aceito ✓":novo==="saiu"?"Cliente avisado: saiu pra entrega":"Pedido entregue ✓")}
 
 /* ---------- ligações com o resto do app ---------- */

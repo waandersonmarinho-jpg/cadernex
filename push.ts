@@ -96,7 +96,21 @@ Deno.serve(async (req) => {
     let alvo2: string[] = [];
     let msg2: Record<string, string> | null = null;
 
-    if (t === "encomendas") {
+    if (t === "pedidos_loja") {
+      const num = c?.numero ? ` #${c.numero}` : "";
+      const n = Array.isArray(c?.itens) ? c.itens.reduce((s: number, i: { n: number }) => s + Number(i.n || 1), 0) : 0;
+      if (c?.status === "pago") {
+        alvo = [c.loja_id];
+        msg = { titulo: `🛍️ Pedido novo pago${num} · ${brl(Number(c.total))}`, corpo: `${c.cliente_nome || "Cliente"}: ${n} ${n === 1 ? "item" : "itens"}${c.bairro ? " · " + c.bairro : ""}. Toque pra aceitar.`, url: "./", tag: "pedloja-" + c.id };
+      } else {
+        const T: Record<string, string> = {
+          aceito: "A loja aceitou e já está preparando",
+          saiu: "Saiu pra entrega! Tenha o código de entrega em mãos",
+          entregue: "Pedido entregue ✓ Obrigado por comprar no Cadernex",
+        };
+        if (T[c?.status]) { alvo = [c.cliente_id]; msg = { titulo: `Seu pedido${num}`, corpo: T[c.status], url: "./", tag: "meuped-" + c.id }; }
+      }
+    } else if (t === "encomendas") {
       const n = Array.isArray(c?.itens) ? c.itens.reduce((s: number, i: { qtd: number }) => s + Number(i.qtd || 1), 0) : 0;
       const tot = brl(Number(c.total || c.subtotal));
       const M: Record<string, [string, string, string]> = {
