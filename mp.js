@@ -115,11 +115,8 @@ let canal=null;
 function sub(){if(canal||!sb.channel)return;canal=sb.channel("pagamentos").on("postgres_changes",{event:"*",schema:"public",table:"pagamentos"},p=>{const n=p.new;if(!n||!n.corrida_id)return;const antes=pags[n.corrida_id];pags[n.corrida_id]=n;pintar();if(n.status==="pago"&&(!antes||antes.status!=="pago"))toast(n.entregador_id===uid?"💰 Cliente pagou pelo app!":"Pagamento confirmado ✓")}).subscribe()}
 
 /* ---------- Moderador: quanto o Cadernex recebeu ---------- */
-async function admLoad(){
-  const w=$("adm-mp");if(!w)return;if(!perfil.admin){w.hidden=true;return}
-  const r=await sb.rpc("mp_resumo");if(r.error){w.hidden=true;return}w.hidden=false;
-  $("adm-mp-lista").innerHTML=r.data.length?r.data.map(x=>`<div class="row"><span>${x.mes} · ${x.corridas} corrida${x.corridas>1?"s":""}</span><b class="num">${brl(Number(x.taxa))}</b></div>`).join(""):`<p class="hint" style="margin:0">Nenhum pagamento pelo app ainda.</p>`;
-}
+// painel financeiro: financeiro.js
+async function admLoad(){if(window.cxFinLoad)return cxFinLoad()}
 
 const _r=corrRender;corrRender=function(){_r();pintar()};
 const _l=corrLoad;corrLoad=async function(){await _l();dadosLoad();sub()};
