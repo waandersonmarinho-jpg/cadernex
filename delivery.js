@@ -92,6 +92,7 @@ async function subirFoto(pid,file){
 
 /* ================= LOJISTA ================= */
 let meus=[],fotoNova=null;
+let cardAberto=true;try{cardAberto=localStorage.getItem("cx-card-aberto")!=="0"}catch(e){}
 let slugTentou=false;
 async function slugAuto(){if(slugTentou||perfil.loja_slug||!ehLoja())return;slugTentou=true;const v=slugDe(perfil.loja_nome);if(v.length<3)return;
   const r=await sb.rpc("loja_slug_definir",{desejado:v});if(!r.error&&r.data){perfil.loja_slug=r.data;admRender()}}
@@ -159,13 +160,15 @@ function admRender(){
     </form>
   </div>
   <div class="card stack">
-    <div><div class="eyebrow">${meus.length} produto${meus.length===1?"":"s"}</div><h2 style="margin:2px 0 0">Seu cardápio</h2></div>
+    <button type="button" class="dl-dobra" data-dldobra aria-expanded="${cardAberto}" aria-controls="dl-meus"><span><span class="eyebrow">${meus.length} produto${meus.length===1?"":"s"}</span><span class="dl-dobra-t">Seu cardápio</span></span><span class="dl-seta" aria-hidden="true"></span><small>${cardAberto?"Minimizar":"Ver"}</small></button>
+    <div class="stack" id="dl-meus"${cardAberto?"":" hidden"}>
     ${meus.length?grupos(meus).map(([c,ps])=>`<div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>`
       <div class="dl-p${p.ativo?"":" off"}">
         <button class="dl-th" type="button" data-dlfoto="${p.id}" aria-label="Trocar foto">${p.foto_v?`<img src="${esc(fotoUrl(uid,p))}" alt="" loading="lazy">`:IC.foto}</button>
         <div class="dl-pt"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small>${p.opcoes?`<small class="dl-opl">${esc(opTxt(p.opcoes))}</small>`:""}<span class="num">${brl(Number(p.preco))}</span></div>
         <div class="dl-pa"><button class="link" type="button" data-dlcatm="${p.id}">Categoria</button><button class="link" type="button" data-dlopm="${p.id}">${p.opcoes?"Cores":"+ Cores"}</button><button class="link" type="button" data-dlativo="${p.id}">${p.ativo?"Pausar":"Ativar"}</button><button class="del" type="button" data-dldel="${p.id}" aria-label="Apagar">✕</button></div>
       </div>`).join("")}`).join(""):`<p class="hint" style="margin:0">Nenhum produto ainda. Adicione acima o que você vende.</p>`}
+    </div>
     <input type="file" id="dl-file2" accept="image/*" hidden>
   </div>`;
   const f=$("dl-f");if(f)f.onsubmit=addProd;
@@ -217,6 +220,9 @@ V.addEventListener("click",e=>{
   const fo=e.target.closest("[data-dlfoto]");if(fo){fotoAlvo=fo.dataset.dlfoto;$("dl-file2").click();return}
   const ct=e.target.closest("[data-dlcatm]");if(ct){const p=meus.find(x=>x.id===ct.dataset.dlcatm);const c=prompt("Categoria deste produto (ex.: Lanches, Bebidas). Deixe vazio pra \"Outros\":",p.categoria||"");if(c===null)return;
     const v=c.trim().slice(0,30)||null;safe(async()=>{const{error}=await sb.from("produtos").update({categoria:v}).eq("id",p.id);if(error)throw error;p.categoria=v;admRender()},"Categoria salva");return}
+  const db=e.target.closest("[data-dldobra]");if(db){cardAberto=!cardAberto;try{localStorage.setItem("cx-card-aberto",cardAberto?"1":"0")}catch(x){}
+    db.setAttribute("aria-expanded",String(cardAberto));db.querySelector("small").textContent=cardAberto?"Minimizar":"Ver";$("dl-meus").hidden=!cardAberto;
+    if(!cardAberto)db.closest(".card").scrollIntoView({block:"nearest"});return}
   const om=e.target.closest("[data-dlopm]");if(om){const p=meus.find(x=>x.id===om.dataset.dlopm);
     const v=prompt("Cores (ou tamanhos) deste produto, separadas por vírgula. Ex.: Branco, Preto, Azul\nDeixe vazio pra tirar.",p.opcoes?p.opcoes.valores.join(", "):"");if(v===null)return;
     const op=opcoesDe(p.opcoes?p.opcoes.nome:(/\b(P|M|G|GG|\d{2})\b/.test(v)&&!/[a-z]{4}/i.test(v)?"Tamanho":"Cor"),v);
