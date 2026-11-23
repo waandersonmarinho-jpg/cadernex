@@ -467,7 +467,6 @@ async function pagarApp(end,bairro,obs){
   const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>x.op?{id:x.p.id,n:x.n,op:x.op}:{id:x.p.id,n:x.n}),endereco:end,bairro,obs,...(retira?{retirada:true,entrega:0}:{entrega:frete?frete.v:0,km:frete?frete.km:null,lat:frete?frete.lat:null,lng:frete?frete.lng:null})}});
   b.disabled=false;b.innerHTML=t;
   if(error||!data||!data.brcode){let m=data&&data.erro;if(!m)try{const j=await error.context.json();m=j&&j.erro}catch(x){}toast(m||"Não deu pra gerar o Pix agora. Tente de novo.");return}
-  if(uid&&!retira&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});
   pixMostra(data);esperaPago(data.id);
 }
 function pixMostra(d){

@@ -315,7 +315,7 @@ $("fPedir").onsubmit=e=>{e.preventDefault();
     const r=await sb.from("corridas_det").insert(det);if(r.error){await sb.rpc("mudar_corrida",{cid:data.id,acao:"cancelar"});throw r.error}
     ["pf-item","pf-valor","pf-obs","pf-eend","pf-eb","pf-km","pf-and","pf-quando"].forEach(i=>$(i).value="");locs={c:null,e:null};window.kmRota=null;["pf-ccep","pf-ecep"].forEach(i=>$(i).value="");$("pf-cloc").textContent=$("pf-eloc").textContent="Minha localização";if(window.pfCatReset)pfCatReset();
     corrAberta=data.id;if(window.pfEtapa)pfEtapa(1);await corrLoad();go("pedidos")},pfTipo==="frete"?"Frete pedido! Avisamos quando um freteiro aceitar.":"Pedido enviado! Avisamos quando alguém aceitar.")};
-function preencherPedido(){if(!$("pf-cend").value&&perfil.end_padrao)$("pf-cend").value=perfil.end_padrao;if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=foneFmt(perfil.telefone);sugerir()}
+function preencherPedido(){if(!$("pf-tel").value&&perfil.telefone)$("pf-tel").value=foneFmt(perfil.telefone);sugerir()}
 
 // perfil do cliente
 // telefone sempre no formato (62) 99999-9999
