@@ -154,6 +154,8 @@ function admRender(){
       <label>Categoria<input id="dl-cat" maxlength="30" list="dl-cats" placeholder="ex.: Lanches"></label></div>
       <datalist id="dl-cats">${cats.map(c=>`<option value="${esc(c)}"></option>`).join("")}</datalist>
       <label>Descrição<input id="dl-desc" maxlength="140" placeholder="opcional: ingredientes, tamanho…"></label>
+      <div class="grid2 dl-opf"><label>Opção<input id="dl-opn" maxlength="20" placeholder="ex.: Cor"></label><label>Escolhas<input id="dl-opv" maxlength="300" placeholder="Branco, Preto, Azul"></label></div>
+      <small class="hint" style="margin:-4px 0 0">Opcional: se o produto tem várias cores (ou tamanhos), coloque separadas por vírgula. O cliente escolhe na hora de pedir.</small>
       <button class="btn full" type="submit" id="dl-add">Adicionar ao cardápio</button>
     </form>
   </div>
@@ -162,20 +164,24 @@ function admRender(){
     ${meus.length?grupos(meus).map(([c,ps])=>`<div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>`
       <div class="dl-p${p.ativo?"":" off"}">
         <button class="dl-th" type="button" data-dlfoto="${p.id}" aria-label="Trocar foto">${p.foto_v?`<img src="${esc(fotoUrl(uid,p))}" alt="" loading="lazy">`:IC.foto}</button>
-        <div class="dl-pt"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small><span class="num">${brl(Number(p.preco))}</span></div>
-        <div class="dl-pa"><button class="link" type="button" data-dlcatm="${p.id}">Categoria</button><button class="link" type="button" data-dlativo="${p.id}">${p.ativo?"Pausar":"Ativar"}</button><button class="del" type="button" data-dldel="${p.id}" aria-label="Apagar">✕</button></div>
+        <div class="dl-pt"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small>${p.opcoes?`<small class="dl-opl">${esc(opTxt(p.opcoes))}</small>`:""}<span class="num">${brl(Number(p.preco))}</span></div>
+        <div class="dl-pa"><button class="link" type="button" data-dlcatm="${p.id}">Categoria</button><button class="link" type="button" data-dlopm="${p.id}">${p.opcoes?"Cores":"+ Cores"}</button><button class="link" type="button" data-dlativo="${p.id}">${p.ativo?"Pausar":"Ativar"}</button><button class="del" type="button" data-dldel="${p.id}" aria-label="Apagar">✕</button></div>
       </div>`).join("")}`).join(""):`<p class="hint" style="margin:0">Nenhum produto ainda. Adicione acima o que você vende.</p>`}
     <input type="file" id="dl-file2" accept="image/*" hidden>
   </div>`;
   const f=$("dl-f");if(f)f.onsubmit=addProd;
   $("dl-file").onchange=e=>{const x=e.target.files[0];if(!x)return;fotoNova=x;const u=URL.createObjectURL(x);$("dl-prev").innerHTML=`<img src="${u}" alt="Prévia"><small>Toque pra trocar</small>`};
 }
+function opcoesDe(nome,txt){const v=[...new Set(String(txt||"").split(/[,;\n]/).map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,20);
+  return v.length?{nome:(String(nome||"").trim()||"Cor").slice(0,20),valores:v}:null}
+const opTxt=o=>o&&o.valores&&o.valores.length?`${o.nome}: ${o.valores.join(", ")}`:"";
 function addProd(e){e.preventDefault();const nome=$("dl-nome").value.trim(),preco=num($("dl-preco").value);
   if(nome.length<2){toast("Coloque o nome do produto");return}
   if(!$("dl-preco").value.trim()||!(preco>0)){toast("Coloque o preço");return}
   const b=$("dl-add");b.disabled=true;
   safe(async()=>{try{
-    const{data,error}=await sb.from("produtos").insert({nome,preco,categoria:$("dl-cat").value.trim()||null,descricao:$("dl-desc").value.trim()||null}).select().single();if(error)throw error;
+    const novo={nome,preco,categoria:$("dl-cat").value.trim()||null,descricao:$("dl-desc").value.trim()||null},op=opcoesDe($("dl-opn").value,$("dl-opv").value);if(op)novo.opcoes=op;
+    const{data,error}=await sb.from("produtos").insert(novo).select().single();if(error)throw /opcoes/.test(error.message||"")?Object.assign(error,{cxMsg:"Falta ativar as opções no banco (produtos-opcoes.sql)"}):error;
     if(fotoNova){try{data.foto_v=await subirFoto(data.id,fotoNova)}catch(x){toast(x.cxMsg||"Produto salvo, mas a foto não subiu")}}
     meus.push(data);fotoNova=null;admRender();$("dl-nome").focus();
   }finally{b.disabled=false}},"Produto no cardápio ✓");
@@ -213,6 +219,10 @@ V.addEventListener("click",e=>{
   const fo=e.target.closest("[data-dlfoto]");if(fo){fotoAlvo=fo.dataset.dlfoto;$("dl-file2").click();return}
   const ct=e.target.closest("[data-dlcatm]");if(ct){const p=meus.find(x=>x.id===ct.dataset.dlcatm);const c=prompt("Categoria deste produto (ex.: Lanches, Bebidas). Deixe vazio pra \"Outros\":",p.categoria||"");if(c===null)return;
     const v=c.trim().slice(0,30)||null;safe(async()=>{const{error}=await sb.from("produtos").update({categoria:v}).eq("id",p.id);if(error)throw error;p.categoria=v;admRender()},"Categoria salva");return}
+  const om=e.target.closest("[data-dlopm]");if(om){const p=meus.find(x=>x.id===om.dataset.dlopm);
+    const v=prompt("Cores (ou tamanhos) deste produto, separadas por vírgula. Ex.: Branco, Preto, Azul\nDeixe vazio pra tirar.",p.opcoes?p.opcoes.valores.join(", "):"");if(v===null)return;
+    const op=opcoesDe(p.opcoes?p.opcoes.nome:(/\b(P|M|G|GG|\d{2})\b/.test(v)&&!/[a-z]{4}/i.test(v)?"Tamanho":"Cor"),v);
+    safe(async()=>{const{error}=await sb.from("produtos").update({opcoes:op}).eq("id",p.id);if(error)throw /opcoes/.test(error.message||"")?Object.assign(error,{cxMsg:"Falta ativar as opções no banco (produtos-opcoes.sql)"}):error;p.opcoes=op;admRender()},op?"Opções salvas ✓":"Opções removidas");return}
   const at=e.target.closest("[data-dlativo]");if(at){const p=meus.find(x=>x.id===at.dataset.dlativo);safe(async()=>{const{error}=await sb.from("produtos").update({ativo:!p.ativo}).eq("id",p.id);if(error)throw error;p.ativo=!p.ativo;admRender()});return}
   const d=e.target.closest("[data-dldel]");if(d){if(d.dataset.ok!=="1"){d.dataset.ok="1";d.textContent="Apagar?";return}
     const id=d.dataset.dldel;safe(async()=>{const{error}=await sb.from("produtos").delete().eq("id",id);if(error)throw error;sb.storage.from("produtos").remove([`${uid}/${id}.jpg`]).catch(()=>{});meus=meus.filter(x=>x.id!==id);admRender()},"Produto apagado")}
@@ -247,11 +257,15 @@ async function abrirLoja(id){if(publico&&$("vt-sub"))$("vt-sub").textContent="Ca
   loja=l;cardapio=null;if(cart.loja!==id)cart={loja:id,q:{}};cardRender();
   if(publico)document.title=`${l.nome} · Cadernex Delivery`;
   const r=await sb.rpc("cardapio_publico",{lid:id});
-  cardapio=r.error?[]:r.data;Object.keys(cart.q).forEach(k=>{if(!cardapio.some(p=>p.id===k))delete cart.q[k]});cardRender();scrollTo(0,0);
+  cardapio=r.error?[]:r.data;Object.keys(cart.q).forEach(k=>{const[id,op]=k.split("|");const p=cardapio.find(x=>x.id===id);if(!p||(op!=null&&!(p.opcoes&&p.opcoes.valores.includes(op)))||(op==null&&p.opcoes))delete cart.q[k]});cardRender();scrollTo(0,0);
   let ck=false;try{ck=sessionStorage.getItem("cx-dl-ck")==="1";if(ck)sessionStorage.removeItem("cx-dl-ck")}catch(e){}
   if(ck&&uid&&itens().length)setTimeout(ckRender,200);
 }
-const itens=()=>Object.entries(cart.q).filter(([,n])=>n>0).map(([id,n])=>({p:(cardapio||[]).find(x=>x.id===id),n})).filter(x=>x.p);
+const itens=()=>Object.entries(cart.q).filter(([,n])=>n>0).map(([k,n])=>{const[id,op]=k.split("|");return{p:(cardapio||[]).find(x=>x.id===id),n,op,k}}).filter(x=>x.p);
+const nomeIt=x=>x.p.nome+(x.op?` (${x.op})`:"");
+let sel={}; // cor escolhida por produto (antes de pôr no carrinho)
+const qtdDe=id=>Object.entries(cart.q).reduce((s,[k,n])=>k.split("|")[0]===id?s+n:s,0);
+function chaveDe(p){if(!p.opcoes)return p.id;const v=sel[p.id];return v?p.id+"|"+v:null}
 const total=()=>itens().reduce((s,x)=>s+x.n*Number(x.p.preco),0);
 function cardRender(){if(!loja)return;
   const w=$("dl-cli"),l=loja,pode=l.aberta&&!!l.pix;
@@ -262,10 +276,11 @@ function cardRender(){if(!loja)return;
     ${!l.aberta?`<p class="dl-aviso">A loja está fechada agora. Você pode olhar o cardápio, e o pedido libera quando ela abrir.</p>`:!l.pix?`<p class="dl-aviso">Essa loja ainda está preparando os pedidos pelo app. Você pode olhar o cardápio, e o pedido libera em breve.</p>`:""}
   </div>
   ${gs.length>1?`<div class="dl-chips">${gs.map(([c],i)=>`<button type="button" class="chip" data-dlir="${i}">${esc(c)}</button>`).join("")}</div>`:""}
-  ${cardapio==null?`<p class="hint">Carregando o cardápio…</p>`:!cardapio.length?`<p class="hint">Essa loja ainda não colocou produtos.</p>`:gs.map(([c,ps],i)=>`<div class="dl-sec" id="dl-sec-${i}"><div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>{const n=cart.q[p.id]||0;return`
-    <div class="dl-item">${p.foto_v?`<img class="dl-img" src="${esc(fotoUrl(l.id,p))}" alt="" loading="lazy">`:""}
+  ${cardapio==null?`<p class="hint">Carregando o cardápio…</p>`:!cardapio.length?`<p class="hint">Essa loja ainda não colocou produtos.</p>`:gs.map(([c,ps],i)=>`<div class="dl-sec" id="dl-sec-${i}"><div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>{const k=chaveDe(p),n=k?cart.q[k]||0:0,op=p.opcoes,tem=op?Object.entries(cart.q).filter(([x,q])=>q>0&&x.split("|")[0]===p.id).map(([x,q])=>`${q}× ${x.split("|")[1]}`):[];return`
+    <div class="dl-item${op?" dl-op":""}">${p.foto_v?`<img class="dl-img" src="${esc(fotoUrl(l.id,p))}" alt="" loading="lazy">`:""}
       <div class="dl-pt"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small><span class="num">${brl(Number(p.preco))}</span></div>
-      ${pode?`<div class="dl-qt">${n?`<button type="button" data-dlmenos="${p.id}" aria-label="Tirar um">−</button><b>${n}</b>`:""}<button type="button" data-dlmais="${p.id}" aria-label="Adicionar">+</button></div>`:""}
+      ${pode?`<div class="dl-qt">${n?`<button type="button" data-dlmenos="${esc(k)}" aria-label="Tirar um">−</button><b>${n}</b>`:""}<button type="button" data-dlmais="${p.id}" aria-label="Adicionar">+</button></div>`:""}
+      ${op?`<div class="dl-ops" role="group" aria-label="${esc(op.nome)}"><span>${esc(op.nome)}:</span>${op.valores.map(v=>`<button type="button" class="dl-opc" data-dlop="${p.id}" data-v="${esc(v)}" aria-pressed="${sel[p.id]===v}">${esc(v)}</button>`).join("")}${tem.length?`<small>No pedido: ${esc(tem.join(", "))}</small>`:""}</div>`:""}
     </div>`}).join("")}</div>`).join("")}
   ${pode&&itens().length?`<div class="dl-bar"><button class="btn full" type="button" data-dlck>Ver pedido · ${itens().reduce((s,x)=>s+x.n,0)} ${itens().reduce((s,x)=>s+x.n,0)===1?"item":"itens"} · ${brl(total())}</button></div>`:""}
   <div id="dl-ck"></div>`;
@@ -339,7 +354,7 @@ function ckRender(){
   const w=$("dl-ck");if(!w)return;const its=itens();if(!its.length){w.innerHTML="";return}
   if(!uid)return cadRender(w);
   w.innerHTML=`<div class="card stack dl-ckc"><div><div class="eyebrow">Seu pedido</div><h2 style="margin:2px 0 0">${esc(loja.nome)}</h2></div>
-    ${its.map(x=>`<div class="row"><span>${x.n}× ${esc(x.p.nome)}</span><b class="num">${brl(x.n*Number(x.p.preco))}</b></div>`).join("")}
+    ${its.map(x=>`<div class="row"><span>${x.n}× ${esc(nomeIt(x))}</span><b class="num">${brl(x.n*Number(x.p.preco))}</b></div>`).join("")}
     <div class="row" style="border-top:1px solid var(--line);padding-top:8px"><b>Produtos</b><b class="num">${brl(total())}</b></div>
     <div class="row" id="dl-fr-r"><span>Entrega</span><b class="num" id="dl-fr">${loja.lat!=null?"coloque o endereço":"a loja informa"}</b></div>
     ${loja.pix?`<div class="row" id="dl-sv-r"><span>Taxa de serviço (10%)</span><b class="num">${brl(servicoDe())}</b></div>`:""}
@@ -424,7 +439,10 @@ document.addEventListener("click",e=>{
   const lj=e.target.closest("[data-dlloja]");if(lj){abrirLoja(lj.dataset.dlloja);return}
   if(e.target.closest("[data-dlvolta]")){loja=null;if(publico&&$("vt-sub"))$("vt-sub").textContent="Lojas de Goiânia";cliRender();scrollTo(0,0);if(lojas==null)lojasLoad();return}
   const ir=e.target.closest("[data-dlir]");if(ir){$("dl-sec-"+ir.dataset.dlir)?.scrollIntoView({behavior:"smooth",block:"start"});return}
-  const ma=e.target.closest("[data-dlmais]");if(ma){cart.q[ma.dataset.dlmais]=(cart.q[ma.dataset.dlmais]||0)+1;salvaCart();const y=scrollY;cardRender();scrollTo(0,y);return}
+  const oc=e.target.closest("[data-dlop]");if(oc){sel[oc.dataset.dlop]=oc.dataset.v;const y=scrollY;cardRender();scrollTo(0,y);return}
+  const ma=e.target.closest("[data-dlmais]");if(ma){const p=(cardapio||[]).find(x=>x.id===ma.dataset.dlmais);const k=p&&chaveDe(p);
+    if(!k){toast(`Escolha a ${(p&&p.opcoes&&p.opcoes.nome||"cor").toLowerCase()} primeiro`);const c=ma.closest(".dl-item")?.querySelector(".dl-ops");if(c){c.classList.remove("pisca");void c.offsetWidth;c.classList.add("pisca")}return}
+    cart.q[k]=(cart.q[k]||0)+1;salvaCart();const y=scrollY;cardRender();scrollTo(0,y);return}
   const me=e.target.closest("[data-dlmenos]");if(me){const k=me.dataset.dlmenos;cart.q[k]=Math.max(0,(cart.q[k]||0)-1);if(!cart.q[k])delete cart.q[k];salvaCart();const y=scrollY;cardRender();scrollTo(0,y);return}
   if(e.target.closest("[data-dlck]")){ckRender();return}
   if(e.target.closest("[data-dlenviar]")){enviar();return}
@@ -435,7 +453,7 @@ let pedCanal=null;
 async function pagarApp(end,bairro,obs){
   if(window.cxFotoGarante&&!(await cxFotoGarante()))return;
   const b=$("dl-env-b");b.disabled=true;const t=b.innerHTML;b.textContent="Gerando o Pix…";
-  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>({id:x.p.id,n:x.n})),endereco:end,bairro,obs,entrega:frete?frete.v:0,km:frete?frete.km:null,lat:frete?frete.lat:null,lng:frete?frete.lng:null}});
+  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>x.op?{id:x.p.id,n:x.n,op:x.op}:{id:x.p.id,n:x.n}),endereco:end,bairro,obs,entrega:frete?frete.v:0,km:frete?frete.km:null,lat:frete?frete.lat:null,lng:frete?frete.lng:null}});
   b.disabled=false;b.innerHTML=t;
   if(error||!data||!data.brcode){let m=data&&data.erro;if(!m)try{const j=await error.context.json();m=j&&j.erro}catch(x){}toast(m||"Não deu pra gerar o Pix agora. Tente de novo.");return}
   if(uid&&!perfil.end_padrao)savePerfil({end_padrao:end}).catch(()=>{});

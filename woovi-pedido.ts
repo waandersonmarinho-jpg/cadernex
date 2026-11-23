@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     }
 
     const lojaId = String(b.loja_id || "");
-    const itensPed: { id: string; n: number }[] = Array.isArray(b.itens) ? b.itens : [];
+    const itensPed: { id: string; n: number; op?: string }[] = Array.isArray(b.itens) ? b.itens : [];
     const endereco = String(b.endereco || "").trim().slice(0, 160);
     const bairro = String(b.bairro || "").trim().slice(0, 60);
     const obs = String(b.obs || "").trim().slice(0, 160);
@@ -103,13 +103,18 @@ Deno.serve(async (req) => {
 
     // preços do banco, não do celular
     const ids = [...new Set(itensPed.map((x) => String(x.id)))];
-    const { data: prods } = await admin.from("produtos").select("id,nome,preco,ativo,loja_id").in("id", ids);
-    const itens: { id: string; nome: string; n: number; preco: number }[] = [];
+    const { data: prods } = await admin.from("produtos").select("*").in("id", ids);
+    const itens: { id: string; nome: string; n: number; preco: number; op?: string }[] = [];
     for (const x of itensPed) {
       const p = (prods || []).find((y) => y.id === x.id && y.loja_id === lojaId && y.ativo);
       const n = Math.max(1, Math.min(99, Math.floor(Number(x.n) || 0)));
       if (!p) return json({ erro: "Um produto do carrinho não está mais disponível. Atualize o cardápio." }, 409);
-      itens.push({ id: p.id, nome: p.nome, n, preco: Number(p.preco) });
+      // cor / opção escolhida: tem que ser uma das que a loja cadastrou
+      const vals: string[] = Array.isArray(p.opcoes?.valores) ? p.opcoes.valores.map(String) : [];
+      const op = x.op == null ? "" : String(x.op);
+      if (vals.length && !vals.includes(op)) return json({ erro: `Escolha a ${String(p.opcoes?.nome || "cor").toLowerCase()} de "${p.nome}".` }, 409);
+      if (!vals.length && op) return json({ erro: "Um produto do carrinho mudou. Atualize o cardápio." }, 409);
+      itens.push(op ? { id: p.id, nome: `${p.nome} (${op})`, n, preco: Number(p.preco), op } : { id: p.id, nome: p.nome, n, preco: Number(p.preco) });
     }
     const subtotal = r2(itens.reduce((s, x) => s + x.n * x.preco, 0));
     if (subtotal < 1) return json({ erro: "Pedido mínimo de R$ 1,00." }, 400);

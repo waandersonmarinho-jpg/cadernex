@@ -573,6 +573,12 @@ html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none
 .dl-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:3;background:var(--bg);padding:6px 0}.dl-chips::-webkit-scrollbar{display:none}
 .dl-sec{display:flex;flex-direction:column;gap:10px;scroll-margin-top:56px}
 .dl-qt{display:flex;align-items:center;gap:8px}
+.dl-item.dl-op{flex-wrap:wrap}.dl-ops{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-radius:10px}
+.dl-ops>span{font-size:13px;color:var(--muted);font-weight:600}.dl-ops small{flex-basis:100%;font-size:12px;color:var(--muted)}
+.dl-opc{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:inherit;font:inherit;font-size:13px;cursor:pointer;min-height:32px}
+.dl-opc[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:700}
+.dl-ops.pisca{animation:dlpisca .6s 2}@keyframes dlpisca{50%{box-shadow:0 0 0 2px var(--accent)}}
+.dl-opl{color:var(--accent)!important;font-weight:600}
 .dl-qt button{width:36px;height:36px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font:700 20px/1 var(--body,inherit);cursor:pointer}
 .dl-qt button[data-dlmenos]{background:var(--line);color:var(--fg)}
 .dl-bar{position:sticky;bottom:84px;z-index:4;filter:drop-shadow(0 8px 18px rgba(0,0,0,.2))}
