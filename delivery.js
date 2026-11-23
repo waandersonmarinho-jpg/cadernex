@@ -318,7 +318,7 @@ async function criarConta(e){
   try{
     try{sessionStorage.setItem("cadernex_dados_depois","1");localStorage.setItem(PEND,JSON.stringify({...d,email:d.email.toLowerCase()}))}catch(x){}
     const{data,error}=await sb.auth.signUp({email:d.email,password:senha,options:{data:{nome:d.nome.split(" ")[0],tipo:"cliente"}}});
-    if(error)throw error;
+    if(error)throw error;if(window.cxConversao)cxConversao("cliente-delivery");
     if(!data.session){b.textContent="Criar conta e continuar";b.disabled=false;
       $("dl-ck").innerHTML=`<div class="card stack"><h2 style="margin:0">Confirme seu e-mail ✉️</h2><p class="hint" style="margin:0">Mandamos um link para <b>${esc(d.email)}</b>. Abra o e-mail, toque no link e você volta direto pra loja, já com a conta pronta.</p></div>`;return}
     await gravaDados(d);try{sessionStorage.setItem("cx-dl-ck","1")}catch(x){}toast("Conta criada ✓ Agora é só confirmar o pedido.");

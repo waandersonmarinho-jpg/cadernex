@@ -111,7 +111,7 @@ $("fAuth").onsubmit=async e=>{e.preventDefault();const email=$("a-email").value.
       let tipo=document.querySelector('#a-tipo [aria-checked="true"]')?.dataset.tipo||"entregador";
       if(tipo==="comprar"||tipo==="enviar")tipo="cliente"; // por dentro é a mesma conta de quem pede
       const promo=tipo==="promotor";const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:promo?{nome,tipo:"cliente",promotor:true}:{nome,tipo}}});
-      if(error)throw error;if(!data.session)$("a-msg").textContent="Conta criada! Abra seu e-mail e confirme pra entrar.";}
+      if(error)throw error;if(window.cxConversao)cxConversao(tipo);if(!data.session)$("a-msg").textContent="Conta criada! Abra seu e-mail e confirme pra entrar.";}
     else{const {error}=await sb.auth.signInWithPassword({email,password:senha});if(error)throw error}
   }catch(err){const m=String(err.message||"");
     $("a-msg").textContent=m.includes("Invalid login")?"E-mail ou senha errados.":m.includes("already registered")?"Esse e-mail já tem conta. Toque em \"Já tenho conta\".":m.includes("confirm")?"Confirme seu e-mail antes de entrar.":/rate limit|too many/i.test(m)?"Muitos cadastros agora. Espere alguns minutos e tente de novo.":/Password should|weak/i.test(m)?"Senha fraca. Use pelo menos 6 caracteres, misturando letras e números.":/invalid.*email|email.*invalid/i.test(m)?"Esse e-mail não parece válido. Confira e tente de novo.":/fetch|network/i.test(m)?"Sem conexão. Confira a internet e tente de novo.":"Não deu certo agora. Tente de novo em instantes."}
