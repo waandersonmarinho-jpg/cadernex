@@ -533,9 +533,20 @@ html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none
 @keyframes hxm{to{transform:translateY(-1.5px)}}@keyframes hxl{to{transform:translateX(-24px);opacity:.4}}
 @media (prefers-reduced-motion:reduce){.hx-bg i,.hx-mot,.hx-vel{animation:none}}
 .hx-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:-48px;position:relative;z-index:2}
-.hx-tile{display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:104px;padding:12px;border:0;border-radius:6px;text-align:left;font:inherit;cursor:pointer;text-decoration:none;color:#0b1633;background:linear-gradient(160deg,#ffd257,#f3ba2f 60%,#e5a400);box-shadow:0 8px 20px rgba(11,22,51,.18)}
+.hx-tile{display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:104px;padding:12px 10px 12px 12px;border:0;border-radius:6px;text-align:left;font:inherit;cursor:pointer;text-decoration:none;color:#0b1633;background:linear-gradient(160deg,#ffd257,#f3ba2f 60%,#e5a400);box-shadow:0 8px 20px rgba(11,22,51,.18)}
 .hx-tile svg{width:34px;height:34px;fill:none;stroke:#0b1633;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.hx-tile b{font-size:16px;line-height:1.15}.hx-tile small{font-size:12px;font-weight:700;opacity:.75;margin-top:-8px}
+.hx-tile b{font-size:clamp(13.5px,3.9vw,16px);line-height:1.15;letter-spacing:-.1px}
+@property --hxa{syntax:"<angle>";inherits:false;initial-value:0deg}
+.hx-tile{position:relative;isolation:isolate}
+.hx-tile::before{content:"";position:absolute;inset:0;border-radius:6px;padding:3px;pointer-events:none;
+  background:conic-gradient(from var(--hxa),transparent 0deg 200deg,rgba(255,255,255,.35) 250deg,#fff 310deg,#fffbe8 330deg,rgba(255,255,255,.6) 345deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px rgba(255,255,255,.8));animation:hxgira 2.8s linear infinite}
+.hx-tile:nth-child(2)::before{animation-delay:-.93s}.hx-tile:nth-child(3)::before{animation-delay:-1.86s}
+.hx-tile::after{content:"";position:absolute;inset:0;border-radius:6px;z-index:-1;box-shadow:0 0 0 0 rgba(255,210,87,.55);animation:hxbrilho 2.8s ease-in-out infinite}
+@keyframes hxgira{to{--hxa:360deg}}
+@keyframes hxbrilho{50%{box-shadow:0 0 18px 2px rgba(255,210,87,.55)}}
+@media (prefers-reduced-motion:reduce){.hx-tile::before,.hx-tile::after{animation:none}}.hx-tile small{font-size:12px;font-weight:700;opacity:.75;margin-top:-8px}
 .hx-car{display:flex;flex-direction:column;gap:10px}
 .hx-trilho{display:flex;align-items:center;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:14px}.hx-trilho::-webkit-scrollbar{display:none}
 .hx-sl{flex:0 0 100%;scroll-snap-align:center;padding:0;border:0;border-radius:14px;overflow:hidden;background:#0f1f45;cursor:pointer;display:block}
