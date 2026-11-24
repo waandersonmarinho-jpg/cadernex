@@ -1,0 +1,25 @@
+{
+  "id": "/loja",
+  "name": "Cadernex Loja",
+  "short_name": "Cadernex Loja",
+  "description": "Receba os pedidos da sua loja já pagos no Pix, com motoboy automático.",
+  "lang": "pt-BR",
+  "start_url": "/loja.html",
+  "scope": "/loja",
+  "display": "standalone",
+  "background_color": "#0c0e11",
+  "theme_color": "#0c0e11",
+  "icons": [
+    {
+      "src": "/icon-loja-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-loja-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

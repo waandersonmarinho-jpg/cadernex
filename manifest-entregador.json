@@ -1,0 +1,25 @@
+{
+  "id": "/entregador",
+  "name": "Cadernex Entregador",
+  "short_name": "Entregador",
+  "description": "Faça entregas de moto, bike ou frete e receba no Pix do seu CPF.",
+  "lang": "pt-BR",
+  "start_url": "/entregador.html",
+  "scope": "/entregador",
+  "display": "standalone",
+  "background_color": "#0c0e11",
+  "theme_color": "#0c0e11",
+  "icons": [
+    {
+      "src": "/icon-ent-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-ent-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
