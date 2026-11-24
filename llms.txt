@@ -18,6 +18,7 @@
 ## Páginas
 - [O que é o Cadernex — perguntas frequentes](https://cadernex.com.br/perguntas.html)
 - [Sobre o Cadernex](https://cadernex.com.br/sobre.html)
+- [Motoboy e entregas em Goiânia: preços e bairros](https://cadernex.com.br/entregas-goiania.html)
 - [Cadernex Entregador: app para entregadores](https://cadernex.com.br/entregador.html)
 - [Cadernex Loja: app para lojas do delivery](https://cadernex.com.br/loja.html)
 - [Seja promotor do Cadernex](https://cadernex.com.br/promotores.html)
