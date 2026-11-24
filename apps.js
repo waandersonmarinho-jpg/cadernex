@@ -11,6 +11,24 @@ if(APP!=="entregador"&&APP!=="loja"){
 .ap-como li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;counter-increment:n}
 .ap-como li::before{content:counter(n);width:30px;height:30px;border-radius:50%;background:var(--accent);color:#14161a;font-weight:800;display:grid;place-items:center}
 .ap-como li b{display:block}.ap-como li span{color:var(--muted);font-size:14px}.ap-como .duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}`;document.head.appendChild(st);
+    // a cara do app do cliente: topo, cores, fotos e textos próprios
+    document.documentElement.classList.add("app-cli");
+    st.textContent+=`.app-cli .hx{background:radial-gradient(45% 30% at 95% 0%,rgba(240,246,255,.65),transparent 70%),radial-gradient(70% 45% at 100% 10%,rgba(180,200,225,.45),transparent 70%),linear-gradient(180deg,#5d90d8 0%,#3f78cc 28%,#2f5ea6 55%,#22406e 80%,#172233 100%)}
+.app-cli .hx::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.22) 47%,rgba(220,232,255,.35) 50%,rgba(255,255,255,.22) 53%,transparent 65%);background-size:300% 100%;animation:clibrilho 5s ease-in-out infinite;mix-blend-mode:screen}
+.app-cli .hx-txt{position:relative;z-index:1}
+@keyframes clibrilho{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+@media (prefers-reduced-motion:reduce){.app-cli .hx::after{animation:none;opacity:0}}
+.app-cli .hx-ph{background-image:url(delivery-hero.jpg);background-position:58% 100%;background-size:auto 100%;opacity:1;width:78%;bottom:-8px;-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.55) 14%,#000 30%),linear-gradient(180deg,#000 72%,transparent 96%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.55) 14%,#000 30%),linear-gradient(180deg,#000 72%,transparent 96%);filter:contrast(1.08) saturate(1.1) brightness(1.04)}
+
+.app-cli .hx-duo button{border-color:rgba(255,255,255,.22);background:rgba(14,30,60,.42);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.app-cli .marca h1{font-size:clamp(17px,4.9vw,30px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-cli .marca{min-width:0;flex:1}.app-cli .marca>div{min-width:0}.app-cli header{flex-wrap:nowrap;align-items:center}
+.marca img.ap-logo{width:46px;height:46px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}`;
+    const mi=document.querySelector(".marca img");if(mi){mi.src="icon-del-192.png";mi.className="ap-logo";mi.width=46;mi.height=46}
+    const mh=document.querySelector(".marca h1");if(mh)mh.textContent="Cadernex Delivery";
+    const ola=document.getElementById("ola");if(ola&&!(typeof uid!=="undefined"&&uid))ola.textContent="Pra quem pede";
+    const hx=p.querySelector(".hx");if(hx){const eb=hx.querySelector(".hx-eb"),t=hx.querySelector(".hx-t");
+      if(eb)eb.textContent="Goiânia · peça pelo app";if(t)t.innerHTML="Peça e<br>receba na<br><span>sua porta</span>";
+      const f=hx.querySelector(".hx-foto");if(f)f.setAttribute("aria-label","Entregador Cadernex Delivery com as sacolas do pedido")}
     const c=document.createElement("section");c.className="card ap-como";
     c.innerHTML=`<span class="eyebrow">Como funciona pra você</span><h2>Peça em poucos toques</h2><ol>
       <li><div><b>Escolha o que precisa</b><span>Uma entrega de moto, bike ou frete, ou compre das lojas da cidade.</span></div></li>
@@ -50,7 +68,7 @@ const css=document.createElement("style");css.textContent=`
 .app-loja .hx{background:radial-gradient(120% 70% at 90% 0%,#1f8a5e 0%,#0f4a33 45%,#0a2c1f 100%)}
 .app-loja .hx-ph{background-image:url(lojistas-flyer.jpg);background-position:100% 42%;background-size:230%}
 .app-loja .hx-foto{background-image:url(delivery-hero.jpg);aspect-ratio:848/600}
-.app-loja .marca h1{font-size:clamp(24px,7vw,34px);white-space:nowrap}.app-loja .marca{min-width:0}
+.app-loja .marca h1{font-size:clamp(20px,6.6vw,32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-loja .marca{min-width:0;flex:1}.app-loja .marca>div{min-width:0}.app-loja header{flex-wrap:nowrap;align-items:center}
 .marca img.ap-logo{width:46px;height:46px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}
 .ap-como{display:flex;flex-direction:column;gap:10px}.ap-como h2{margin:0}
 .ap-como ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:n}
