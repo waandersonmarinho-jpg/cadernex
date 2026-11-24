@@ -32,19 +32,11 @@ const css=document.createElement("style");css.textContent=`
 #ap-errado img{width:64px;height:64px;border-radius:16px;margin:0 auto}#ap-errado h2{margin:0}#ap-errado p{margin:0;color:var(--muted)}`;
 document.head.appendChild(css);
 function entrada(){
-  const p=document.getElementById("au-inicio");if(!p||p.querySelector(".ap-in"))return;
-  const d=document.createElement("div");d.className="ap-in";
-  d.innerHTML=`<div class="ap-hd"><img src="${INFO.ico}" alt=""><div><b>${INFO.nome}</b><span>${ENT?"pra quem entrega":"pra quem vende"}</span></div></div>
-    <p class="ap-l">${INFO.l}</p>
-    <button class="btn full" type="button" data-cta="${INFO.tipo}">${INFO.cta}</button>
-    <button class="btn ghost full" type="button" data-apentrar>Já tenho conta · Entrar</button>
-    <button class="btn ghost full inst-box" type="button" data-instalar id="ap-inst">📲 Baixar o app ${INFO.nome}</button>
-    `;
+  const p=document.getElementById("au-inicio");if(!p||p.dataset.ap)return;p.dataset.ap="1";
+  // botões amarelos: o deste app instala aqui mesmo; o App Delivery leva pro Cadernex
   const tc=p.querySelector("[data-appcli]");if(tc){const a=document.createElement("a");a.className=tc.className;a.href="/";a.innerHTML=tc.innerHTML;tc.replaceWith(a)}
-  const hx=p.querySelector(".hx-tiles")||p.querySelector(".hx");if(hx)hx.after(d);else p.prepend(d); // a página inicial fica igual; o quadro do app vem logo depois do topo
-  if(matchMedia("(display-mode: standalone)").matches){const b=d.querySelector("#ap-inst");if(b)b.remove()}
-  if(/[?&]baixar/.test(location.search)){const b=d.querySelector("#ap-inst");if(b){b.classList.remove("ghost");setTimeout(()=>b.scrollIntoView({block:"center"}),300)}}
-  d.querySelector("[data-apentrar]").onclick=()=>{const t=document.querySelector('.au-tabs [data-aba="entrar"]');if(t)t.click()};
+  const meu=p.querySelector(`.hx-tile[href^="${ENT?"entregador":"loja"}.html"]`);
+  if(meu&&!matchMedia("(display-mode: standalone)").matches){const b=document.createElement("button");b.type="button";b.className=meu.className;b.setAttribute("data-instalar","");b.innerHTML=meu.innerHTML;meu.replaceWith(b)}
   // cadastro: só o tipo deste app
   document.querySelectorAll("#a-tipo [data-tipo]").forEach(x=>x.setAttribute("aria-checked",String(x.dataset.tipo===INFO.tipo)));
   const ib=document.querySelector("#au-entrar .inst-box");if(ib){const b=ib.querySelector("b"),im=ib.querySelector("img");if(b)b.textContent="Baixe o "+INFO.nome;if(im)im.src=INFO.ico}
