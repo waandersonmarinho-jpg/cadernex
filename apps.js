@@ -37,6 +37,10 @@ if(APP!=="entregador"&&APP!=="loja"){
       <li><div><b>Receba com código</b><span>Acompanhe pelo GPS e só passe o código quando tiver a encomenda na mão.</span></div></li></ol>
       <div class="duo"><button class="btn" type="button" data-cta="enviar">Pedir entrega</button><button class="btn ghost" type="button" data-vtlista>Ver as lojas</button></div>`;
     const car=p.querySelector("#hx-car")||p.querySelector(".hx-tiles");if(car)car.after(c);
+    // na raiz o App Delivery leva pra página dele (cada app instala no seu endereço); em /delivery instala ali mesmo
+    const tcl=p.querySelector("[data-appcli]");
+    if(tcl&&APP!=="delivery"){const l=document.createElement("a");l.className=tcl.className;l.href="delivery.html?baixar";l.innerHTML=tcl.innerHTML;tcl.replaceWith(l)}
+    if(APP==="delivery"){const ib=document.querySelector("#au-entrar .inst-box");if(ib){const b=ib.querySelector("b"),im=ib.querySelector("img");if(b)b.textContent="Baixe o Cadernex Delivery";if(im)im.src="/icon-del-192.png"}}
     ["#mk","#lj-info",'.btn.ghost[data-cta="entregador"]'].forEach(x=>p.querySelectorAll(x).forEach(e=>{if(!e.closest(".ap-como"))e.style.display="none"}));
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",cli);else cli();
@@ -83,7 +87,7 @@ function entrada(){
   const p=document.getElementById("au-inicio");if(!p||p.dataset.ap)return;p.dataset.ap="1";
   // botões amarelos: o deste app instala aqui mesmo; o App Delivery leva pro Cadernex
   p.addEventListener("click",e=>{if(e.target.closest("[data-apentrar]")){const t=document.querySelector('.au-tabs [data-aba="entrar"]');if(t)t.click()}});
-  const tc=p.querySelector("[data-appcli]");if(tc){const a=document.createElement("a");a.className=tc.className;a.href="/";a.innerHTML=tc.innerHTML;tc.replaceWith(a)}
+  const tc=p.querySelector("[data-appcli]");if(tc){const a=document.createElement("a");a.className=tc.className;a.href="delivery.html?baixar";a.innerHTML=tc.innerHTML;tc.replaceWith(a)}
   const meu=p.querySelector(`.hx-tile[href^="${ENT?"entregador":"loja"}.html"]`);
   if(meu&&!matchMedia("(display-mode: standalone)").matches){const b=document.createElement("button");b.type="button";b.className=meu.className;b.setAttribute("data-instalar","");b.innerHTML=meu.innerHTML;meu.replaceWith(b)}
   // a loja tem a sua cara: topo, cores, foto e textos próprios (o entregador fica como está)
