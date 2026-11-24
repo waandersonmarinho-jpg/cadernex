@@ -705,6 +705,14 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 @media (max-width:360px){.mk-vant{grid-template-columns:1fr}}
 .promo-l{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
 .promo-l span{color:var(--muted);font-size:14px}
+.promo-l{position:relative;isolation:isolate;border-color:rgba(59,130,246,.45)!important}.promo-l b{font-size:18px}
+.promo-l::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:3px;pointer-events:none;
+  background:conic-gradient(from var(--hxa),transparent 0deg 200deg,rgba(59,130,246,.35) 250deg,#3b82f6 300deg,#bfdbfe 325deg,#3b82f6 340deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 0 4px rgba(59,130,246,.9));animation:hxgira 2.8s linear infinite}
+.promo-l::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;animation:pmbrilho 2.8s ease-in-out infinite}
+@keyframes pmbrilho{50%{box-shadow:0 0 18px 2px rgba(59,130,246,.45)}}
+@media (prefers-reduced-motion:reduce){.promo-l::before,.promo-l::after{animation:none}}
 @media (max-width:360px){.hero-cta{grid-template-columns:1fr}}
 .lj{display:flex;flex-direction:column;gap:12px}
 .lj h2{margin:0;font-size:21px;line-height:1.25}
@@ -889,6 +897,7 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
         </ul>
         <button class="mk-cta" type="button" data-cta="cliente">Criar meu delivery grátis</button>
       </section>
+      <a class="card promo-l" href="promotores.html"><b>💼 Seja promotor</b><span>Cadastre lojas, em qualquer cidade, e ganhe 2% da taxa delas por 24 meses. Saiba mais →</span></a>
       <section class="lj card" id="lj-info" aria-labelledby="lj-t">
         <div class="eyebrow">Para lojistas</div>
         <h2 id="lj-t">Sua loja vende. O motoboy coleta e entrega.</h2>
@@ -909,7 +918,6 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
         <a class="btn ghost full" href="apresentacao-lojistas.pdf" target="_blank" rel="noopener">Ver a apresentação (PDF)</a>
       </section>
       <button class="btn ghost full" type="button" data-cta="entregador">Quero ser entregador</button>
-      <a class="card promo-l" href="promotores.html"><b>Seja promotor</b><span>Cadastre lojas, em qualquer cidade, e ganhe 2% da taxa delas por 24 meses. Saiba mais →</span></a>
       <p class="hint" style="text-align:center;margin:0"><a href="perguntas.html">O que é o Cadernex?</a> · <a href="sobre.html">Sobre</a> · <a href="promotores.html">Seja promotor</a> · <a href="regras.html">Regras de envio</a> · <a href="privacidade.html">Privacidade</a></p>
       <p class="hint" style="text-align:center;margin:0">Nossos apps: <a href="entregador.html">Cadernex Entregador</a> · <a href="loja.html">Cadernex Loja</a></p>
       <p class="hint" style="text-align:center;margin:0"><a href="entregas-goiania.html">Motoboy e entregas em Goiânia</a></p>
