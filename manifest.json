@@ -1,6 +1,6 @@
 {
-  "name": "Cadernex",
-  "short_name": "Cadernex",
+  "name": "Cadernex Delivery",
+  "short_name": "Cadernex Delivery",
   "description": "Coleta, envios e fretes, e controle de ganhos para entregadores.",
   "lang": "pt-BR",
   "start_url": "./",
@@ -9,7 +9,16 @@
   "background_color": "#0c0e11",
   "theme_color": "#0c0e11",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
