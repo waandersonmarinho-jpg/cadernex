@@ -15,12 +15,11 @@ const INFO=ENT?{nome:"Cadernex Entregador",ico:"/icon-ent-192.png",tipo:"entrega
     cta:"Cadastrar minha loja",itens:["🔔 Pedido novo com som e aviso no celular","🛵 Motoboy automático quando o pedido fica pronto","🏪 Retirada no balcão com código","💰 Pix direto na conta da loja"]};
 document.documentElement.classList.add("app-"+(ENT?"ent":"loja"));
 const css=document.createElement("style");css.textContent=`
-.app-ent #au-inicio>:not(.ap-in),.app-loja #au-inicio>:not(.ap-in){display:none!important}
 .app-ent #a-tipo [data-tipo]:not([data-tipo=entregador]),.app-loja #a-tipo [data-tipo]:not([data-tipo=cliente]){display:none!important}
 .app-ent #a-tipo,.app-loja #a-tipo{grid-template-columns:1fr!important}
-#ap-bx{display:none!important}
+.ap-bx{display:none!important}
 .ap-in .inst-box{justify-content:center}
-.ap-in{display:flex;flex-direction:column;gap:14px;padding:8px 0 4px}
+.ap-in{display:flex;flex-direction:column;gap:10px;padding:14px;margin:6px 0;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .ap-hd{display:flex;align-items:center;gap:12px}.ap-hd img{width:56px;height:56px;border-radius:14px;box-shadow:0 0 0 1px var(--line)}
 .ap-hd b{display:block;font:700 26px/1 var(--display)}.ap-hd span{font-size:13px;color:var(--muted)}
 .ap-t{font:700 34px/1.05 var(--display);margin:6px 0 0}.ap-t span{color:var(--accent)}
@@ -36,13 +35,12 @@ function entrada(){
   const p=document.getElementById("au-inicio");if(!p||p.querySelector(".ap-in"))return;
   const d=document.createElement("div");d.className="ap-in";
   d.innerHTML=`<div class="ap-hd"><img src="${INFO.ico}" alt=""><div><b>${INFO.nome}</b><span>${ENT?"pra quem entrega":"pra quem vende"}</span></div></div>
-    <h1 class="ap-t">${INFO.t}</h1><p class="ap-l">${INFO.l}</p>
-    <ul class="ap-it">${INFO.itens.map(x=>`<li>${x}</li>`).join("")}</ul>
+    <p class="ap-l">${INFO.l}</p>
     <button class="btn full" type="button" data-cta="${INFO.tipo}">${INFO.cta}</button>
     <button class="btn ghost full" type="button" data-apentrar>Já tenho conta · Entrar</button>
     <button class="btn ghost full inst-box" type="button" data-instalar id="ap-inst">📲 Baixar o app ${INFO.nome}</button>
-    <p class="ap-out">Quer pedir entrega ou comprar das lojas? <a href="/">Abra o Cadernex</a></p>`;
-  p.prepend(d);
+    `;
+  const hx=p.querySelector(".hx-tiles")||p.querySelector(".hx");if(hx)hx.after(d);else p.prepend(d); // a página inicial fica igual; o quadro do app vem logo depois do topo
   if(matchMedia("(display-mode: standalone)").matches){const b=d.querySelector("#ap-inst");if(b)b.remove()}
   if(/[?&]baixar/.test(location.search)){const b=d.querySelector("#ap-inst");if(b){b.classList.remove("ghost");setTimeout(()=>b.scrollIntoView({block:"center"}),300)}}
   d.querySelector("[data-apentrar]").onclick=()=>{const t=document.querySelector('.au-tabs [data-aba="entrar"]');if(t)t.click()};
@@ -63,6 +61,8 @@ function contaErrada(sim){
   document.body.appendChild(o);
   o.querySelector("[data-aptroca]").onclick=()=>{const s=document.getElementById("sair");if(s)s.click();o.remove()};
 }
+document.addEventListener("click",e=>{if(!e.target.closest("#s-auth [data-cta]"))return;
+  setTimeout(()=>document.querySelectorAll("#a-tipo [data-tipo]").forEach(x=>x.setAttribute("aria-checked",String(x.dataset.tipo===INFO.tipo))),0)});
 let lojaIni=false;
 function depois(){
   if(typeof perfil==="undefined"||!perfil.tipo)return;
