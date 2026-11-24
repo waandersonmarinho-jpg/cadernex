@@ -537,6 +537,15 @@ html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none
 .hx-tile svg{width:34px;height:34px;fill:none;stroke:#0b1633;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .hx-tile b{font-size:clamp(13.5px,3.9vw,16px);line-height:1.15;letter-spacing:-.1px}
 @property --hxa{syntax:"<angle>";inherits:false;initial-value:0deg}
+.hx-pista{position:relative;height:38px;margin:-6px 0 4px;overflow:hidden;border-radius:10px}
+.hx-pista::before{content:"";position:absolute;left:0;right:0;top:31px;border-top:2px dashed var(--line)}
+.hv{position:absolute;left:0;top:2px;height:34px;display:flex;align-items:center;transform:translateX(-90px);animation:hvpassa 7.5s linear infinite;will-change:transform}
+.hv::before{content:"";width:70px;height:3px;margin-right:-6px;margin-top:10px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(243,186,47,.25) 40%,#f3ba2f 85%,#fff6d6);filter:drop-shadow(0 0 4px #f3ba2f)}
+.hv svg{width:34px;height:30px;fill:none;stroke:var(--fg);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(243,186,47,.95)) drop-shadow(0 0 8px rgba(243,186,47,.6))}
+.hv3 svg{width:40px}
+.hv2{animation-delay:-2.5s;animation-duration:6s}.hv3{animation-delay:-5s;animation-duration:9s}
+@keyframes hvpassa{to{transform:translateX(calc(100vw + 20px))}}
+@media (prefers-reduced-motion:reduce){.hv{animation:none}.hv1{transform:translateX(10%)}.hv2{transform:translateX(40%)}.hv3{transform:translateX(70%)}}
 .hx-tile{position:relative;isolation:isolate}
 .hx-tile::before{content:"";position:absolute;inset:0;border-radius:6px;padding:3px;pointer-events:none;
   background:conic-gradient(from var(--hxa),transparent 0deg 200deg,rgba(255,255,255,.35) 250deg,#fff 310deg,#fffbe8 330deg,rgba(255,255,255,.6) 345deg,transparent 360deg);
@@ -859,6 +868,11 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
 
   <section id="s-auth" class="auth" hidden>
     <div class="au-pane stack" id="au-inicio" role="tabpanel">
+      <div class="hx-pista" aria-hidden="true">
+        <span class="hv hv1"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M5.5 17l4-7h6l3 7M9.5 10l-1-3H6.5M15.5 10l-2-4h3"/></svg></span>
+        <span class="hv hv2"><svg viewBox="0 0 24 24"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-6h5l3 6M14 7h3l1 4M9 11h3"/></svg></span>
+        <span class="hv hv3"><svg viewBox="0 0 28 24"><path d="M2 17v-5h11V7h6l5 5.5V17M15 9v3.5h7M4.7 17h0M9.3 17h8.4M22.3 17h1.7"/><circle cx="7" cy="17.5" r="2.3"/><circle cx="20" cy="17.5" r="2.3"/></svg></span>
+      </div>
       <div class="hx">
         <div class="hx-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <div class="hx-txt">
