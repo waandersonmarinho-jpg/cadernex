@@ -711,6 +711,10 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 .inst-box img{width:48px;height:48px;border-radius:12px;flex:none}
 .inst-box>div{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.inst-box>div span{font-size:13px;color:var(--muted)}
 .inst-box .btn{flex:none;padding-inline:18px}
+html:not([data-app]) #au-entrar .inst-box{display:none!important}
+.ap-bx{display:flex;flex-direction:column;gap:2px;margin:0 0 14px;border-color:var(--accent)}.ap-bx-t{font:700 20px/1.1 var(--display);margin-bottom:6px}
+.ap-bx-r{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}.ap-bx-r img{width:44px;height:44px;border-radius:11px;flex:none}
+.ap-bx-r>div{display:flex;flex-direction:column;flex:1;min-width:0}.ap-bx-r>div span{font-size:13px;color:var(--muted)}.ap-bx-r .btn{flex:none;padding-inline:16px;text-decoration:none}
 .inst-dlg{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px}
 .inst-dlg>.card{max-width:520px;width:100%}
 .inst-dlg ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px}
@@ -902,6 +906,11 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
       <p class="lead">Coleta e envios: peça uma entrega, um frete, receba corridas como entregador ou <a href="promotores.html" style="color:inherit;font-weight:600">ganhe cadastrando lojas como promotor</a>.</p>
       <p class="auth-selo"><b>Bem-vindo ao Cadernex</b></p>
       <div class="inst-box card" hidden><img src="icon-192.png" alt="" width="48" height="48"><div><b>Baixe o app Cadernex</b><span>Abre na hora, direto da tela do celular, como um app.</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
+      <div class="card ap-bx" id="ap-bx"><b class="ap-bx-t">Baixe o app certo pra você</b>
+        <div class="ap-bx-r inst-row"><img src="icon-192.png" alt="" width="44" height="44"><div><b>Cadernex</b><span>Pedir entrega, frete e comprar das lojas</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
+        <div class="ap-bx-r"><img src="icon-ent-192.png" alt="" width="44" height="44"><div><b>Cadernex Entregador</b><span>Pra motoboy, bike e frete</span></div><a class="btn" href="entregador.html?baixar">Baixar</a></div>
+        <div class="ap-bx-r"><img src="icon-loja-192.png" alt="" width="44" height="44"><div><b>Cadernex Loja</b><span>Pra quem vende pelo delivery</span></div><a class="btn" href="loja.html?baixar">Baixar</a></div>
+      </div>
       <div class="card">
         <h2 id="a-title" style="margin-bottom:12px">Entrar</h2>
         <form id="fAuth">

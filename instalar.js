@@ -4,7 +4,7 @@ let pedido=null;
 const instalado=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
 const naoChrome=/SamsungBrowser|Brave|FxiOS|Firefox|OPR|EdgA|MiuiBrowser/i.test(navigator.userAgent)||!!navigator.brave;
-function pintar(){document.querySelectorAll(".inst-box").forEach(b=>b.hidden=instalado())}
+function pintar(){document.querySelectorAll(".inst-box,.inst-row").forEach(b=>b.hidden=instalado())}
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();pedido=e;pintar()});
 window.addEventListener("appinstalled",()=>{pedido=null;pintar();toast("Cadernex instalado ✓ Procure o ícone na tela do celular.")});
 function passos(){

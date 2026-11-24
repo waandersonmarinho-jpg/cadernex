@@ -18,6 +18,8 @@ const css=document.createElement("style");css.textContent=`
 .app-ent #au-inicio>:not(.ap-in),.app-loja #au-inicio>:not(.ap-in){display:none!important}
 .app-ent #a-tipo [data-tipo]:not([data-tipo=entregador]),.app-loja #a-tipo [data-tipo]:not([data-tipo=cliente]){display:none!important}
 .app-ent #a-tipo,.app-loja #a-tipo{grid-template-columns:1fr!important}
+#ap-bx{display:none!important}
+.ap-in .inst-box{justify-content:center}
 .ap-in{display:flex;flex-direction:column;gap:14px;padding:8px 0 4px}
 .ap-hd{display:flex;align-items:center;gap:12px}.ap-hd img{width:56px;height:56px;border-radius:14px;box-shadow:0 0 0 1px var(--line)}
 .ap-hd b{display:block;font:700 26px/1 var(--display)}.ap-hd span{font-size:13px;color:var(--muted)}
@@ -38,8 +40,11 @@ function entrada(){
     <ul class="ap-it">${INFO.itens.map(x=>`<li>${x}</li>`).join("")}</ul>
     <button class="btn full" type="button" data-cta="${INFO.tipo}">${INFO.cta}</button>
     <button class="btn ghost full" type="button" data-apentrar>Já tenho conta · Entrar</button>
+    <button class="btn ghost full inst-box" type="button" data-instalar id="ap-inst">📲 Baixar o app ${INFO.nome}</button>
     <p class="ap-out">Quer pedir entrega ou comprar das lojas? <a href="/">Abra o Cadernex</a></p>`;
   p.prepend(d);
+  if(matchMedia("(display-mode: standalone)").matches){const b=d.querySelector("#ap-inst");if(b)b.remove()}
+  if(/[?&]baixar/.test(location.search)){const b=d.querySelector("#ap-inst");if(b){b.classList.remove("ghost");setTimeout(()=>b.scrollIntoView({block:"center"}),300)}}
   d.querySelector("[data-apentrar]").onclick=()=>{const t=document.querySelector('.au-tabs [data-aba="entrar"]');if(t)t.click()};
   // cadastro: só o tipo deste app
   document.querySelectorAll("#a-tipo [data-tipo]").forEach(x=>x.setAttribute("aria-checked",String(x.dataset.tipo===INFO.tipo)));
