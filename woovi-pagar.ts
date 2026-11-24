@@ -59,7 +59,8 @@ Deno.serve(async (req) => {
 
     const { corrida_id } = await req.json();
     const { data: c } = await admin.from("corridas").select("*").eq("id", corrida_id).maybeSingle();
-    if (!c || c.cliente_id !== user.id) return json({ erro: "Só quem pediu pode pagar essa corrida." }, 403);
+    // quem pediu paga pelo app; o entregador da corrida também pode gerar o QR pra mostrar na coleta
+    if (!c || (c.cliente_id !== user.id && c.entregador_id !== user.id)) return json({ erro: "Só quem pediu ou o entregador da corrida pode gerar esse Pix." }, 403);
     if (!["aceita", "coletada", "entregue"].includes(c.status)) {
       return json({ erro: "O pagamento libera depois que alguém aceitar." }, 400);
     }

@@ -723,6 +723,14 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 .promo-l::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;animation:pmbrilho 2.8s ease-in-out infinite}
 @keyframes pmbrilho{50%{box-shadow:0 0 18px 2px rgba(59,130,246,.45)}}
 @media (prefers-reduced-motion:reduce){.promo-l::before,.promo-l::after{animation:none}}
+#co-off{position:relative;isolation:isolate;border-color:rgba(239,68,68,.5)}
+#co-off::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:2.5px;pointer-events:none;
+  background:conic-gradient(from var(--hxa),transparent 0deg 200deg,rgba(239,68,68,.35) 250deg,#ef4444 300deg,#fecaca 325deg,#ef4444 340deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 0 4px rgba(239,68,68,.95));animation:hxgira 2.4s linear infinite}
+#co-off::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;animation:offbrilho 2.4s ease-in-out infinite}
+@keyframes offbrilho{50%{box-shadow:0 0 16px 2px rgba(239,68,68,.45)}}
+@media (prefers-reduced-motion:reduce){#co-off::before,#co-off::after{animation:none}}
 @media (max-width:360px){.hero-cta{grid-template-columns:1fr}}
 .lj{display:flex;flex-direction:column;gap:12px}
 .lj h2{margin:0;font-size:21px;line-height:1.25}

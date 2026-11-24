@@ -63,15 +63,17 @@ function pintar(){
       const auto=p&&/^cxa-/.test(p.correlation_id||"");
       const onde=p&&p.provedor==="woovi"?(["enviado","manual"].includes(p.repasse_status)?"Pix enviado pro seu CPF ✓":p.repasse_status==="aguarda_entrega"?"cai no Pix do seu CPF quando você entregar, com o código do cliente":/erro/.test(p.repasse_status||"")?"Pix pro seu CPF em conferência pelo Cadernex":"enviando pro seu Pix (CPF)…"):"pago pelo app";
       el.innerHTML=p&&p.status==="pago"?`<div class="mp-pago">✓ ${auto?"Entrega já paga pelo cliente no pedido":"Cliente pagou pelo app"} · ${brl(liq)} ${onde}${Number(p.comissao)>0?` <span class="hint">(${brl(Number(p.valor))} − ${Math.round(Number(p.comissao)/Number(p.valor)*100)}% do Cadernex)</span>`:""}</div>`
+        :p&&p.status==="pendente"&&c.status==="aceita"?`<p class="hint" style="margin:0">Pix gerado. Aguardando cair… <b>Só pegue a encomenda depois que aparecer "Cliente pagou".</b></p><button class="btn full" type="button" data-mppagar="${c.id}" style="margin-top:8px">📲 Mostrar QR do Pix pro cliente pagar</button><div class="wv-pix" data-wv="${c.id}"></div>`
         :p&&p.status==="pendente"?`<p class="hint" style="margin:0">Cliente abriu o Pix pelo app. Aguardando cair… <b>Só colete depois que aparecer "Cliente pagou".</b></p>`
-        :c.status==="aceita"?`<p class="hint" style="margin:0">⏳ Aguardando o cliente pagar o Pix pelo app. <b>Só colete depois que aparecer "Cliente pagou".</b></p>`
+        :c.status==="aceita"?`<p class="hint" style="margin:0">Na coleta, mostre o QR Code pro cliente pagar pelo app do banco. <b>Só pegue a encomenda depois que aparecer "Cliente pagou".</b></p><button class="btn full" type="button" data-mppagar="${c.id}" style="margin-top:8px">📲 Mostrar QR do Pix pro cliente pagar</button><div class="wv-pix" data-wv="${c.id}"></div>`
         :euRecebo===false?`<div class="mp-box"><b>Ative seu Pix pra receber pelo app</b><p class="hint" style="margin:0">O pagamento é só pelo app: sua parte cai direto no Pix do seu CPF. Sem o Pix ativo, você não consegue aceitar corridas.</p><button class="btn full" type="button" data-go="resumo">Ativar meu Pix</button></div>`:"";
+      if(c.status==="aceita"&&p&&p.provedor==="woovi"&&p.status==="pendente"&&p.brcode&&new Date(p.expira_em)>Date.now())mostraPix(c.id,{brcode:p.brcode,qrcode:p.qrcode,url:p.link,total:p.total});
       return}
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ ${/^cxa-/.test(p.correlation_id||"")?"Entrega já paga pelo cliente no pedido":"Pago pelo app · "+brl(Number(p.total))}</div>`;return}
     if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">O Pix desse entregador ainda não está pronto. Fale com ele pela conversa da corrida, ou cancele e peça de novo.</p>`;return}
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
     el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxas (serviço 14% + app R$ 1,99)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
-      <button class="btn full" type="button" data-mppagar="${c.id}">Pagar ${brl(k.total)} pelo app (Pix)</button>
+      <button class="btn full" type="button" data-mppagar="${c.id}">📲 Gerar QR Code do Pix · ${brl(k.total)}</button>
       <div class="wv-pix" data-wv="${c.id}"></div>
       <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último Pix venceu ou não passou. Gere outro. ":""}Você paga um Pix só. A parte do entregador cai direto no Pix dele, na hora.</p></div>`;
     if(p&&p.provedor==="woovi"&&p.status==="pendente"&&p.brcode&&new Date(p.expira_em)>Date.now())mostraPix(c.id,{brcode:p.brcode,qrcode:p.qrcode,url:p.link});
@@ -89,10 +91,11 @@ document.addEventListener("click",async e=>{
 function mostraPix(cid,d){
   const w=document.querySelector(`.wv-pix[data-wv="${cid}"]`);if(!w)return;
   const esc=x=>String(x||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-  const qr=/^https:\/\//.test(d.qrcode||"")?`<img src="${esc(d.qrcode)}" alt="QR Code do Pix" width="200" height="200" style="display:block;margin:6px auto;background:#fff;border-radius:8px">`:"";
-  w.innerHTML=`${qr}<button class="btn full" type="button" data-wvcopia="${cid}">Copiar Pix copia e cola</button>
+  const qr=/^https:\/\//.test(d.qrcode||"")?`<img src="${esc(d.qrcode)}" alt="QR Code do Pix" width="240" height="240" style="display:block;margin:6px auto;background:#fff;border-radius:8px;max-width:100%;height:auto">`:"";
+  const tot=Number(d.total)>0?`<p style="text-align:center;margin:4px 0;font-weight:700">Total do Pix: ${Number(d.total).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</p>`:"";
+  w.innerHTML=`${tot}${qr}<button class="btn full" type="button" data-wvcopia="${cid}">Copiar Pix copia e cola</button>
     ${/^https:\/\//.test(d.url||"")?`<a class="link" href="${esc(d.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:6px">Abrir página do Pix</a>`:""}
-    <p class="hint" style="margin:4px 0 0;font-size:12px;text-align:center">Cole no app do seu banco, em Pix → Copia e cola. Vale 30 minutos.</p>`;
+    <p class="hint" style="margin:4px 0 0;font-size:12px;text-align:center">Paga de qualquer banco, até de conta de outra pessoa: aponte a câmera ou cole em Pix → Copia e cola. Vale 30 minutos.</p>`;
   w.dataset.code=d.brcode;
 }
 document.addEventListener("click",async e=>{
