@@ -536,7 +536,7 @@ html.na-inicio .hd-entrar{display:inline-block}html.na-inicio #sync{display:none
 .hx-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:-48px;position:relative;z-index:2}
 .hx-tile{display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:104px;padding:12px;border:0;border-radius:6px;text-align:left;font:inherit;cursor:pointer;text-decoration:none;color:#0b1633;background:linear-gradient(160deg,#ffd257,#f3ba2f 60%,#e5a400);box-shadow:0 8px 20px rgba(11,22,51,.18)}
 .hx-tile svg{width:34px;height:34px;fill:none;stroke:#0b1633;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.hx-tile b{font-size:16px;line-height:1.15}
+.hx-tile b{font-size:16px;line-height:1.15}.hx-tile small{font-size:12px;font-weight:700;opacity:.75;margin-top:-8px}
 .hx-car{display:flex;flex-direction:column;gap:10px}
 .hx-trilho{display:flex;align-items:center;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:14px}.hx-trilho::-webkit-scrollbar{display:none}
 .hx-sl{flex:0 0 100%;scroll-snap-align:center;padding:0;border:0;border-radius:14px;overflow:hidden;background:#0f1f45;cursor:pointer;display:block}
@@ -849,15 +849,10 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
         </div>
         <div class="hx-foto" role="img" aria-label="Motoqueiro Cadernex Entregas e Delivery com a bag de entrega, em Goiânia"></div>
       </div>
-      <div class="card ap-bx" id="ap-bx2"><b class="ap-bx-t">Baixe o app do Cadernex</b>
-        <div class="ap-bx-r inst-row"><img src="icon-192.png" alt="" width="44" height="44"><div><b>Cadernex</b><span>Pedir entrega, frete e comprar das lojas</span></div><button class="btn" type="button" data-instalar>Baixar</button></div>
-        <div class="ap-bx-r"><img src="icon-ent-192.png" alt="" width="44" height="44"><div><b>Cadernex Entregador</b><span>Pra motoboy, bike e frete</span></div><a class="btn" href="entregador.html?baixar">Baixar</a></div>
-        <div class="ap-bx-r"><img src="icon-loja-192.png" alt="" width="44" height="44"><div><b>Cadernex Loja</b><span>Pra quem vende pelo delivery</span></div><a class="btn" href="loja.html?baixar">Baixar</a></div>
-      </div>
-      <nav class="hx-tiles" aria-label="Escolha como usar">
-        <a class="hx-tile" href="#mk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg><b>Para lojas</b></a>
-        <button class="hx-tile" type="button" data-cta="comprar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg><b>Para você</b></button>
-        <button class="hx-tile" type="button" data-cta="entregador"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-6h5l3 6M14 7h3l1 4"/></svg><b>Seja entregador</b></button>
+      <nav class="hx-tiles" aria-label="Baixe o app do Cadernex">
+        <button class="hx-tile" type="button" data-instalar data-appcli><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><b>App Delivery</b><small>Baixar →</small></button>
+        <a class="hx-tile" href="loja.html?baixar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg><b>App Lojista</b><small>Baixar →</small></a>
+        <a class="hx-tile" href="entregador.html?baixar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-6h5l3 6M14 7h3l1 4"/></svg><b>App Motoqueiro</b><small>Baixar →</small></a>
       </nav>
       <div class="hx-car" id="hx-car">
         <div class="hx-trilho">

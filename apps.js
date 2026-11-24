@@ -40,6 +40,7 @@ function entrada(){
     <button class="btn ghost full" type="button" data-apentrar>Já tenho conta · Entrar</button>
     <button class="btn ghost full inst-box" type="button" data-instalar id="ap-inst">📲 Baixar o app ${INFO.nome}</button>
     `;
+  const tc=p.querySelector("[data-appcli]");if(tc){const a=document.createElement("a");a.className=tc.className;a.href="/";a.innerHTML=tc.innerHTML;tc.replaceWith(a)}
   const hx=p.querySelector(".hx-tiles")||p.querySelector(".hx");if(hx)hx.after(d);else p.prepend(d); // a página inicial fica igual; o quadro do app vem logo depois do topo
   if(matchMedia("(display-mode: standalone)").matches){const b=d.querySelector("#ap-inst");if(b)b.remove()}
   if(/[?&]baixar/.test(location.search)){const b=d.querySelector("#ap-inst");if(b){b.classList.remove("ghost");setTimeout(()=>b.scrollIntoView({block:"center"}),300)}}
