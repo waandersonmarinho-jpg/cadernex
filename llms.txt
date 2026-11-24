@@ -11,11 +11,14 @@
 - Fretes e mudanças: picape pequena, picape média ou caminhão, com agendamento e ajudantes.
 - Segurança: cadastro com CPF e foto (selfie do cliente e do entregador, fachada da loja), endereço visível só para quem participa da corrida, rastreio por GPS, avaliação das corridas. Entregas de moto exigem 21 anos ou mais (Lei 12.009/2009).
 - Promotores: autônomos, sem vínculo de emprego, que atuam em todo o Brasil cadastrando lojas. Ganham 2% da taxa do Cadernex sobre cada loja durante 24 meses, a partir da 2ª entrega paga pelo app (a 1ª é da fidelidade da loja com o Cadernex), com saque semanal por Pix a partir de R$ 5. Cadastro grátis, escolhendo "Promover" ao criar a conta, com nome, CPF e aceite do Termo do Promotor Autônomo (https://cadernex.com.br/termo-promotor.html). Cada loja tem uma conta só, e conta de loja não pode ser promotor.
+- Apps: três apps no mesmo sistema e com o mesmo login. Cadernex (https://cadernex.com.br) para pedir entregas, fretes e comprar das lojas; Cadernex Entregador (https://cadernex.com.br/entregador.html) para entregadores de moto, bike e frete; Cadernex Loja (https://cadernex.com.br/loja.html) para lojas que vendem pelo delivery. Todos se instalam pelo navegador do celular.
 - Abrangência: todo o Brasil.
 - Suporte: suporte@cadernex.com.br
 
 ## Páginas
 - [O que é o Cadernex — perguntas frequentes](https://cadernex.com.br/perguntas.html)
 - [Sobre o Cadernex](https://cadernex.com.br/sobre.html)
+- [Cadernex Entregador: app para entregadores](https://cadernex.com.br/entregador.html)
+- [Cadernex Loja: app para lojas do delivery](https://cadernex.com.br/loja.html)
 - [Seja promotor do Cadernex](https://cadernex.com.br/promotores.html)
 - [Política de privacidade](https://cadernex.com.br/privacidade.html)
