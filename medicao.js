@@ -32,7 +32,7 @@ window.cxConversao=function(tipo){
   try{const volta=location.pathname+location.search+location.hash;
     history.replaceState(history.state,"","/?bem-vindo");
     gtag("event","page_view",{page_location:location.origin+"/?bem-vindo",page_title:"Cadastro concluído"});
-    gtag("event","sign_up",{method:tipo||"app"});
+    gtag("event","sign_up",{method:tipo||"app"});gtag("event","ads_conversion_Inscri_o_1",{method:tipo||"app"}); // conversão "Inscrição" do Google Ads
     setTimeout(()=>history.replaceState(history.state,"",volta),1500);
   }catch(e){}
 };
