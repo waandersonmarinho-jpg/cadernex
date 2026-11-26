@@ -47,7 +47,59 @@ if(APP!=="entregador"&&APP!=="loja"){
     const tcl=p.querySelector("[data-appcli]");
     if(tcl&&APP!=="delivery"){const l=document.createElement("a");l.className=tcl.className;l.href="delivery.html?baixar";l.innerHTML=tcl.innerHTML;tcl.replaceWith(l)}
     if(APP==="delivery"){const ib=document.querySelector("#au-entrar .inst-box");if(ib){const b=ib.querySelector("b"),im=ib.querySelector("img");if(b)b.textContent="Baixe o Cadernex Delivery";if(im)im.src="/icon-del-192.png"}}
-    ["#mk","#lj-info",'.btn.ghost[data-cta="entregador"]'].forEach(x=>p.querySelectorAll(x).forEach(e=>{if(!e.closest(".ap-como"))e.style.display="none"}));
+    ["#mk","#lj-info",'.btn.ghost[data-cta="entregador"]',"#hx-car"].forEach(x=>p.querySelectorAll(x).forEach(e=>{if(!e.closest(".ap-como"))e.style.display="none"}));
+    // ---- conteúdo pro cliente final ----
+    st.textContent+=`.app-cli #s-auth :is(.ap-como,.cl-sec,.cl-calc,.cl-faq){--accent:#1d6fe0;--accent-ink:#ffffff;--accent-soft:#dce9fb}
+:root.app-cli[data-theme="dark"] #s-auth :is(.ap-como,.cl-sec,.cl-calc,.cl-faq){--accent:#4f95f5;--accent-ink:#ffffff;--accent-soft:#13233d}
+@media (prefers-color-scheme:dark){:root.app-cli:not([data-theme="light"]) #s-auth :is(.ap-como,.cl-sec,.cl-calc,.cl-faq){--accent:#4f95f5;--accent-ink:#ffffff;--accent-soft:#13233d}}
+.app-cli #s-auth .ap-como li::before{color:#fff}
+.cl-sec{display:flex;flex-direction:column;gap:10px}.cl-sec>h2{margin:0}
+.cl-srv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cl-srv button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:13px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:inherit;font:inherit;cursor:pointer;min-height:112px}
+.cl-srv button i{font-style:normal;font-size:26px;line-height:1}.cl-srv button b{font-size:15px}.cl-srv button span{font-size:12.5px;color:var(--muted);line-height:1.35}.cl-srv button em{font-style:normal;font-size:12px;font-weight:700;color:var(--accent);margin-top:auto}
+.cl-calc{display:flex;flex-direction:column;gap:10px}.cl-calc input[type=range]{width:100%;accent-color:var(--accent)}
+.cl-km{display:flex;justify-content:space-between;align-items:baseline}.cl-km b{font:700 18px var(--display)}
+.cl-val{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}.cl-val span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.cl-val .tot{font-weight:800;font-size:17px;padding-top:6px;border-top:1px solid var(--line)}.cl-val .tot+span{font:800 24px var(--display);color:var(--good,#16a34a);padding-top:6px;border-top:1px solid var(--line)}
+.cl-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cl-seg div{padding:11px;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.cl-seg b{display:block;font-size:14px;margin-top:4px}.cl-seg span{font-size:12.5px;color:var(--muted);line-height:1.35}.cl-seg i{font-style:normal;font-size:22px}
+.cl-faq details{border-top:1px solid var(--line);padding:10px 0}.cl-faq summary{cursor:pointer;font-weight:700;list-style:none}.cl-faq summary::-webkit-details-marker{display:none}.cl-faq summary::after{content:"+";float:right;color:var(--muted)}.cl-faq details[open] summary::after{content:"–"}.cl-faq p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.45}
+.cl-trab{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cl-trab a{display:flex;flex-direction:column;gap:3px;padding:12px;border-radius:14px;border:1px solid var(--line);text-decoration:none;color:inherit}.cl-trab a b{font-size:14px}.cl-trab a span{font-size:12px;color:var(--muted)}`;
+    const mk=(cls,html)=>{const e=document.createElement("section");e.className=cls;e.innerHTML=html;return e};
+    const srv=mk("cl-sec",`<span class="eyebrow">O que você pode pedir</span><h2>Tudo que você precisa levar ou comprar</h2>
+      <div class="cl-srv">
+        <button type="button" data-cta="enviar"><i>🛵</i><b>Entrega de moto</b><span>Documentos, chaves, comida, encomendas</span><em>A partir de R$ 8 →</em></button>
+        <button type="button" data-cta="enviar"><i>🚲</i><b>Entrega de bike</b><span>Pra perto, até uns 5 km</span><em>Pedir →</em></button>
+        <button type="button" data-cta="enviar"><i>🛻</i><b>Frete e mudança</b><span>Picape ou caminhão, com ajudantes</span><em>A partir de R$ 40 →</em></button>
+        <button type="button" data-vtlista><i>🍔</i><b>Delivery das lojas</b><span>Lanchonete, farmácia, ferragista e mais</span><em>Ver as lojas →</em></button>
+      </div>`);
+    const calc=mk("card cl-calc",`<span class="eyebrow">Quanto custa</span><h2 style="margin:0">Simule sua entrega de moto</h2>
+      <div class="cl-km"><span>Distância</span><b id="cl-kmv">3 km</b></div>
+      <input type="range" id="cl-km" min="1" max="20" step="1" value="3" aria-label="Distância em km">
+      <div class="cl-val"><span>Corrida</span><span id="cl-c">R$ 8,00</span><span>Taxa de serviço (14%)</span><span id="cl-s">R$ 1,12</span><span>Taxa do app</span><span>R$ 1,99</span><span class="tot">Você paga</span><span id="cl-t">R$ 11,11</span></div>
+      <p class="hint" style="margin:0;font-size:12px">Estimativa. O valor exato aparece pelo CEP antes de confirmar o pedido.</p>
+      <button class="btn full" type="button" data-cta="enviar">Pedir entrega agora</button>`);
+    const seg=mk("cl-sec",`<span class="eyebrow">Por que pedir pelo Cadernex</span><h2>Seguro do começo ao fim</h2>
+      <div class="cl-seg">
+        <div><i>💲</i><b>Preço antes</b><span>Sem surpresa: você vê o valor antes de pedir.</span></div>
+        <div><i>🔐</i><b>Código de entrega</b><span>Só você tem o código. Sem ele, não conta como entregue.</span></div>
+        <div><i>📍</i><b>GPS ao vivo</b><span>Acompanhe o entregador e receba aviso em cada etapa.</span></div>
+        <div><i>⭐</i><b>Entregadores avaliados</b><span>Com selfie, foto do veículo e nota dos clientes.</span></div>
+      </div>`);
+    const faq=mk("card cl-faq",`<span class="eyebrow">Dúvidas de quem pede</span><h2 style="margin:0 0 4px">Perguntas rápidas</h2>
+      <details><summary>Como eu pago?</summary><p>Por Pix, de qualquer banco, até pela conta de outra pessoa. O QR Code aparece no app, e o entregador também pode mostrar na coleta.</p></details>
+      <details><summary>E se ninguém aceitar?</summary><p>O pedido fica aberto até um entregador aceitar. Se você cancelar antes, não paga nada.</p></details>
+      <details><summary>Posso comprar de uma loja e retirar?</summary><p>Sim. No delivery, escolha "Retirar na loja": não tem taxa de entrega e você mostra um código no balcão.</p></details>
+      <details><summary>Funciona no meu bairro?</summary><p>Funciona em qualquer bairro de Goiânia. A rapidez depende de ter entregador perto de você na hora.</p></details>
+      <p style="margin:10px 0 0"><a href="perguntas.html">Ver todas as perguntas →</a></p>`);
+    const trab=mk("cl-sec",`<span class="eyebrow">Trabalhe com o Cadernex</span>
+      <div class="cl-trab"><a href="loja.html"><b>🏪 Tenho uma loja</b><span>Venda pelo delivery</span></a><a href="entregador.html"><b>🛵 Sou entregador</b><span>Rode e receba no Pix</span></a></div>`);
+    c.after(srv);srv.after(calc);calc.after(seg);seg.after(faq);faq.after(trab);
+    const pl=p.querySelector(".promo-l");if(pl)trab.after(pl);
+    const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    const kmI=calc.querySelector("#cl-km"),conta=()=>{const k=+kmI.value,cor=Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2),sv=Math.round(cor*14)/100;
+      calc.querySelector("#cl-kmv").textContent=k+" km";calc.querySelector("#cl-c").textContent=brl(cor);calc.querySelector("#cl-s").textContent=brl(sv);calc.querySelector("#cl-t").textContent=brl(cor+sv+1.99)};
+    kmI.addEventListener("input",conta);conta();
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",cli);else cli();
   return;
