@@ -25,6 +25,12 @@ if(APP!=="entregador"&&APP!=="loja"){
 .marca img.ap-logo{width:46px;height:46px;border-radius:12px;box-shadow:0 0 0 1px var(--line)}`;
     const mi=document.querySelector(".marca img");if(mi){mi.src="icon-del-192.png";mi.className="ap-logo";mi.width=46;mi.height=46}
     const mh=document.querySelector(".marca h1");if(mh)mh.textContent="Cadernex Delivery";
+    // conta de entregador ou loja aberta no app do cliente: o topo mostra o app certo de cada um
+    const marcaPapel=()=>{if(typeof perfil==="undefined"||!perfil.tipo||!mi||!mh)return;
+      const loja=!!(perfil.loja&&String(perfil.loja_nome||"").trim()),ent=perfil.tipo!=="cliente";
+      mi.src=ent?"icon-ent-192.png":loja?"icon-loja-192.png":"icon-del-192.png";mh.textContent=ent?"Cadernex":loja?"Cadernex Loja":"Cadernex Delivery"};
+    if(typeof aplicaPapel==="function"&&!aplicaPapel.cxCli){const o=aplicaPapel;window.aplicaPapel=function(){const r=o.apply(this,arguments);try{marcaPapel()}catch(e){}return r};window.aplicaPapel.cxCli=true}
+    if(typeof uid!=="undefined"&&uid)marcaPapel();
     const ola=document.getElementById("ola");if(ola&&!(typeof uid!=="undefined"&&uid))ola.textContent="Pra quem pede";
     const hx=p.querySelector(".hx");if(hx){const eb=hx.querySelector(".hx-eb"),t=hx.querySelector(".hx-t");
       if(eb)eb.textContent="Goiânia · peça pelo app";if(t)t.innerHTML="Peça e<br>receba na<br><span>sua porta</span>";

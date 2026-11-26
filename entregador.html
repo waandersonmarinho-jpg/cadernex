@@ -753,6 +753,16 @@ span.dl-lj-logo{font-weight:800;color:var(--accent)}
 .inst-box img{width:48px;height:48px;border-radius:12px;flex:none}
 .inst-box>div{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.inst-box>div span{font-size:13px;color:var(--muted)}
 .inst-box .btn{flex:none;padding-inline:18px}
+.cf-pf{display:grid;grid-template-columns:64px 1fr auto;gap:4px 14px;align-items:center}
+.cf-av{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#14161a;display:grid;place-items:center;font:700 24px var(--display);overflow:hidden;box-shadow:0 0 0 3px var(--bg),0 0 0 4px var(--line)}
+.cf-av img{width:100%;height:100%;object-fit:cover}
+.cf-id{display:flex;flex-direction:column;gap:3px;min-width:0}.cf-id b{font:700 22px/1.1 var(--display);overflow-wrap:anywhere}
+.cf-tag{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:rgba(243,186,47,.16);color:var(--accent)}
+.cf-mail{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.cf-ed{padding:8px 14px;align-self:start}
+.cf-fn{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)}
+.cf-bt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf-sec{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:10px 4px -4px}
 html:not([data-app]) #au-entrar .inst-box{display:none!important}
 .ap-bx{display:flex;flex-direction:column;gap:2px;margin:0 0 14px;border-color:var(--accent)}.ap-bx-t{font:700 20px/1.1 var(--display);margin-bottom:6px}
 .ap-bx-r{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line)}.ap-bx-r img{width:44px;height:44px;border-radius:11px;flex:none}
@@ -1558,12 +1568,29 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
   <section id="v-config" class="view" hidden>
     <div class="stack">
       <h2 style="font-size:28px">Configurações</h2>
+      <div class="card cf-pf" id="cf-perfil">
+        <div class="cf-av" id="cf-av" aria-hidden="true"></div>
+        <div class="cf-id">
+          <b id="cf-nome">—</b>
+          <span class="cf-tag" id="cf-tag"></span>
+          <span class="cf-mail" id="cf-mail"></span>
+        </div>
+        <button class="btn ghost cf-ed" type="button" id="cf-ed" aria-expanded="false" aria-controls="fNome">Editar</button>
+        <form id="fNome" class="cf-fn" hidden>
+          <label><span id="cf-nome-l">Seu nome</span><input type="text" id="cf-nome-in" maxlength="60" autocomplete="name" required></label>
+          <p class="hint" id="cf-nome-h" style="margin:0;font-size:12px">É assim que clientes, lojas e entregadores veem você no app.</p>
+          <p class="msg" id="cf-nome-msg" role="status"></p>
+          <div class="cf-bt"><button class="btn ghost" type="button" id="cf-nome-x">Cancelar</button><button class="btn" type="submit">Salvar nome</button></div>
+        </form>
+      </div>
+      <div class="cf-sec">Perfil</div>
       <div class="card pf-foto" data-para="ent" hidden>
         <div class="pf-av" aria-hidden="true"></div>
         <div class="stack" style="gap:6px;min-width:0"><b data-ft></b><p class="hint" data-fh style="margin:0"></p>
           <button class="btn ghost" type="button" data-fb style="align-self:flex-start;padding:8px 14px">Adicionar foto</button>
           <input type="file" accept="image/*" hidden></div>
       </div>
+      <div class="cf-sec">Preferências</div>
       <div class="card stack">
         <h2>Aparência</h2>
         <div class="seg" role="group" aria-label="Tema do app">
@@ -1572,9 +1599,10 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
         </div>
         <p class="hint" style="margin:0">O escuro gasta menos bateria e cansa menos a vista à noite.</p>
       </div>
+      <div class="cf-sec">Conta e segurança</div>
       <div class="card stack">
-        <h2>Sua conta</h2>
-        <div><div class="eyebrow">Entrou como</div><b id="cf-email" style="word-break:break-all">—</b> <span class="hint" id="cf-tipo"></span></div>
+        <h2>Senha</h2>
+        <div hidden><b id="cf-email">—</b> <span id="cf-tipo"></span></div>
         <form id="fSenha" class="stack">
           <label>Nova senha<input type="password" id="cf-senha" autocomplete="new-password" minlength="6" placeholder="mínimo 6 caracteres"></label>
           <p class="msg" id="cf-msg" role="status"></p>
@@ -1592,11 +1620,13 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
         <p class="hint" id="cf-push-st" style="margin:0">Receba corrida nova e o andamento dos seus pedidos mesmo com o app fechado.</p>
         <button class="btn full" id="cf-push-btn" type="button">Ativar notificações</button>
       </div>
+      <div class="cf-sec">Ajuda</div>
       <div class="card stack" id="cf-suporte">
         <h2>Suporte</h2>
         <a class="btn ghost full" href="mailto:suporte@cadernex.com.br?subject=Suporte%20Cadernex" style="text-decoration:none;text-align:center">suporte@cadernex.com.br</a>
       </div>
       <a class="card maisbtn sobre-card" href="sobre.html"><img src="marca.svg" alt="" width="70" height="35"><span class="sobre-t"><b>Sobre o Cadernex</b><span>Nossa missão</span></span></a>
+      <div class="cf-sec">Sessão</div>
       <div class="card stack">
         <h2>Sair</h2>
         <p class="hint" style="margin:0">Seus dados ficam salvos na nuvem. Pra voltar, é só entrar de novo com seu e-mail e senha, em qualquer celular.</p>

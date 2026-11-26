@@ -16,8 +16,32 @@ async function contaRender(){
   if(typeof sb==="undefined"||!sb||!uid)return;
   const u=(await sb.auth.getUser()).data.user;if(!u)return;
   $("cf-email").textContent=u.email||"—";
-  $("cf-tipo").textContent=(typeof perfil!=="undefined"&&perfil.tipo==="cliente")?"· conta de cliente":"· conta de entregador";
+  const p=typeof perfil!=="undefined"?perfil:{},loja=!!(p.loja&&String(p.loja_nome||"").trim()),cli=p.tipo==="cliente";
+  $("cf-tipo").textContent=cli?"· conta de cliente":"· conta de entregador";
+  const nome=String(p.nome||"").trim();
+  $("cf-nome").textContent=nome||"Sem nome";
+  $("cf-tag").textContent=p.admin?"Moderador":loja?"Lojista":cli?"Cliente":"Entregador";
+  $("cf-mail").textContent=u.email||"";
+  const ft=document.querySelector(".pf-foto .pf-av img"),av=$("cf-av");
+  if(ft&&ft.src)av.innerHTML=`<img src="${ft.src}" alt="">`;
+  else av.textContent=(nome.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("")||"?").toUpperCase();
+  $("cf-nome-l").textContent="Seu nome";
+  $("cf-nome-h").textContent=cli?"É assim que lojas e entregadores veem você nos pedidos.":"É assim que clientes e lojas veem você quando aceita uma corrida.";
 }
+// editar o nome
+const fN=$("fNome"),bEd=$("cf-ed");
+function abreNome(sim){fN.hidden=!sim;bEd.hidden=sim;bEd.setAttribute("aria-expanded",String(sim));$("cf-nome-msg").textContent="";
+  if(sim){$("cf-nome-in").value=(typeof perfil!=="undefined"&&perfil.nome)||"";setTimeout(()=>$("cf-nome-in").focus(),30)}}
+bEd.onclick=()=>abreNome(true);$("cf-nome-x").onclick=()=>abreNome(false);
+const fmtNome=t=>String(t||"").replace(/\s+/g," ").trim().toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Da|De|Do|Das|Dos|E)\b/g,m=>m.toLowerCase()).replace(/^./,c=>c.toUpperCase());
+fN.addEventListener("submit",async e=>{e.preventDefault();
+  const msg=$("cf-nome-msg"),v=fmtNome($("cf-nome-in").value);msg.style.color="";
+  if(v.length<2||!/\p{L}/u.test(v)){msg.textContent="Coloque um nome com pelo menos 2 letras.";return}
+  if(/[<>{}@]|https?:|www\./i.test(v)){msg.textContent="Use só o seu nome, sem links ou símbolos.";return}
+  msg.textContent="Salvando…";
+  try{await savePerfil({nome:v});abreNome(false);contaRender();toast("Nome atualizado ✓")}
+  catch(err){console.error(err);msg.textContent="Não salvou. Confira a internet e tente de novo."}
+});
 if(typeof go==="function"){const g0=go;go=function(v){g0(v);if(v==="config"){$("cf-msg").textContent="";contaRender()}}}
 
 $("fSenha").addEventListener("submit",async e=>{e.preventDefault();
