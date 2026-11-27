@@ -382,7 +382,7 @@ function ckRender(){
     if($("dl-fr-h")&&loja.lat!=null)$("dl-fr-h").textContent=app?"A entrega vai junto no Pix. O pedido só é entregue com o seu código.":"A entrega é estimada pela distância. A loja confirma o valor no WhatsApp.";
     $("dl-env-b").innerHTML=app?"Pagar com Pix":`${IC.zap}Enviar pedido no WhatsApp da loja`;
     $("dl-env-h").textContent=app?"Você paga agora pelo app. O dinheiro vai direto pra loja, que já recebe o pedido pago.":"A loja confirma o pedido e chama o motoboy do Cadernex pra levar até você.";totAtual()};
-  w.querySelectorAll("[data-dlmodo]").forEach(b=>b.onclick=()=>{retira=b.dataset.dlmodo==="ret";
+  w.querySelectorAll("[data-dlmodo]").forEach(b=>b.onclick=()=>{if((b.dataset.dlmodo==="ret")===retira)return;pixLimpa();retira=b.dataset.dlmodo==="ret";
     w.querySelectorAll("[data-dlmodo]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
     $("dl-entw").hidden=retira;$("dl-fr-r").hidden=retira;$("dl-fr-h").hidden=retira;$("dl-retw").hidden=!retira;
     $("dl-env-h").textContent=retira?"Você paga agora pelo app e busca na loja com o código. Sem taxa de entrega.":"Você paga agora pelo app. O dinheiro vai direto pra loja, que já recebe o pedido pago.";
@@ -390,6 +390,7 @@ function ckRender(){
   modo();
   frete=null;let t=null;const calc=()=>{clearTimeout(t);t=setTimeout(calcFrete,700)};
   $("dl-end").addEventListener("input",calc);$("dl-bairro").addEventListener("input",calc);
+  ["dl-cep","dl-end","dl-bairro"].forEach(id=>{const i=$(id);if(i)i.addEventListener("change",pixLimpa)});
   cepInfo=null;$("dl-cep").addEventListener("input",e=>{const v=so(e.target.value).slice(0,8);e.target.value=v.length>5?v.slice(0,5)+"-"+v.slice(5):v;
     if(v.length===8)buscaCep(v);else if(cepInfo){cepInfo=null;calc()}});
   if(String(perfil.end_padrao||"").length>=5)calc();
@@ -474,36 +475,53 @@ async function pagarApp(end,bairro,obs){
   const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{loja_id:loja.id,itens:itens().map(x=>x.op?{id:x.p.id,n:x.n,op:x.op}:{id:x.p.id,n:x.n}),endereco:end,bairro,obs,...(retira?{retirada:true,entrega:0}:{entrega:frete?frete.v:0,km:frete?frete.km:null,lat:frete?frete.lat:null,lng:frete?frete.lng:null})}});
   b.disabled=false;b.innerHTML=t;
   if(error||!data||!data.brcode){let m=data&&data.erro;if(!m)try{const j=await error.context.json();m=j&&j.erro}catch(x){}toast(m||"Não deu pra gerar o Pix agora. Tente de novo.");return}
-  pixMostra(data);esperaPago(data.id);
+  pixMostra(data);esperaPago(data.id);meusPedLoad(); // o pedido já aparece em Meus pedidos, com "Cancelar"
 }
+// mudou entrega/retirada ou o endereço depois de gerar o Pix: o Pix antigo não vale mais (ele vence sozinho)
+function pixLimpa(){const w=$("dl-pix");if(!w||!w.innerHTML.trim()||w.querySelector(".dl-pixbox.ok"))return;
+  if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}pedVivo=null;
+  w.innerHTML="";const b=$("dl-env-b"),h=$("dl-env-h");if(b)b.hidden=false;if(h)h.hidden=false;toast("O valor mudou: gere o Pix de novo.")}
+async function cancelaPed(id,btn){
+  if(!confirm("Cancelar esse pedido? O Pix gerado deixa de valer."))return;
+  if(btn){btn.disabled=true;btn.textContent="Cancelando…"}
+  const{data,error}=await sb.functions.invoke("woovi-pedido",{body:{cancelar:id}});
+  let m=data&&data.erro;if(error&&!m){try{const j=await error.context.json();m=j&&j.erro}catch(x){}}
+  if(m||error){toast(m||"Não deu pra cancelar agora. Tente de novo.");if(btn){btn.disabled=false;btn.textContent="Cancelar pedido"}meusPedLoad();return}
+  if(pedVivo===id){pedVivo=null;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox"><b>Pedido cancelado</b><p class="hint" style="margin:0">O Pix não vale mais. Seu carrinho continua aqui se quiser pedir de novo.</p></div>`;const b2=$("dl-env-b");if(b2)b2.hidden=false}
+  toast("Pedido cancelado ✓");meusPedLoad()}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-dlcanc]");if(c){e.preventDefault();cancelaPed(c.dataset.dlcanc,c)}});
 function pixMostra(d){
   const w=$("dl-pix");if(!w)return;$("dl-env-b").hidden=true;$("dl-env-h").hidden=true;
   const qr=/^https:\/\//.test(d.qrcode||"")?`<img src="${esc(d.qrcode)}" alt="QR Code do Pix" width="220" height="220" style="display:block;margin:4px auto;background:#fff;border-radius:10px">`:"";
   w.innerHTML=`<div class="dl-pixbox"><b>Pague ${brl(Number(d.total))} no Pix</b>${qr}
     <button class="btn full" type="button" id="dl-pix-cp">Copiar Pix copia e cola</button>
-    <p class="hint" style="margin:0;text-align:center" id="dl-pix-st">Aguardando o pagamento… Vale 30 minutos.</p></div>`;
+    <p class="hint" style="margin:0;text-align:center" id="dl-pix-st">Aguardando o pagamento… Vale 30 minutos.</p>
+    <button class="btn ghost full dl-canc" type="button" data-dlcanc="${esc(d.id)}">Cancelar pedido</button></div>`;
   $("dl-pix-cp").onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(d.brcode):Promise.reject()).then(()=>toast("Pix copiado ✓ Cole no app do seu banco."),()=>prompt("Copie o código do Pix:",d.brcode))};
   w.scrollIntoView({behavior:"smooth",block:"center"});
 }
-function esperaPago(id){
+let pedVivo=null;
+function esperaPago(id){pedVivo=id;
   if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
-  let fim=false;const ok=()=>{if(fim)return;fim=true;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
+  let fim=false;const ok=()=>{if(fim||pedVivo!==id)return;fim=true;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
     cart={loja:loja.id,q:{}};salvaCart();
     const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox ok"><b>✓ Pago! Seu pedido foi pra loja.</b><p class="hint" style="margin:0">Acompanhe aqui no Delivery, em "Seus pedidos". A loja prepara e chama o motoboy.</p></div>`;
     toast("Pagamento confirmado ✓ Seu código de entrega está em Seus pedidos");setTimeout(()=>{loja=null;meusPedLoad();scrollTo(0,0)},2500)};
   try{pedCanal=sb.channel("ped-"+id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`id=eq.${id}`},m=>{if(m.new&&m.new.status==="pago")ok()}).subscribe()}catch(e){}
-  let n=0;const tick=async()=>{if(fim||++n>200)return;const r=await sb.from("pedidos_loja").select("status").eq("id",id).maybeSingle();
+  let n=0;const tick=async()=>{if(fim||pedVivo!==id||++n>200)return;const r=await sb.from("pedidos_loja").select("status").eq("id",id).maybeSingle();
     if(r.data&&r.data.status==="pago")return ok();if(r.data&&r.data.status==="expirado"){const s=$("dl-pix-st");if(s)s.textContent="O Pix venceu. Faça o pedido de novo.";return}setTimeout(tick,6000)};setTimeout(tick,6000);
 }
 /* cliente: seus pedidos do delivery */
 let meusPed=[];
-const stTxt=p=>p.retirada&&p.status==="saiu"?"Pronto pra retirar 🏪":p.retirada&&p.status==="entregue"?"Retirado ✓":p.retirada&&p.status==="aceito"?"A loja está separando":ST[p.status]||p.status;
+const stTxt=p=>p.status==="aguardando"?"Aguardando o Pix":p.status==="cancelado"?"Cancelado":p.retirada&&p.status==="saiu"?"Pronto pra retirar 🏪":p.retirada&&p.status==="entregue"?"Retirado ✓":p.retirada&&p.status==="aceito"?"A loja está separando":ST[p.status]||p.status;
 const ST={aguardando:"Aguardando pagamento",pago:"Pago · a loja vai aceitar",aceito:"A loja está preparando",saiu:"Saiu pra entrega 🛵",entregue:"Entregue ✓",cancelado:"Cancelado",expirado:"Pix vencido"};
 let meusCod={},meusCanal=null;
-async function meusPedLoad(){if(!sb||!uid)return;let r=await sb.from("pedidos_loja").select("id,numero,loja_id,itens,total,status,criado_em,retirada,endereco").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
-  if(r.error&&/retirada/.test(r.error.message||""))r=await sb.from("pedidos_loja").select("id,numero,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
-  if(r.error&&/numero/.test(r.error.message||""))r=await sb.from("pedidos_loja").select("id,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(5);
-  meusPed=r.error?[]:r.data||[];
+async function meusPedLoad(){if(!sb||!uid)return;let r=await sb.from("pedidos_loja").select("id,numero,loja_id,itens,total,status,criado_em,retirada,endereco").eq("cliente_id",uid).in("status",["aguardando","pago","aceito","saiu","entregue","cancelado"]).order("criado_em",{ascending:false}).limit(8);
+  if(r.error&&/retirada/.test(r.error.message||""))r=await sb.from("pedidos_loja").select("id,numero,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["aguardando","pago","aceito","saiu","entregue","cancelado"]).order("criado_em",{ascending:false}).limit(8);
+  if(r.error&&/numero/.test(r.error.message||""))r=await sb.from("pedidos_loja").select("id,loja_id,itens,total,status,criado_em").eq("cliente_id",uid).in("status",["aguardando","pago","aceito","saiu","entregue","cancelado"]).order("criado_em",{ascending:false}).limit(8);
+  const agora=Date.now();
+  meusPed=(r.error?[]:r.data||[]).filter(p=>p.status==="aguardando"?agora-new Date(p.criado_em)<35*60e3:p.status==="cancelado"?agora-new Date(p.criado_em)<24*3600e3:true);
+  window.cxTemPedLoja=meusPed.length>0;
   const ab=meusPed.filter(p=>p.status!=="entregue").map(p=>p.id);
   if(ab.length){const k=await sb.from("pedido_loja_codigos").select("pedido_id,codigo").in("pedido_id",ab);if(!k.error)(k.data||[]).forEach(x=>meusCod[x.pedido_id]=x.codigo)}
   if(!meusCanal){try{meusCanal=sb.channel("mp-"+uid).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`cliente_id=eq.${uid}`},m=>{
@@ -511,10 +529,14 @@ async function meusPedLoad(){if(!sb||!uid)return;let r=await sb.from("pedidos_lo
     if(m.new&&m.new.status==="entregue"&&window.cxAvaliar)setTimeout(cxAvaliar,2500);
     if(m.new&&m.old&&m.new.status!==m.old.status&&T[m.new.status]){toast(T[m.new.status]);if(window.alertaPedido)alertaPedido(m.new,T[m.new.status])}
     meusPedLoad()}).subscribe()}catch(e){}}
+  const pl=$("pd-loja");if(pl){pl.innerHTML=meusPedHtml();pl.hidden=!meusPed.length;
+    const vz=document.querySelector("#pd-lista .empty");if(vz)vz.hidden=meusPed.length>0}
   if(!loja)cliRender()}
+window.cxMeusPedLoad=()=>{try{meusPedLoad()}catch(e){}};
+if(typeof go==="function"){const g0=go;go=function(v){g0.apply(this,arguments);if(v==="pedidos"&&uid)meusPedLoad()}}
 function meusPedHtml(){if(!meusPed.length)return"";const lj=id=>(lojas||[]).find(l=>l.id===id)||{},nome=id=>lj(id).nome||"Loja";
   const zap=p=>{const w=so(lj(p.loja_id).whats).replace(/^55(?=\d{10,11}$)/,"");return w?`<a class="dl-zap sm" href="https://wa.me/55${w}?text=${encodeURIComponent(`Oi! Sou cliente do pedido ${p.numero?"#"+p.numero+" ":""}pelo Cadernex.`)}" target="_blank" rel="noopener">${IC.zap||""}Falar com a loja</a>`:""};
-  return`<div class="card stack"><div><div class="eyebrow">Pagos pelo app</div><h2 style="margin:2px 0 0">Seus pedidos</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(stTxt(p))}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small>${p.retirada&&p.status!=="entregue"?`<small class="hint">🏪 ${esc(p.endereco||"Retirar na loja")}</small>`:""}${zap(p)}${p.status!=="entregue"&&meusCod[p.id]?`<div class="dl-cod"><small>${p.retirada?"Código de retirada":"Código de entrega"}</small><b class="num">${esc(meusCod[p.id])}</b><span>${p.retirada?"Mostre esse código no balcão da loja na hora de buscar.":"Passe esse código só quando receber o pedido na mão."}</span></div>`:""}</div>`).join("")}</div>`}
+  return`<div class="card stack"><div><div class="eyebrow">Delivery das lojas</div><h2 style="margin:2px 0 0">Seus pedidos nas lojas</h2></div>${meusPed.map(p=>`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${esc(nome(p.loja_id))}</b><span class="dl-pill${["saiu","entregue"].includes(p.status)?" on":""}">${esc(stTxt(p))}</span></div><small class="hint">${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join(", ")} · ${brl(Number(p.total))}</small>${p.retirada&&!["entregue","cancelado"].includes(p.status)?`<small class="hint">🏪 ${esc(p.endereco||"Retirar na loja")}</small>`:""}${p.status==="aguardando"?`<div class="dl-pacts"><span class="hint" style="margin:0">Ainda não pago. O Pix vale 30 minutos.</span><button class="btn ghost dl-canc" type="button" data-dlcanc="${p.id}">Cancelar pedido</button></div>`:p.status==="pago"?`<small class="hint">Pra cancelar um pedido já pago, fale com a loja.</small>${zap(p)}`:p.status==="cancelado"?"":zap(p)}${p.status!=="entregue"&&meusCod[p.id]?`<div class="dl-cod"><small>${p.retirada?"Código de retirada":"Código de entrega"}</small><b class="num">${esc(meusCod[p.id])}</b><span>${p.retirada?"Mostre esse código no balcão da loja na hora de buscar.":"Passe esse código só quando receber o pedido na mão."}</span></div>`:""}</div>`).join("")}</div>`}
 
 /* lojista: receber pelo app + pedidos */
 /* ---------- chave Pix da loja ---------- */

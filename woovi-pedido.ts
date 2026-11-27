@@ -80,6 +80,21 @@ Deno.serve(async (req) => {
       return json({ ok: true, chave: ok });
     }
 
+    // cliente cancela um pedido que ainda não foi pago: apaga a cobrança na Woovi (o Pix deixa de valer)
+    if (b.cancelar) {
+      const { data: pd } = await admin.from("pedidos_loja").select("id,cliente_id,status,correlation_id").eq("id", String(b.cancelar)).maybeSingle();
+      if (!pd || pd.cliente_id !== user.id) return json({ erro: "Pedido não encontrado." }, 404);
+      if (pd.status === "cancelado" || pd.status === "expirado") return json({ ok: true });
+      if (pd.status !== "aguardando") return json({ erro: "Esse pedido já foi pago. Pra cancelar, fale com a loja." }, 409);
+      if (pd.correlation_id) {
+        const g = await woovi(`/charge/${encodeURIComponent(pd.correlation_id)}`);
+        if (g.b?.charge?.status === "COMPLETED") return json({ erro: "Esse Pix já foi pago. O pedido vai aparecer como pago em instantes." }, 409);
+        await woovi(`/charge/${encodeURIComponent(pd.correlation_id)}`, { method: "DELETE" });
+      }
+      await admin.from("pedidos_loja").update({ status: "cancelado" }).eq("id", pd.id).eq("status", "aguardando");
+      return json({ ok: true });
+    }
+
     const lojaId = String(b.loja_id || "");
     const itensPed: { id: string; n: number; op?: string }[] = Array.isArray(b.itens) ? b.itens : [];
     const retirada = b.retirada === true; // cliente busca na loja: sem entrega

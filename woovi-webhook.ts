@@ -102,7 +102,7 @@ async function pedidoLoja(corr: string) {
     }
     if (ch.status !== "COMPLETED") return ok();
     if (Number(ch.value) !== Math.round(Number(pd.total) * 100)) { console.error("pedido valor diferente", corr); return ok(); }
-    if (pd.status === "aguardando" || pd.status === "expirado") {
+    if (pd.status === "aguardando" || pd.status === "expirado" || pd.status === "cancelado") {
       await admin.from("pedidos_loja").update({ status: "pago", pago_em: new Date().toISOString() }).eq("id", pd.id);
     }
     const { data: trava } = await admin.from("pedidos_loja").update({ repasse_status: "enviando" })
