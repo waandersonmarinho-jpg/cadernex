@@ -99,7 +99,11 @@ Deno.serve(async (req) => {
     if (t === "pedidos_loja") {
       const num = c?.numero ? ` #${c.numero}` : "";
       const n = Array.isArray(c?.itens) ? c.itens.reduce((s: number, i: { n: number }) => s + Number(i.n || 1), 0) : 0;
-      if (c?.status === "pago") {
+      if (op === "CAMINHO" && c?.status === "aguardando") {
+        // o cliente gerou o Pix: avisa a loja que tem pedido a caminho (ainda não pago)
+        alvo = [c.loja_id];
+        msg = { titulo: `🛒 Pedido a caminho${num} · ${brl(Number(c.total))}`, corpo: `${c.cliente_nome || "Um cliente"} está pagando no Pix (${n} ${n === 1 ? "item" : "itens"}). Espere o pagamento cair antes de preparar.`, url: "./", tag: "pedcam-" + c.id };
+      } else if (c?.status === "pago") {
         alvo = [c.loja_id];
         msg = { titulo: `🛍️ Pedido novo pago${num} · ${brl(Number(c.total))}`, corpo: `${c.cliente_nome || "Cliente"}: ${n} ${n === 1 ? "item" : "itens"}${c.bairro ? " · " + c.bairro : ""}. Toque pra aceitar.`, url: "./", tag: "pedloja-" + c.id };
       } else {

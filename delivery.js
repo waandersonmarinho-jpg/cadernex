@@ -566,9 +566,12 @@ function chaveTxt(){const p=pixInfo;if(!p)return"carregando…";
   return"Nenhuma: complete o cadastro ou cadastre uma chave"}
 const PH={cnpj:"00.000.000/0000-00",cpf:"000.000.000-00",celular:"(62) 90000-0000",email:"loja@email.com",aleatoria:"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"};
 function pxPh(){const t=$("dl-pxt").value,i=$("dl-pxv");i.placeholder=PH[t];i.inputMode=t==="email"||t==="aleatoria"?"text":"numeric";i.type=t==="email"?"email":"text"}
+// confere os dígitos verificadores: evita salvar celular no lugar do CPF
+function dvCpf(c){if(!/^\d{11}$/.test(c)||/^(\d)\1{10}$/.test(c))return false;const d=k=>{let s=0;for(let i=0;i<k;i++)s+=+c[i]*(k+1-i);return(s*10)%11%10};return d(9)===+c[9]&&d(10)===+c[10]}
+function dvCnpj(c){if(!/^\d{14}$/.test(c)||/^(\d)\1{13}$/.test(c))return false;const d=k=>{const w=k===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2];let s=0;for(let i=0;i<k;i++)s+=+c[i]*w[i];const r=s%11;return r<2?0:11-r};return d(12)===+c[12]&&d(13)===+c[13]}
 function normChave(t,v){v=String(v||"").trim();
-  if(t==="cpf"){v=so(v);return v.length===11?v:null}
-  if(t==="cnpj"){v=so(v);return v.length===14?v:null}
+  if(t==="cpf"){v=so(v);return dvCpf(v)?v:null}
+  if(t==="cnpj"){v=so(v);return dvCnpj(v)?v:null}
   if(t==="celular"){v=so(v).replace(/^55(?=\d{10,11}$)/,"");return/^\d{10,11}$/.test(v)?"+55"+v:null}
   if(t==="email"){v=v.toLowerCase();return/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)&&v.length<=77?v:null}
   if(t==="aleatoria"){v=v.toLowerCase();return/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(v)?v:null}
@@ -576,7 +579,7 @@ function normChave(t,v){v=String(v||"").trim();
 document.addEventListener("change",e=>{if(e.target.id==="dl-pxt")pxPh()});
 document.addEventListener("submit",async e=>{if(e.target.id!=="dl-pixf")return;e.preventDefault();
   const t=$("dl-pxt").value,v=normChave(t,$("dl-pxv").value),senha=$("dl-pxs").value,b=e.target.querySelector("[type=submit]");
-  if(!v){toast("Essa chave não parece um "+TIPOS[t]+" válido. Confira.");$("dl-pxv").focus();return}
+  if(!v){const n=so($("dl-pxv").value);toast(t==="cpf"&&/^\d{2}9\d{8}$/.test(n)?"Esse número parece um celular, não um CPF. Se a chave é o celular, escolha o tipo Celular.":"Essa chave não parece um "+TIPOS[t]+" válido. Confira.");$("dl-pxv").focus();return}
   if(senha.length<6){toast("Digite sua senha do Cadernex");$("dl-pxs").focus();return}
   b.disabled=true;b.textContent="Conferindo…";
   try{const{data:{user}}=await sb.auth.getUser();
@@ -596,13 +599,21 @@ async function pixLigar(on){
       toast(m||"Não deu pra conferir a chave agora. Tente de novo.");return}}
   safe(async()=>{await savePerfil({loja_pix:on});admRender()},on?"Pronto! Chave conferida, sua loja recebe pelo app ✓":"Desligado: os clientes não conseguem pedir até você ligar de novo");
 }
-let pedLoja=[],pedLojaCanal=null;
+let pedLoja=[],pedLojaCanal=null;const camVisto=new Set();
 async function pedLojaLoad(){if(!sb||!uid||!ehLoja())return;
   if(!pixInfo)pixLoad();
-  const r=await sb.from("pedidos_loja").select("*").eq("loja_id",uid).in("status",["pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(30);
-  pedLoja=r.error?[]:r.data||[];admRender();pedRecRender();
+  const r=await sb.from("pedidos_loja").select("*").eq("loja_id",uid).in("status",["aguardando","pago","aceito","saiu","entregue"]).order("criado_em",{ascending:false}).limit(30);
+  const ag=Date.now();pedLoja=(r.error?[]:r.data||[]).filter(p=>p.status!=="aguardando"||(p.brcode&&ag-new Date(p.criado_em)<35*60e3));pedLoja.forEach(p=>{if(p.status==="aguardando")camVisto.add(p.id)});admRender();pedRecRender();
   if(!pedLojaCanal){try{pedLojaCanal=sb.channel("pl-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"pedidos_loja",filter:`loja_id=eq.${uid}`},m=>{
-    if(m.new&&m.new.status==="pago"&&(!m.old||m.old.status!=="pago"))novoPedido(m.new);pedLojaLoad()}).subscribe()}catch(e){}}
+    if(m.new&&m.new.status==="aguardando"){if(m.new.brcode&&!camVisto.has(m.new.id)){camVisto.add(m.new.id);pedCaminho(m.new)}}
+    else if(m.new&&m.new.status==="pago"&&(!m.old||m.old.status!=="pago"))novoPedido(m.new);pedLojaLoad()}).subscribe()}catch(e){}}
+}
+// pedido a caminho: o cliente gerou o Pix e está pagando (ainda não pago)
+function pedCaminho(p){
+  const t=`🛒 Pedido a caminho${p.numero?" #"+p.numero:""} · ${brl(Number(p.total))}`;
+  try{window.cxSom&&cxSom(2)}catch(e){}try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  if(document.hidden&&window.cxNotificar)cxNotificar(t,`${p.cliente_nome||"Um cliente"} está pagando no Pix. Espere o pagamento cair antes de preparar.`,"pedcam-"+p.id);
+  toast(t+" · aguardando o Pix");
 }
 // alerta de pedido novo pra loja: som, vibração, notificação e aviso na tela
 function novoPedido(p){
@@ -632,7 +643,10 @@ function acoesPed(p){
 function pedLojaHtml(){
   if(!perfil.loja_pix)return"";
   const ativos=pedLoja.filter(p=>p.status!=="entregue"),feitos=pedLoja.filter(p=>p.status==="entregue").slice(0,5);
-  const um=p=>{const w=so(p.cliente_whats);return`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(stTxt(p))}</span></div>
+  const um=p=>{const w=so(p.cliente_whats);if(p.status==="aguardando")return`<div class="dl-ped dl-cam"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill">⏳ Aguardando o Pix</span></div>
+    <div>${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join("<br>")}</div>
+    <small class="dl-camt">🛒 <b>Pedido a caminho.</b> O cliente gerou o Pix de ${brl(Number(p.total))} e está pagando. <b>Ainda não prepare</b>: avisamos com som quando o pagamento cair. Se ele não pagar em 30 minutos, o pedido some sozinho.</small></div>`;
+    return`<div class="dl-ped"><div class="row"><b>${p.numero?`#${p.numero} · `:""}${new Date(p.criado_em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · ${esc(p.cliente_nome||"Cliente")}</b><span class="dl-pill${p.status==="pago"?"":" on"}">${esc(stTxt(p))}</span></div>
     <div>${(p.itens||[]).map(i=>`${i.n}× ${esc(i.nome)}`).join("<br>")}</div>
     ${p.retirada?`<small class="dl-retl">🏪 O cliente vai buscar na loja${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>`:`<small class="hint">Entregar em: ${esc(p.endereco)}${p.bairro?" — "+esc(p.bairro):""}${p.obs?` · Obs.: ${esc(p.obs)}`:""}</small>`}
     <small class="hint">Produtos ${brl(Number(p.subtotal))} − 12% Cadernex${p.entrega_app||p.retirada||!Number(p.entrega)?"":` + entrega ${brl(Number(p.entrega))}`} = <b>você recebe ${brl(Number(p.repasse))}</b>${["enviado","manual"].includes(p.repasse_status)?" · no seu Pix ✓":p.repasse_status==="erro"?" · em conferência":""}${p.entrega_app?` · entrega de ${brl(Number(p.entrega))} paga pelo cliente`:""}</small>
