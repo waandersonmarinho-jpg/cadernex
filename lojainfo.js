@@ -37,7 +37,8 @@ el("lj-corpo").addEventListener("submit",e=>{e.preventDefault();
   const ig=insta(el("lj-insta").value),st=link(el("lj-site").value),fb=face(el("lj-face").value);
   if(el("lj-insta").value.trim()&&!ig){toast("Instagram inválido: coloque só o @ da loja");el("lj-insta").focus();return}
   if(el("lj-site").value.trim()&&!st){toast("Site inválido: confira o endereço");el("lj-site").focus();return}
-  const patch={loja:!!nome,loja_nome:nome||null,loja_ramo:el("lj-ramo").value||null,loja_bairro:el("lj-bairro").value.trim()||null,
+  if(!nome&&perfil.loja){toast("Coloque o nome da loja. Pra desligar a loja, use a opção \"Tenho uma loja\" no Perfil.");el("lj-nome")?.focus?.();return}
+  const patch={loja:!!nome||!!perfil.loja,loja_nome:nome||perfil.loja_nome||null,loja_ramo:el("lj-ramo").value||null,loja_bairro:el("lj-bairro").value.trim()||null,
     loja_whats:w||null,loja_horario:el("lj-hora").value.trim()||null};
   // redes só entram se já existem ou se a pessoa preencheu
   [["loja_insta",ig],["loja_face",fb],["loja_site",st]].forEach(([k,v])=>{if(k in perfil||v)patch[k]=v||null});

@@ -360,7 +360,13 @@ body.cli #timerCard,body.cli #hojeCard{display:none}
 @keyframes pinp{50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--good) 0%,transparent),0 1px 4px rgba(0,0,0,.35)}}
 @media (prefers-reduced-motion:reduce){.rpin.on{animation:none}}
 .rpin{display:grid;place-items:center;border-radius:50%;font:700 13px var(--body);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.rpin.col{background:#1d1f22;color:#fff}.rpin.ent{background:var(--good);color:#fff}
+.rpin.col{background:#1d1f22;color:#fff}
+.on-map{height:300px;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);background:var(--bg)}
+.on-leg{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}.on-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.on-leg i.l{background:#16a34a}.on-leg i.c{background:#f59e0b}.on-leg span:last-child{margin-left:auto}
+.rpin.olv{background:#16a34a;color:#fff;font-size:14px;width:32px!important;height:32px!important;margin:-16px 0 0 -16px!important}
+.rpin.ocr{background:#f59e0b;color:#fff;font-size:14px;width:32px!important;height:32px!important;margin:-16px 0 0 -16px!important}
+.on-pop b{display:block;font-size:14px}.on-pop span{display:block;font-size:12px;color:#555;margin-top:2px}.on-pop a{display:inline-block;margin-top:6px;font-weight:700}.rpin.ent{background:var(--good);color:#fff}
 .rpin.mot{background:var(--accent);font-size:15px;width:32px!important;height:32px!important;margin:-16px 0 0 -16px!important}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rmap .leaflet-tile-pane,:root:not([data-theme="light"]) .dmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
 :root[data-theme="dark"] .rmap .leaflet-tile-pane,:root[data-theme="dark"] .dmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
@@ -1530,7 +1536,7 @@ html:not([data-app]) #au-entrar .inst-box{display:none!important}
       <button class="card maisbtn" type="button" data-go="hist"><b>Histórico e ajustes</b><span>Tudo que você anotou, meta da semana e planilha</span></button>
       <a class="card maisbtn so-ent" href="autonomo.html" style="text-decoration:none"><b>Você é autônomo</b><span>Seus direitos, liberdade de horário, INSS e MEI</span></a>
       <div class="card stack" id="on-card" hidden><button type="button" class="cad-h" id="on-abre" aria-expanded="false" aria-controls="on-corpo"><span class="cad-ht"><h2>Online agora</h2><span id="on-res"></span></span><svg class="cad-seta" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="stack" id="on-corpo" hidden><div class="stack" id="on-lista" style="gap:8px"></div><button class="link" type="button" id="on-atual" style="align-self:center">Atualizar lista</button></div></div>
+        <div class="stack" id="on-corpo" hidden><div class="on-mapw" id="on-mapw" hidden><div id="on-map" class="on-map" role="img" aria-label="Mapa dos entregadores online"></div><div class="on-leg"><span><i class="l"></i>Livre</span><span><i class="c"></i>Em corrida</span><span id="on-hora"></span></div></div><div class="stack" id="on-lista" style="gap:8px"></div><button class="link" type="button" id="on-atual" style="align-self:center">Atualizar lista</button></div></div>
       <div class="card stack pp-card" id="pp-card" hidden>
         <div class="row" style="align-items:center;gap:10px"><div style="flex:1"><div class="eyebrow">Moderador</div><h2 style="margin:2px 0 0">Pagamentos com problema</h2></div><span class="pp-n" id="pp-n">…</span></div>
         <div class="stack" id="pp-lista" style="gap:10px"></div>

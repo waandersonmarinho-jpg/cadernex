@@ -120,6 +120,7 @@ document.documentElement.classList.add("app-"+(ENT?"ent":"loja"));
 const css=document.createElement("style");css.textContent=`
 .app-ent #a-tipo [data-tipo]:not([data-tipo=entregador]),.app-loja #a-tipo [data-tipo]:not([data-tipo=cliente]){display:none!important}
 .app-ent #a-tipo,.app-loja #a-tipo{grid-template-columns:1fr!important}
+.app-loja label:has(#lj-on){display:none!important}
 .ap-bx{display:none!important}
 .ap-in .inst-box{justify-content:center}
 .ap-in{display:flex;flex-direction:column;gap:10px;padding:14px;margin:6px 0;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--accent)}
@@ -207,11 +208,23 @@ function contaErrada(sim){
 document.addEventListener("click",e=>{if(!e.target.closest("#s-auth [data-cta]"))return;
   setTimeout(()=>document.querySelectorAll("#a-tipo [data-tipo]").forEach(x=>x.setAttribute("aria-checked",String(x.dataset.tipo===INFO.tipo))),0)});
 let lojaIni=false;
+function nomeAba(){const t=document.querySelector('.tab[data-v="lojas"]');if(ENT||!t)return;const n=[...t.childNodes].filter(x=>x.nodeType===3&&x.textContent.trim()).pop();if(n&&n.textContent!=="Minha loja")n.textContent="Minha loja"}
 function depois(){
+  nomeAba();
   if(typeof perfil==="undefined"||!perfil.tipo)return;
   const cli=perfil.tipo==="cliente";
   contaErrada(ENT?cli:!cli);
   if(!ENT&&cli&&!lojaIni){lojaIni=true;try{go("lojas")}catch(e){}}
+  // app da Loja com a loja desligada: avisa e religa com um toque (os dados da loja continuam salvos)
+  let av=document.getElementById("ap-religa");
+  if(!ENT&&cli&&!perfil.loja&&String(perfil.loja_nome||"").trim()){
+    if(!av){av=document.createElement("div");av.id="ap-religa";av.className="card";av.setAttribute("role","alert");
+      av.style.cssText="margin:12px 16px;border:1.5px solid #f59e0b;display:flex;flex-direction:column;gap:8px";
+      av.innerHTML=`<b style="font-size:16px">⚠️ Sua loja está desligada</b><span class="hint" style="margin:0">A <b></b> não aparece pros clientes e você não recebe pedidos. Os dados e o cardápio continuam salvos.</span><button class="btn" type="button">Religar minha loja</button>`;
+      av.querySelector("b+span b,span b").textContent=perfil.loja_nome;
+      av.querySelector("button").onclick=async()=>{try{await savePerfil({loja:true});av.remove();toast("Loja religada ✓");if(typeof aplicaPapel==="function")aplicaPapel(perfil);try{go("lojas")}catch(e){}}catch(e){toast("Não deu. Confira a internet.")}};
+      const v=document.getElementById("v-lojas")||document.querySelector("main");if(v)v.prepend(av)}
+  }else if(av)av.remove();
 }
 function liga(){
   entrada();

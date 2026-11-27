@@ -18,8 +18,12 @@ function perfilRender(){
   $("lj-horario").value=perfil.loja_horario||"";$("lj-whats").value=perfil.loja_whats?fmtTel(perfil.loja_whats):"";$("lj-cnpj").value=perfil.loja_cnpj?fmtCnpj(perfil.loja_cnpj):"";$("lj-cep").value=perfil.loja_cep?perfil.loja_cep.replace(/(\d{5})(\d{3})/,"$1-$2"):"";
   $("lj-prod-w").hidden=!ehLoja();
 }
-$("lj-on").onchange=()=>{const on=$("lj-on").checked;$("fLoja").hidden=!on;
-  if(!on&&perfil.loja)safe(async()=>{await savePerfil({loja:false});tudo()},"Modo loja desligado")};
+$("lj-on").onchange=()=>{const on=$("lj-on").checked;
+  if(!on&&perfil.loja){
+    // desligar a loja tira ela da vitrine e para os pedidos: só com confirmação clara
+    if(document.documentElement.dataset.app==="loja"||!confirm(`Desligar a loja "${perfil.loja_nome||"sua loja"}"?\n\nEla some da lista de lojas, os clientes não conseguem mais comprar e você deixa de receber pedidos e avisos.\n\nPra só parar por um tempo, use "Fechar a loja" no painel da loja.`)){$("lj-on").checked=true;return}
+    $("fLoja").hidden=true;safe(async()=>{await savePerfil({loja:false});tudo()},"Loja desligada. Pra religar, marque de novo \"Tenho uma loja\".");return}
+  $("fLoja").hidden=!on};
 $("lj-cnpj").addEventListener("input",e=>{const v=so(e.target.value).slice(0,14);e.target.value=v.length>12?fmtCnpj(v.padEnd(14," ")).trim():v});
 $("fLoja").onsubmit=e=>{e.preventDefault();const msg=$("lj-msg");msg.textContent="";
   const nome=$("lj-nome").value.trim(),end=$("lj-end").value.trim(),bairro=$("lj-bairro").value.trim(),cnpj=so($("lj-cnpj").value),whats=so($("lj-whats").value);
