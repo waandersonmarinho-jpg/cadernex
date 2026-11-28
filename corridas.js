@@ -293,7 +293,7 @@ const BASE=8,PERTO_KM=3,POR_KM_LONGE=1.4;
 // até 3 km: R$ 8 fixo; cada km rodado acima de 3 km: + R$ 1,40. Arredonda pra cima de 50 em 50 centavos
 const justo=k=>{k=Math.max(0,k||0);const v=BASE+POR_KM_LONGE*Math.max(0,k-PERTO_KM);return Math.max(BASE,Math.ceil(v*2)/2)};
 // entrega de pedido de loja: base R$ 6 (o pedido do cliente já paga a corrida)
-const justoLoja=k=>{k=Math.max(0,k||0);return Math.max(6,Math.ceil((6+POR_KM_LONGE*Math.max(0,k-PERTO_KM))*2)/2)};
+const justoLoja=k=>{k=Math.max(0,k||0);return Math.max(6,Math.ceil(1.25*k*2)/2)};
 function pfJusto(k){if(pfTipo!=="frete")return justo(k);return precoFrete(pfVei(),k,+picked($("pf-aj")),Math.max(0,Math.round(num($("pf-and").value)||0)))}
 function sugerir(){
   const auto=window.kmRota!=null?window.kmRota:(locs.c&&locs.e?km(locs.c.lat,locs.c.lng,locs.e.lat,locs.e.lng):null);

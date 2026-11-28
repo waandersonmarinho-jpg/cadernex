@@ -17,8 +17,8 @@ const imgLoja=(id,tipo,v)=>v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produ
 const iniciais=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
 const logoHtml=(id,nome,v,cls)=>v?`<img class="${cls}" src="${esc(imgLoja(id,"logo",v))}" alt="" loading="lazy">`:`<span class="${cls} dl-ini">${esc(iniciais(nome))}</span>`;
 // taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 14% de serviço + R$ 1,99 do app, arredondada pra 50 centavos
-// entrega de loja: motoqueiro ganha R$ 6 até 3 km (+ R$ 1,40 por km acima)
-const corridaLoja=k=>Math.max(6,Math.ceil((6+1.4*Math.max(0,k-3))*2)/2);
+// entrega de loja: motoqueiro ganha R$ 1,25 por km, mínimo R$ 6 (arredonda pra cima de 50 em 50 centavos)
+const corridaLoja=k=>Math.max(6,Math.ceil(1.25*Math.max(0,k)*2)/2);
 const freteDe=k=>{const base=corridaLoja(k);return Math.ceil((base*1.14+1.99)*2)/2};
 const IC={
   loja:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>',
