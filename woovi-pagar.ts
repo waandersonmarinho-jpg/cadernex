@@ -1,5 +1,5 @@
 // Cadernex — woovi-pagar: cria o Pix da corrida na Woovi já com a divisão
-// Quem pede paga corrida + 14% de serviço + R$ 1,99 de taxa do app. A parte do entregador (corrida − 8% de comissão; 6% até 30/11) vai
+// Quem pede paga corrida + 14% de serviço + R$ 2,99 de taxa do app. A parte do entregador (corrida − 8% de comissão; 6% até 30/11) vai
 // direto pra subconta dele (chave = CPF) e o webhook manda pro Pix dele quando o pagamento cai.
 // Segredo necessário (Supabase → Edge Functions → Secrets): WOOVI_APP_ID
 // Publicar com "Verify JWT" LIGADO (padrão).
@@ -8,7 +8,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 const API = "https://api.woovi.com/api/v1";
 const TAXA_APP = 0.14;   // serviço, pago por quem pede (cliente ou loja)
 const TAXA_LOJA = 0.14;
-const TAXA_FIXA = 1.99;  // taxa do app por corrida (cobre o Pix)
+const TAXA_FIXA = 2.99;  // taxa do app por corrida (cobre o Pix)
 const COMISSAO = 0.06; // até 30/11/2026
 const COMISSAO_NOVA = 0.08; // 8% a partir de 01/12/2026
 const COMISSAO_NOVA_INICIO = Date.parse("2026-12-01T03:00:00Z"); // 01/12/2026 00h em Brasília

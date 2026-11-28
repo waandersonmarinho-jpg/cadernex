@@ -76,7 +76,7 @@ if(APP!=="entregador"&&APP!=="loja"){
     const calc=mk("card cl-calc",`<span class="eyebrow">Quanto custa</span><h2 style="margin:0">Simule sua entrega de moto</h2>
       <div class="cl-km"><span>Distância</span><b id="cl-kmv">3 km</b></div>
       <input type="range" id="cl-km" min="1" max="20" step="1" value="3" aria-label="Distância em km">
-      <div class="cl-val"><span>Corrida</span><span id="cl-c">R$ 8,00</span><span>Taxa de serviço (14%)</span><span id="cl-s">R$ 1,12</span><span>Taxa do app</span><span>R$ 1,99</span><span class="tot">Você paga</span><span id="cl-t">R$ 11,11</span></div>
+      <div class="cl-val"><span>Corrida</span><span id="cl-c">R$ 8,00</span><span>Taxa de serviço (14%)</span><span id="cl-s">R$ 1,12</span><span>Taxa do app</span><span>R$ 2,99</span><span class="tot">Você paga</span><span id="cl-t">R$ 12,11</span></div>
       <p class="hint" style="margin:0;font-size:12px">Estimativa. O valor exato aparece pelo CEP antes de confirmar o pedido.</p>
       <button class="btn full" type="button" data-cta="enviar">Pedir entrega agora</button>`);
     const seg=mk("cl-sec",`<span class="eyebrow">Por que pedir pelo Cadernex</span><h2>Seguro do começo ao fim</h2>
@@ -101,7 +101,7 @@ if(APP!=="entregador"&&APP!=="loja"){
     const pl=p.querySelector(".promo-l");if(pl)trab.after(pl);
     const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
     const kmI=calc.querySelector("#cl-km"),conta=()=>{const k=+kmI.value,cor=Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2),sv=Math.round(cor*14)/100;
-      calc.querySelector("#cl-kmv").textContent=k+" km";calc.querySelector("#cl-c").textContent=brl(cor);calc.querySelector("#cl-s").textContent=brl(sv);calc.querySelector("#cl-t").textContent=brl(cor+sv+1.99)};
+      calc.querySelector("#cl-kmv").textContent=k+" km";calc.querySelector("#cl-c").textContent=brl(cor);calc.querySelector("#cl-s").textContent=brl(sv);calc.querySelector("#cl-t").textContent=brl(cor+sv+2.99)};
     kmI.addEventListener("input",conta);conta();
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",cli);else cli();

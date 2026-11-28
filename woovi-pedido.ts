@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
       km = Math.round(k * 10) / 10;
       if (km > 40) return json({ erro: "Esse endereço está fora da área de entrega da loja." }, 400);
       corridaValor = Math.max(6, Math.ceil(1.25 * Math.max(0, km) * 2) / 2); // entrega de loja: R$ 1,25 por km, mínimo R$ 6
-      entrega = Math.ceil((corridaValor * 1.14 + 1.99) * 2) / 2;
+      entrega = Math.ceil((corridaValor * 1.14 + 2.99) * 2) / 2;
       entregaApp = true;
     }
     const repasse = r2(subtotal - comissao + (entregaApp ? 0 : entrega));

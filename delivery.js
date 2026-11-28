@@ -16,10 +16,10 @@ const linkDa=id=>`${SITE}?loja=${id===uid&&perfil.loja_slug?perfil.loja_slug:id}
 const imgLoja=(id,tipo,v)=>v?`${CFG.SUPABASE_URL}/storage/v1/object/public/produtos/${id}/${tipo}.jpg?v=${v}`:"";
 const iniciais=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase();
 const logoHtml=(id,nome,v,cls)=>v?`<img class="${cls}" src="${esc(imgLoja(id,"logo",v))}" alt="" loading="lazy">`:`<span class="${cls} dl-ini">${esc(iniciais(nome))}</span>`;
-// taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 14% de serviço + R$ 1,99 do app, arredondada pra 50 centavos
+// taxa de entrega estimada = corrida do Cadernex (R$ 8 até 3 km, + R$ 1,40/km) + 14% de serviço + R$ 2,99 do app, arredondada pra 50 centavos
 // entrega de loja: motoqueiro ganha R$ 1,25 por km, mínimo R$ 6 (arredonda pra cima de 50 em 50 centavos)
 const corridaLoja=k=>Math.max(6,Math.ceil(1.25*Math.max(0,k)*2)/2);
-const freteDe=k=>{const base=corridaLoja(k);return Math.ceil((base*1.14+1.99)*2)/2};
+const freteDe=k=>{const base=corridaLoja(k);return Math.ceil((base*1.14+2.99)*2)/2};
 const IC={
   loja:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/></svg>',
   foto:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
@@ -714,7 +714,7 @@ const MODAIS=[
   {v:"picape_p",i:"🛻",n:"Picape pequena",d:"Volumes médios: caixas, eletros pequenos",fr:1},
   {v:"picape_m",i:"🛻",n:"Picape média",d:"Volumes grandes: móveis, material de obra",fr:1},
   {v:"caminhao",i:"🚚",n:"Caminhão pequeno",d:"Carga pesada ou muita coisa",fr:1}];
-const TX_SERV=0.14,TX_APP=1.99,AJUD=typeof AJUDANTE!=="undefined"?AJUDANTE:70;
+const TX_SERV=0.14,TX_APP=2.99,AJUD=typeof AJUDANTE!=="undefined"?AJUDANTE:70;
 const precoModal=(m,k,aj)=>m.fr?(typeof precoFrete==="function"?precoFrete(m.v,k,aj,0):Math.ceil(((m.v==="picape_p"?40:m.v==="picape_m"?60:150)+(m.v==="picape_p"?3:m.v==="picape_m"?3.5:5)*k+aj*AJUD)*2)/2)
   :(typeof justo==="function"?justo(k):Math.max(8,Math.ceil((8+1.4*Math.max(0,k-3))*2)/2));
 const totLoja=v=>Math.round((v*(1+TX_SERV)+TX_APP)*100)/100;
@@ -750,7 +750,7 @@ function despachoAbrir(p,k){
     <label class="dsp-val" hidden>Valor da corrida (pode aumentar pra achar entregador mais rápido)<input id="dsp-v" inputmode="decimal"></label>
     <p class="hint dsp-res" style="margin:0"></p>
     <button class="btn full" type="button" id="dsp-ok" disabled>Escolha o veículo</button>
-    <p class="hint" style="margin:0;font-size:12px">Por cima da corrida: 14% de serviço + R$ 1,99 de taxa do app. O cliente pagou ${brl(Number(p.entrega)||0)} de entrega.</p></div>`;
+    <p class="hint" style="margin:0;font-size:12px">Por cima da corrida: 14% de serviço + R$ 2,99 de taxa do app. O cliente pagou ${brl(Number(p.entrega)||0)} de entrega.</p></div>`;
   document.body.appendChild(bg);
   const ops=bg.querySelector(".dsp-ops"),vin=bg.querySelector("#dsp-v"),res=bg.querySelector(".dsp-res"),ok=bg.querySelector("#dsp-ok");
   const minimo=()=>sel?precoModal(sel,kk,sel.fr?aj:0):0;

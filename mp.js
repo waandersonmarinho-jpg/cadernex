@@ -1,12 +1,12 @@
 /* Cadernex — pagamento pelo app: Pix pela Woovi, com divisão automática pro Pix (CPF/CNPJ) de quem recebe */
 (function(){
-const CFG=window.CORRE_CONFIG||{},MP_TAXA=CFG.WOOVI_TAXA||0.008,TAXA_APP=0.14,TAXA_FIXA=1.99;
+const CFG=window.CORRE_CONFIG||{},MP_TAXA=CFG.WOOVI_TAXA||0.008,TAXA_APP=0.14,TAXA_FIXA=2.99;
 let euRecebo=null; // entregador logado recebe pelo app (Pix ativo com CPF)?
 const ehLoja=()=>!!(perfil.loja&&String(perfil.loja_nome||"").trim());
 const recebe={},pags={};// entregador_id -> bool ; corrida_id -> pagamento
 // mesma conta do servidor: o entregador recebe o valor inteiro
 const taxaCli=()=>TAXA_APP;
-// quem pede paga: corrida + 14% de serviço + R$ 1,99 de taxa do app (encomenda já paga: só o Pix)
+// quem pede paga: corrida + 14% de serviço + R$ 2,99 de taxa do app (encomenda já paga: só o Pix)
 function contaTotal(valor,sem6){if(sem6){const total=Math.ceil(valor/(1-MP_TAXA)*100)/100;return{total,taxa:Math.round((total-valor)*100)/100}}
   const taxa=Math.round((valor*TAXA_APP+TAXA_FIXA)*100)/100;return{total:Math.round((valor+taxa)*100)/100,taxa}}
 
@@ -72,7 +72,7 @@ function pintar(){
     if(p&&p.status==="pago"){el.innerHTML=`<div class="mp-pago">✓ ${/^cxa-/.test(p.correlation_id||"")?"Entrega já paga pelo cliente no pedido":"Pago pelo app · "+brl(Number(p.total))}</div>`;return}
     if(!recebe[c.entregador_id]){el.innerHTML=`<p class="hint" style="margin:0">O Pix desse entregador ainda não está pronto. Fale com ele pela conversa da corrida, ou cancele e peça de novo.</p>`;return}
     const sem6=!!(window.encCorridas&&window.encCorridas.has(c.id)),k=contaTotal(Number(c.valor),sem6);
-    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxas (serviço 14% + app R$ 1,99)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
+    el.innerHTML=`<div class="mp-box"><div class="mp-linhas"><span>${c.tipo==="frete"?"Frete":"Entrega"}</span><span class="num">${brl(Number(c.valor))}</span><span>${sem6?"Taxa do Pix (sem a taxa de serviço: já cobrada na compra)":"Taxas (serviço 14% + app R$ 2,99)"}</span><span class="num">${brl(k.taxa)}</span><b>Total</b><b class="num">${brl(k.total)}</b></div>
       <button class="btn full" type="button" data-mppagar="${c.id}">📲 Gerar QR Code do Pix · ${brl(k.total)}</button>
       <div class="wv-pix" data-wv="${c.id}"></div>
       <p class="hint" style="margin:0;font-size:12px">${p&&p.status==="recusado"?"O último Pix venceu ou não passou. Gere outro. ":""}Você paga um Pix só. A parte do entregador cai direto no Pix dele, na hora.</p></div>`;
