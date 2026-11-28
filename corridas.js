@@ -132,7 +132,7 @@ function cartao(c,papel){ // papel: "ent" | "cli"
   const d=dets[c.id],ativo=["aceita","coletada"].includes(c.status),aberto=corrAberta===c.id||(ativo&&corrAberta==null);
   const pill=`<span class="pill st-${c.devolvida_em?"devolvida":c.status}">${c.tipo==="frete"?stTxt(c).replace("Entregador","Freteiro").replace("entregador","freteiro"):stTxt(c)}</span>`;
   let h=`<div class="corr${aberto?" open":""}" data-corr="${c.id}"><div class="corr-h" data-toggle="${c.id}"><div class="l"><div class="t">${esc(c.coleta_bairro)} → ${esc(c.entrega_bairro)}</div><div class="s">${esc(c.item)}${c.distancia_km?` · ~${String(c.distancia_km).replace(".",",")} km`:""} · ${ha(c.created_at)}</div></div><div class="corr-v num">${brl(Number(c.valor))}</div></div>`;
-  const fr=c.tipo==="frete",jj=c.distancia_km?(fr?precoFrete(c.veiculo,Number(c.distancia_km),c.ajudantes,c.andares):justo(Number(c.distancia_km))):null,selo=jj==null?"":Number(c.valor)>=jj?`<span class="pill justo">Valor justo</span>`:`<span class="pill abaixo">Abaixo do justo (${brl(jj)})</span>`;
+  const fr=c.tipo==="frete",jj=c.distancia_km?(fr?precoFrete(c.veiculo,Number(c.distancia_km),c.ajudantes,c.andares):(c.loja?justoLoja:justo)(Number(c.distancia_km))):null,selo=jj==null?"":Number(c.valor)>=jj?`<span class="pill justo">Valor justo</span>`:`<span class="pill abaixo">Abaixo do justo (${brl(jj)})</span>`;
   h+=`<div class="corr-meta">${fr?`<span class="pill frete">Frete</span>`:""}${pill}${selo}${c.veiculo!=="qualquer"?`<span class="pill">${icVei(c.veiculo)}${veiNome(c.veiculo)}</span>`:""}${c.agendado_para?`<span class="pill agenda">${IC.cal}${quandoTxt(c.agendado_para)}</span>`:""}${fr&&c.ajudantes?`<span class="pill">${c.ajudantes} ajudante${c.ajudantes>1?"s":""}</span>`:""}${fr&&c.andares?`<span class="pill">${c.andares} andar${c.andares>1?"es":""} de escada</span>`:""}</div>`;
   if(!aberto)return h+(papel==="ent"&&c.status==="aberta"?`<button class="btn full" data-aceitar="${c.id}">Aceitar por ${brl(Number(c.valor))}</button>`:"")+`</div>`;
   if(papel==="cli"&&c.entregador_nome){const md=medias[c.entregador_id];h+=`<p class="corr-pessoa"><span class="av" data-av="${c.entregador_id}" hidden></span>${fr?"Freteiro":"Entregador"}: <b>${esc(c.entregador_nome)}</b>${c.ent_veiculo?` · ${veiNome(c.ent_veiculo)}`:""}${c.ent_placa?` · placa <b class="placa">${esc(c.ent_placa.replace(/^(...)/,"$1-"))}</b>`:""}${md&&md.avaliacoes?` · ★ ${String(md.media).replace(".",",")} (${md.avaliacoes})`:""}${md&&md.entregas?` · ${md.entregas} entregas`:""}</p>`}
@@ -292,6 +292,8 @@ $("pf-cloc").onclick=()=>usarLoc("c");$("pf-eloc").onclick=()=>usarLoc("e");
 const BASE=8,PERTO_KM=3,POR_KM_LONGE=1.4;
 // até 3 km: R$ 8 fixo; cada km rodado acima de 3 km: + R$ 1,40. Arredonda pra cima de 50 em 50 centavos
 const justo=k=>{k=Math.max(0,k||0);const v=BASE+POR_KM_LONGE*Math.max(0,k-PERTO_KM);return Math.max(BASE,Math.ceil(v*2)/2)};
+// entrega de pedido de loja: base R$ 6 (o pedido do cliente já paga a corrida)
+const justoLoja=k=>{k=Math.max(0,k||0);return Math.max(6,Math.ceil((6+POR_KM_LONGE*Math.max(0,k-PERTO_KM))*2)/2)};
 function pfJusto(k){if(pfTipo!=="frete")return justo(k);return precoFrete(pfVei(),k,+picked($("pf-aj")),Math.max(0,Math.round(num($("pf-and").value)||0)))}
 function sugerir(){
   const auto=window.kmRota!=null?window.kmRota:(locs.c&&locs.e?km(locs.c.lat,locs.c.lng,locs.e.lat,locs.e.lng):null);
