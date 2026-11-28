@@ -120,6 +120,7 @@ document.documentElement.classList.add("app-"+(ENT?"ent":"loja"));
 const css=document.createElement("style");css.textContent=`
 .app-ent #a-tipo [data-tipo]:not([data-tipo=entregador]),.app-loja #a-tipo [data-tipo]:not([data-tipo=cliente]){display:none!important}
 .app-ent #a-tipo,.app-loja #a-tipo{grid-template-columns:1fr!important}
+.app-ent .maisbtn[data-go=pedir],.app-ent .maisbtn[data-go=pedidos]{display:none!important}
 .app-loja label:has(#lj-on){display:none!important}
 .ap-bx{display:none!important}
 .ap-in .inst-box{justify-content:center}
