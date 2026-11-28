@@ -247,7 +247,7 @@ function cliRender(){
   const w=$("dl-cli");if(!w)return;
   if(loja)return cardRender();
   if(lojas==null){w.innerHTML=`<p class="hint">Carregando as lojas…</p>`;return}
-  w.innerHTML=`<div class="dl-hero"><img src="delivery-hero.jpg" alt="Motoboy do Cadernex Delivery com pizza, hambúrguer e sacolas prontas pra entrega" width="848" height="600" loading="lazy" decoding="async"><div class="dl-hero-t"><b>Bateu a fome? A gente leva.</b><span>Pizza, lanche, mercado e mais · Pix pelo app e entrega com código</span></div></div>`+meusPedHtml()+(lojas.length?`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
+  w.innerHTML=`<div class="dl-hero"><img src="delivery-hero.jpg" alt="Motoboy do Cadernex Delivery com pizza, hambúrguer e sacolas prontas pra entrega" width="848" height="600" loading="lazy" decoding="async"><div class="dl-hero-t"><b>Bateu a fome? A gente leva.</b><span>Pizza, lanche, mercado e mais · Pix pelo app e entrega com código</span></div></div>`+(lojas.length?`<div class="card stack"><div><div class="eyebrow">Compre de quem é daqui</div><h2 style="margin:2px 0 0">Lojas no Cadernex</h2></div>
     ${lojas.map(l=>`<button class="dl-lj" type="button" data-dlloja="${l.id}">${l.logo_v?logoHtml(l.id,l.nome,l.logo_v,"dl-lj-i dl-lj-logo"):`<span class="dl-lj-i">${IC.loja}</span>`}
       <span class="dl-lj-t"><b>${esc(l.nome)}${window.cxNotaTxt&&cxNotaTxt(l.id)?` <span class="dl-nota">${cxNotaTxt(l.id)}</span>`:""}</b><small>${esc([l.ramo,l.bairro,l.horario].filter(Boolean).join(" · "))}</small></span>
       <span class="dl-lj-s"><em class="dl-pill${l.aberta?" on":""}">${l.aberta?"Aberta":"Fechada"}</em><small>${l.produtos} produto${l.produtos==1?"":"s"}</small></span></button>`).join("")}</div>`:"");
@@ -512,8 +512,8 @@ function esperaPago(id){pedVivo=id;
   if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
   let fim=false;const ok=()=>{if(fim||pedVivo!==id)return;fim=true;if(pedCanal){try{sb.removeChannel(pedCanal)}catch(e){}pedCanal=null}
     if(loja&&cart.loja===loja.id){cart={loja:loja.id,q:{}};salvaCart()}
-    const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox ok"><b>✓ Pago! Seu pedido foi pra loja.</b><p class="hint" style="margin:0">Acompanhe aqui no Delivery, em "Seus pedidos". A loja prepara e chama o motoboy.</p></div>`;
-    toast("Pagamento confirmado ✓ Seu código de entrega está em Seus pedidos");setTimeout(()=>{loja=null;meusPedLoad();scrollTo(0,0)},2500)};
+    const w=$("dl-pix");if(w)w.innerHTML=`<div class="dl-pixbox ok"><b>✓ Pago! Seu pedido foi pra loja.</b><p class="hint" style="margin:0">Acompanhe na aba Pedidos, com o seu código de entrega. A loja prepara e chama o motoboy.</p></div>`;
+    toast("Pagamento confirmado ✓ Seu código de entrega está em Pedidos");setTimeout(()=>{loja=null;meusPedLoad();if(typeof go==="function")go("pedidos");scrollTo(0,0)},2500)};
   try{pedCanal=sb.channel("ped-"+id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"pedidos_loja",filter:`id=eq.${id}`},m=>{if(m.new&&m.new.status==="pago")ok()}).subscribe()}catch(e){}
   let n=0;const tick=async()=>{if(fim||pedVivo!==id||++n>200)return;const r=await sb.from("pedidos_loja").select("status").eq("id",id).maybeSingle();
     if(r.data&&r.data.status==="pago")return ok();if(r.data&&r.data.status==="expirado"){const s=$("dl-pix-st");if(s)s.textContent="O Pix venceu. Faça o pedido de novo.";return}setTimeout(tick,6000)};setTimeout(tick,6000);
