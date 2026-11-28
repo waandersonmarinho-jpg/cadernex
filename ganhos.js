@@ -21,14 +21,17 @@ async function carregar(){
   const desde=new Date(Date.now()-30*DIA).toISOString();
   const [c,p,d]=await Promise.all([
     sb.from("corridas").select("*").eq("entregador_id",uid).eq("status","entregue").gte("entregue_em",desde),
-    sb.from("pagamentos").select("corrida_id,status").eq("entregador_id",uid).eq("status","pago"),
+    sb.from("pagamentos").select("corrida_id,status,repasse").eq("entregador_id",uid).eq("status","pago"),
     sb.from("dados_pessoais").select("cpf,saque_pix").eq("user_id",uid).maybeSingle()
   ]);
   if(c.error){w.hidden=true;return}
   w.hidden=false;
-  const pagas=new Set((p.error?[]:p.data||[]).map(x=>x.corrida_id));
+  // ganhos = o que cai no Pix do entregador: o repasse enviado; sem repasse registrado, corrida − comissão (6% até 30/11/2026, 8% depois)
+  const rep=new Map((p.error?[]:p.data||[]).filter(x=>x.repasse!=null).map(x=>[x.corrida_id,n(x.repasse)]));
+  const COM8=new Date("2026-12-01T03:00:00Z").getTime();
+  const liq=x=>{if(rep.has(x.id))return rep.get(x.id);const b=n(x.valor)+(x.retorno_em?n(x.retorno_valor):0);return Math.round(b*(1-(new Date(x.entregue_em).getTime()>=COM8?0.08:0.06))*100)/100};
   const lista=c.data||[],agora=Date.now(),hoje=new Date();hoje.setHours(0,0,0,0);
-  const soma=f=>{const l=lista.filter(f);return{v:l.reduce((s,x)=>s+n(x.valor)+(x.retorno_em?n(x.retorno_valor):0),0),q:l.length}};
+  const soma=f=>{const l=lista.filter(f);return{v:Math.round(l.reduce((s,x)=>s+liq(x),0)*100)/100,q:l.length}};
   const h=soma(x=>new Date(x.entregue_em)>=hoje),sem=soma(x=>agora-new Date(x.entregue_em)<7*DIA),mes=soma(()=>true);
   vals={h,sem,mes};pinta();
   pix=d.error?null:d.data;pixRender(!!d.error);
