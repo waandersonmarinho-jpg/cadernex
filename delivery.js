@@ -282,8 +282,8 @@ function cardRender(){if(!loja)return;
   </div>
   ${gs.length>1?`<div class="dl-chips">${gs.map(([c],i)=>`<button type="button" class="chip" data-dlir="${i}">${esc(c)}</button>`).join("")}</div>`:""}
   ${cardapio==null?`<p class="hint">Carregando o cardápio…</p>`:!cardapio.length?`<p class="hint">Essa loja ainda não colocou produtos.</p>`:gs.map(([c,ps],i)=>`<div class="dl-sec" id="dl-sec-${i}"><div class="dl-cat-t">${esc(c)}</div>${ps.map(p=>{const k=chaveDe(p),n=k?cart.q[k]||0:0,op=p.opcoes,tem=op?Object.entries(cart.q).filter(([x,q])=>q>0&&x.split("|")[0]===p.id).map(([x,q])=>`${q}× ${x.split("|")[1]}`):[];return`
-    <div class="dl-item${op?" dl-op":""}">${p.foto_v?`<img class="dl-img" src="${esc(fotoUrl(l.id,p))}" alt="" loading="lazy">`:""}
-      <div class="dl-pt"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small><span class="num">${brl(Number(p.preco))}</span></div>
+    <div class="dl-item${op?" dl-op":""}">${p.foto_v?`<img class="dl-img" data-dlver="${p.id}" src="${esc(fotoUrl(l.id,p))}" alt="Ver ${esc(p.nome)}" loading="lazy">`:""}
+      <div class="dl-pt" data-dlver="${p.id}" role="button" tabindex="0" aria-label="Ver detalhes de ${esc(p.nome)}"><b>${esc(p.nome)}</b><small>${esc(p.descricao||"")}</small><span class="num">${brl(Number(p.preco))}</span></div>
       ${pode?`<div class="dl-qt">${n?`<button type="button" data-dlmenos="${esc(k)}" aria-label="Tirar um">−</button><b>${n}</b>`:""}<button type="button" data-dlmais="${p.id}" aria-label="Adicionar">+</button></div>`:""}
       ${op?`<div class="dl-ops" role="group" aria-label="${esc(op.nome)}"><span>${esc(op.nome)}:</span>${op.valores.map(v=>`<button type="button" class="dl-opc" data-dlop="${p.id}" data-v="${esc(v)}" aria-pressed="${sel[p.id]===v}">${esc(v)}</button>`).join("")}${tem.length?`<small>No pedido: ${esc(tem.join(", "))}</small>`:""}</div>`:""}
     </div>`}).join("")}</div>`).join("")}
@@ -458,6 +458,7 @@ document.addEventListener("click",e=>{
   const lj=e.target.closest("[data-dlloja]");if(lj){abrirLoja(lj.dataset.dlloja);return}
   if(e.target.closest("[data-dlvolta]")){loja=null;if(publico&&$("vt-sub"))$("vt-sub").textContent="Lojas de Goiânia";cliRender();scrollTo(0,0);if(lojas==null)lojasLoad();return}
   const ir=e.target.closest("[data-dlir]");if(ir){$("dl-sec-"+ir.dataset.dlir)?.scrollIntoView({behavior:"smooth",block:"start"});return}
+  const vr=e.target.closest("[data-dlver]");if(vr){prodAbre(vr.dataset.dlver);return}
   const oc=e.target.closest("[data-dlop]");if(oc){sel[oc.dataset.dlop]=oc.dataset.v;const y=scrollY;cardRender();scrollTo(0,y);return}
   const ma=e.target.closest("[data-dlmais]");if(ma){const p=(cardapio||[]).find(x=>x.id===ma.dataset.dlmais);const k=p&&chaveDe(p);
     if(!k){toast(`Escolha a ${(p&&p.opcoes&&p.opcoes.nome||"cor").toLowerCase()} primeiro`);const c=ma.closest(".dl-item")?.querySelector(".dl-ops");if(c){c.classList.remove("pisca");void c.offsetWidth;c.classList.add("pisca")}return}
@@ -466,6 +467,43 @@ document.addEventListener("click",e=>{
   if(e.target.closest("[data-dlck]")){ckRender();return}
   if(e.target.closest("[data-dlenviar]")){enviar();return}
 });
+
+/* ---------- página do produto: toca na foto ou no nome ---------- */
+let prodAt=null,prodQ=1,prodOp=null;
+function prodAbre(id){const p=(cardapio||[]).find(x=>x.id===id);if(!p||!loja)return;prodAt=p;prodQ=1;prodOp=p.opcoes?(sel[p.id]||null):null;
+  let o=$("dl-prodv");if(!o){o=document.createElement("div");o.id="dl-prodv";o.className="dl-prodv";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");document.body.appendChild(o);o.addEventListener("click",prodClique)}
+  prodRender();o.hidden=false;document.documentElement.classList.add("dl-trava");
+  try{history.pushState({dlprod:1},"")}catch(e){}}
+function prodFecha(volta){const o=$("dl-prodv");if(!o||o.hidden)return;o.hidden=true;document.documentElement.classList.remove("dl-trava");prodAt=null;
+  if(volta!==false)try{if(history.state&&history.state.dlprod)history.back()}catch(e){}}
+addEventListener("popstate",()=>{const o=$("dl-prodv");if(o&&!o.hidden)prodFecha(false)});
+addEventListener("keydown",e=>{if(e.key==="Escape")prodFecha()});
+function prodRender(){const p=prodAt,l=loja,o=$("dl-prodv");if(!p||!o)return;const pode=l.aberta&&!!l.pix,op=p.opcoes,pr=Number(p.preco);
+  const noCarr=qtdDe(p.id);
+  o.innerHTML=`<div class="dl-prodbg" data-dlpfecha></div><div class="dl-prodc">
+  <button class="dl-prodx" type="button" data-dlpfecha aria-label="Fechar">×</button>
+  ${p.foto_v?`<div class="dl-prodf"><img src="${esc(fotoUrl(l.id,p))}" alt="${esc(p.nome)}"></div>`:""}
+  <div class="dl-prodt">
+    <div class="eyebrow">${esc(String(p.categoria||"").trim()||l.nome)}</div>
+    <h2>${esc(p.nome)}</h2>
+    <div class="dl-prodp num">${brl(pr)}</div>
+    ${p.descricao?`<p class="dl-prodd">${esc(p.descricao)}</p>`:""}
+    ${op?`<div class="dl-prodo"><b>${esc(op.nome)}</b><div class="dl-ops">${op.valores.map(v=>`<button type="button" class="dl-opc" data-dlpop="${esc(v)}" aria-pressed="${prodOp===v}">${esc(v)}</button>`).join("")}</div></div>`:""}
+    <small class="hint" style="margin:0">Vendido por <b>${esc(l.nome)}</b>${noCarr?` · ${noCarr} já no pedido`:""}</small>
+  </div>
+  <div class="dl-prodb">${pode?`<div class="dl-qt dl-prodq"><button type="button" data-dlpq="-1" aria-label="Menos">−</button><b>${prodQ}</b><button type="button" data-dlpq="1" aria-label="Mais">+</button></div>
+    <button class="btn" type="button" data-dlpadd>Adicionar · ${brl(pr*prodQ)}</button>`:`<p class="hint" style="margin:0;flex:1">${!l.aberta?"A loja está fechada agora. O pedido libera quando ela abrir.":"Essa loja ainda está preparando os pedidos pelo app."}</p>`}</div>
+  </div>`}
+function prodClique(e){
+  if(e.target.closest("[data-dlpfecha]")){prodFecha();return}
+  const po=e.target.closest("[data-dlpop]");if(po){prodOp=po.dataset.dlpop;prodRender();return}
+  const pq=e.target.closest("[data-dlpq]");if(pq){prodQ=Math.min(99,Math.max(1,prodQ+Number(pq.dataset.dlpq)));prodRender();return}
+  if(e.target.closest("[data-dlpadd]")){const p=prodAt;if(!p)return;
+    if(p.opcoes&&!prodOp){toast(`Escolha a ${(p.opcoes.nome||"cor").toLowerCase()} primeiro`);const c=$("dl-prodv").querySelector(".dl-ops");if(c){c.classList.remove("pisca");void c.offsetWidth;c.classList.add("pisca")}return}
+    const k=p.opcoes?p.id+"|"+prodOp:p.id;if(p.opcoes)sel[p.id]=prodOp;
+    cart.q[k]=(cart.q[k]||0)+prodQ;salvaCart();const y=scrollY;prodFecha();cardRender();scrollTo(0,y);
+    toast(`${prodQ}× ${p.nome}${p.opcoes?" ("+prodOp+")":""} no pedido ✓`)}
+}
 
 /* ---------- pedido pago pelo app (Pix na Woovi): dinheiro vai direto pra loja ---------- */
 let pedCanal=null;
